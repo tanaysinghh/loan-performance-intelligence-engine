@@ -23,7 +23,7 @@ Starting point (latest observed month, 2026-06): market rate 5.42%, unemployment
 
 They are not redundant. Engine A answers *which loans*; Engine B answers *how bad*. Section 3 shows why neither can be asked to do the other's job here.
 
-## 3. Why Engine A only shifts the refinance channel
+## 3. Why Engine A cannot size a credit stress
 
 Engine A's **credit** channel is not identified from this data, and the evidence is in its own output rather than in an argument about it.
 

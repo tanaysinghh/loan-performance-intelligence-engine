@@ -123,7 +123,7 @@ def _write_report(out, scenarios, macro):
     A("They are not redundant. Engine A answers *which loans*; Engine B answers *how bad*. "
       "Section 3 shows why neither can be asked to do the other's job here.")
     A("")
-    A("## 3. Why Engine A only shifts the refinance channel")
+    A("## 3. Why Engine A cannot size a credit stress")
     A("")
     A(SIM.IDENTIFICATION_NOTE)
     A("")

@@ -1,0 +1,11 @@
+loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
+LN101348,2025-12,DQ90plus,0.9908,-4.3516,10.5547,current performance status,3.0,6.8526,current status,DQ90plus,1.9704,months delinquent in last 6 months,4.0,0.518,days past due,98.0,0.4848
+LN101254,2025-10,DQ90plus,0.9908,-4.3516,10.5547,current performance status,3.0,6.4715,current status,DQ90plus,1.8418,months delinquent in last 6 months,6.0,0.5346,days past due,104.0,0.5156
+LN101348,2026-01,DQ90plus,0.9907,-4.3516,10.5341,current performance status,3.0,6.8822,current status,DQ90plus,1.9703,months delinquent in last 6 months,5.0,0.5249,days past due,111.0,0.4788
+LN100523,2026-03,DQ90plus,0.9906,-4.3516,10.5268,current performance status,3.0,6.6628,current status,DQ90plus,1.8618,months delinquent in last 6 months,6.0,0.5512,days past due,91.0,0.5346
+LN100523,2026-01,DQ90plus,0.9906,-4.3516,10.5268,current performance status,3.0,6.6375,current status,DQ90plus,1.8631,months delinquent in last 6 months,6.0,0.5478,days past due,101.0,0.532
+LN100948,2025-12,DQ90plus,0.9906,-4.3516,10.5186,current performance status,3.0,6.1464,current status,DQ90plus,1.7288,credit score band,0.0,0.5534,days past due,113.0,0.5007
+LN101204,2025-10,DQ90plus,0.9906,-4.3516,10.5185,current performance status,3.0,5.5492,current status,DQ90plus,1.5235,credit score band,1.0,0.5556,days past due,99.0,0.502
+LN101204,2025-11,DQ90plus,0.9906,-4.3516,10.5185,current performance status,3.0,5.4878,current status,DQ90plus,1.5124,credit score band,1.0,0.5459,days past due,92.0,0.4982
+LN100251,2026-02,DQ90plus,0.9905,-4.3516,10.5115,current performance status,3.0,6.0063,current status,DQ90plus,1.7328,days past due,104.0,0.4953,months delinquent in last 6 months,4.0,0.4629
+LN101026,2026-01,DQ90plus,0.9905,-4.3516,10.5105,current performance status,3.0,6.1904,current status,DQ90plus,1.7029,days past due,98.0,0.4904,months delinquent in last 6 months,4.0,0.4796
