@@ -1,0 +1,17 @@
+scenario_name,macro_input,isolated_contribution,share_of_total
+adverse_credit,hpi_yoy_growth,0.011944587070592011,1.5367601647449156
+adverse_credit,market_rate_delta_12m,0.0018522032474714845,0.23829975460041336
+adverse_credit,unemployment_rate,0.0008359448517463453,0.10755053653133165
+adverse_credit,market_mortgage_rate,0.00014583809605436815,0.018763158173159655
+adverse_credit,unemployment_delta_12m,-0.0010536364564904532,-0.1355581842124967
+adverse_credit,interaction_residual,-0.0013808640978344722,-0.1776584595128467
+adverse_credit,rate_incentive,-0.0021936137564650404,-0.2822247615467253
+adverse_credit,refi_incentive_positive,-0.002377881721088826,-0.3059322087777516
+high_prepayment,market_mortgage_rate,0.04076935172266591,0.3134383683266989
+high_prepayment,interaction_residual,0.028476217060957654,0.21892766587066625
+high_prepayment,refi_incentive_positive,0.027863428934641055,0.21421649676135054
+high_prepayment,rate_incentive,0.02696780235095117,0.20733084067019167
+high_prepayment,market_rate_delta_12m,0.0032343210465060612,0.024865745189123437
+high_prepayment,hpi_yoy_growth,0.002760228924525099,0.02122088318196915
+high_prepayment,unemployment_rate,0.0,0.0
+high_prepayment,unemployment_delta_12m,0.0,0.0

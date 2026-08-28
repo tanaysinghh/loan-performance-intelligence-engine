@@ -158,3 +158,70 @@ prepayment from 0.68 to 0.996. That +0.10 to +0.32 gap is the exact amount a nai
 would have flattered this submission by.
 
 ---
+## Tasks 3-5 — Survival, anomaly, scenarios
+
+**Date:** 2026-08-28
+**AI-generated code share (est.):** ~85% generated, 100% reviewed, ~25% rewritten.
+
+### Task 3 — Time-to-event
+Kaplan-Meier and Cox from `lifelines`, plus an empirical multi-state Markov chain.
+
+**Accepted.** Handling three censoring mechanisms separately rather than as one bucket:
+administrative right-censoring, competing risks, and left truncation. Left truncation matters
+most here — 66% of loans enter the panel already seasoned, and crediting them with event-free
+exposure at ages they were never observed at would have flattened the seasoning ramp.
+
+**Rejected.** First draft reported `1 - KM` as the default probability. Rejected: with a 65%
+cumulative prepayment rate, that treats prepaid loans as still at risk. Added Aalen-Johansen
+cumulative incidence alongside. At loan age 108 months the naive figure reads 0.418 against a
+true cumulative incidence of 0.192 — an overstatement of 0.227 in absolute probability, which
+on a 10,000-loan book is provisioning for ~2,265 defaults that cannot happen.
+
+### Task 4 — Anomaly and exception
+
+**Rejected — the entire first anomaly feature set.** The isolation forest was first built on
+raw record levels (balance, loan age, term, original balance). It scored a lift of **0.92x**
+against the exception label — *worse than random selection* — because a genuinely large,
+genuinely seasoned jumbo loan is a statistical outlier and a perfectly correct record. The
+feature set was rebuilt around quantities where deviation means a *defect*: residuals against
+what the record should say given its own other fields (amortisation vs term elapsed, DPD vs
+reported status), servicer-feed disagreements, reporting timeliness and repair indicators.
+Same model, new features: lift 2.02x, ROC-AUC 0.615 → 0.845.
+
+**Accepted.** Keeping anomaly score, exception probability and exception type as three
+separate models. A blended score would hide both failure modes — the clean-looking record
+with a missing document file, and the wild outlier nobody needs to review.
+
+**Instructive negative result kept in the report.** The exception model's logistic baseline is
+deliberately the same nine credit fields used in Task 2, and it scores ROC-AUC 0.53. Operational
+exceptions are not a credit phenomenon, and reusing a credit feature set for them solves the
+wrong problem.
+
+### Task 5 — Scenarios
+
+**The finding that took the most work.** Engine A (model repricing) produced a near-zero
+adverse-credit impact (+0.15% relative on 12-month default from a 2.3pp unemployment shock)
+and, worse, a high-prepayment scenario that *raised* projected default — sign backwards. This
+is not a tuning problem. Macro levels are constant across all loans within a month, so with a
+single realised macro path there is no cross-sectional variation to identify them from; the
+trees learn a calendar-time proxy, and in this panel's history low rates coincided with the
+pandemic unemployment spike.
+
+**Rejected — the first fix.** Perturbing only the cross-sectionally identified
+refinance-incentive features while holding macro levels at observed values. It made things
+worse: it hands the model a combination that never occurs in training (market rate 5.5%
+alongside an incentive computed against 5.74%) and the *base case* prepayment projection —
+which should be a no-op — jumped from 0.156 to 0.396. Reverted to internally consistent
+shifts plus an explicit statement of what the resulting credit number is worth.
+
+**Accepted.** Engine B, a macro-conditioned Markov chain that regresses transition log-odds on
+the macro path and extrapolates through a logistic link. It carries the credit stress
+properly: adverse conditions move cumulative 12-month default from 17.4% to 22.7% and roughly
+triple the delinquent stock (4.1% → 12.2%). The division of labour is stated plainly in the
+report: **Engine B sizes the stress, Engine A says which loans.**
+
+*Lesson:* when a model gives an implausible scenario answer, check identification before
+reaching for hyperparameters. No amount of tuning recovers a coefficient the data cannot
+identify.
+
+---
