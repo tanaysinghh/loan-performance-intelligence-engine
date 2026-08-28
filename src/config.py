@@ -20,7 +20,7 @@ DATA_DICTIONARY = DATA_RAW / "data_dictionary.csv"
 
 RANDOM_SEED = 20260828
 
-PANEL_START = "2022-01"
+PANEL_START = "2019-01"
 PANEL_END = "2026-06"
 
 STATES = ["Current", "DQ30", "DQ60", "DQ90plus", "Default", "Prepaid", "PaidOff"]
@@ -59,8 +59,8 @@ BINARY_TARGETS = [
 MULTICLASS_TARGETS = ["next_state", "exception_type"]
 ALL_TARGETS = BINARY_TARGETS + MULTICLASS_TARGETS + ["exception_required"]
 
-TRAIN_END = "2025-03"
-VALID_END = "2025-09"
+TRAIN_END = "2024-06"
+VALID_END = "2024-12"
 
 RAW_COLUMNS = [
     "loan_id", "month_index", "reporting_month", "origination_month", "loan_age_months",

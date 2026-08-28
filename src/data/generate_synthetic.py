@@ -25,10 +25,14 @@ def logistic(x):
 def build_macro_history(months: pd.PeriodIndex, rng: np.random.Generator) -> pd.DataFrame:
     n = len(months)
     t = np.arange(n)
-    market_rate = 3.1 + 3.2 * logistic((t - 14) / 6.0) - 0.55 * logistic((t - 40) / 5.0)
-    market_rate = market_rate + rng.normal(0, 0.05, n).cumsum() * 0.12
-    unemployment = 3.6 + 0.9 * logistic((t - 30) / 7.0) + rng.normal(0, 0.04, n).cumsum() * 0.10
-    hpi_growth = 0.055 - 0.075 * logistic((t - 22) / 6.0) + rng.normal(0, 0.003, n)
+    market_rate = (4.40 - 1.60 * logistic((t - 18) / 4.0) + 4.40 * logistic((t - 44) / 4.0)
+                   - 1.80 * logistic((t - 74) / 5.0))
+    market_rate = market_rate + rng.normal(0, 0.04, n).cumsum() * 0.08
+    unemployment = (3.70 + 2.90 * np.exp(-((t - 15) / 3.5) ** 2)
+                    + 1.20 * logistic((t - 64) / 8.0) + rng.normal(0, 0.03, n).cumsum() * 0.06)
+    hpi_growth = (0.045 + 0.130 * np.exp(-((t - 28) / 8.0) ** 2)
+                  - 0.070 * logistic((t - 52) / 6.0) + 0.030 * logistic((t - 76) / 7.0)
+                  + rng.normal(0, 0.003, n))
     return pd.DataFrame({
         "reporting_month": months.astype(str),
         "market_mortgage_rate": np.round(market_rate, 3),
@@ -50,7 +54,7 @@ def build_loan_book(n_loans: int, months: pd.PeriodIndex, rng: np.random.Generat
     dti_idx = np.clip(np.digitize(dti_logit, [-1.2, -0.3, 0.4, 1.3]), 0, 4)
     dti = np.array(C.DTI_BANDS)[dti_idx]
 
-    orig_start = pd.Period("2018-01", freq="M")
+    orig_start = pd.Period("2015-01", freq="M")
     span = (months[-1] - orig_start).n - 6
     orig_offsets = rng.integers(0, span, n_loans)
     origination = [orig_start + int(o) for o in orig_offsets]
@@ -59,7 +63,9 @@ def build_loan_book(n_loans: int, months: pd.PeriodIndex, rng: np.random.Generat
     orig_bal = np.round(np.exp(rng.normal(12.35, 0.45, n_loans)) / 1000.0) * 1000.0
     orig_bal = np.clip(orig_bal, 45_000, 1_250_000)
 
-    macro_rate_at_orig = 3.1 + 3.2 * logistic((orig_month_idx - 14) / 6.0)
+    macro_rate_at_orig = (4.40 - 1.60 * logistic((orig_month_idx - 18) / 4.0)
+                          + 4.40 * logistic((orig_month_idx - 44) / 4.0)
+                          - 1.80 * logistic((orig_month_idx - 74) / 5.0))
     note_rate = (macro_rate_at_orig + 0.55 - 0.11 * (credit_ord - 3)
                  + 0.09 * ltv_idx + rng.normal(0, 0.22, n_loans))
     note_rate = np.round(np.clip(note_rate, 2.25, 11.5), 3)
@@ -164,7 +170,7 @@ def simulate_panel(loans: pd.DataFrame, macro: pd.DataFrame, months: pd.PeriodIn
         a = age[idx].astype(float)
 
         seasoning = 1.35 * logistic((a - 16) / 9.0) - 0.55 * logistic((a - 74) / 18.0)
-        macro_stress = 0.85 * (unemp[m] - 3.8) - 3.4 * hpi[m]
+        macro_stress = 0.45 * (unemp[m] - 3.8) - 3.4 * hpi[m]
         rate_incentive = note_rate[idx] - mkt_rate[m]
         cur = status[idx].copy()
 

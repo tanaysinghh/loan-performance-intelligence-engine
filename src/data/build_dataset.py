@@ -9,7 +9,7 @@ from src.data import generate_synthetic as G
 from src.data import messiness as M
 from src.data.exceptions_label import build_exception_labels, reconcile_servicer_feed
 
-N_LOANS = 1900
+N_LOANS = 1500
 
 
 def build_macro_scenarios(macro: pd.DataFrame) -> pd.DataFrame:
@@ -43,7 +43,7 @@ def build_macro_scenarios(macro: pd.DataFrame) -> pd.DataFrame:
 
 DICTIONARY = [
     ("loan_id", "string", "Unique loan identifier, stable across reporting months.", "LNxxxxxx", "core_servicing"),
-    ("month_index", "int", "Zero-based index of the reporting month within the panel window.", "0..53", "derived"),
+    ("month_index", "int", "Zero-based index of the reporting month within the panel window.", "0..N-1 where N is the panel length in months", "derived"),
     ("reporting_month", "period[M]", "Calendar month the record describes.", "YYYY-MM", "core_servicing"),
     ("origination_month", "period[M]", "Month the loan was originated.", "YYYY-MM", "core_servicing"),
     ("loan_age_months", "int", "Months elapsed since origination as reported by the servicer.", ">=0", "core_servicing"),
