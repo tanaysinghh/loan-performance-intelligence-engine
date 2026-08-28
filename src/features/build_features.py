@@ -123,6 +123,16 @@ def build(df: pd.DataFrame, macro: pd.DataFrame) -> pd.DataFrame:
     out["svc_dpd_gap"] = out["svc_dpd_gap"].fillna(0.0)
     out["reporting_lag_days"] = out["reporting_lag_days"].astype(float)
 
+    expected_ratio = 1.0 - out["term_progress"].clip(0, 1) ** 1.6
+    out["amortisation_residual"] = out["balance_ratio"] - expected_ratio
+    expected_dpd = out["current_status"].map(
+        {"Current": 0.0, "DQ30": 30.0, "DQ60": 60.0, "DQ90plus": 90.0, "Default": 180.0,
+         "Prepaid": 0.0, "PaidOff": 0.0})
+    out["dpd_status_residual"] = out["days_past_due_clean"] - expected_dpd
+    out["balance_growth_excess"] = out["balance_change_1m"].clip(lower=0)
+    out["doc_incomplete"] = out["document_status"].isin(["missing", "exception"]).astype(float)
+    out["manual_upload"] = (out["source_system"] == "manual_upload").astype(float)
+
     out["seasoning_bucket"] = pd.cut(out["loan_age_months_clean"],
                                      [-1, 6, 12, 24, 36, 60, 120, 1000],
                                      labels=False).astype(float)
@@ -157,7 +167,8 @@ NUMERIC_FEATURES = [
     "dq_score", "dq_violation_count", "dpd_repaired", "rate_repaired", "balance_repaired",
     "age_repaired", "stale_reporting", "reporting_lag_days", "svc_present",
     "svc_balance_rel_gap", "svc_status_conflict", "svc_dpd_gap",
-    "seasoning_bucket", "calendar_month",
+    "seasoning_bucket", "calendar_month", "amortisation_residual", "dpd_status_residual",
+    "balance_growth_excess", "doc_incomplete", "manual_upload",
 ]
 
 BASELINE_FEATURES = [
