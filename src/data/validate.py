@@ -100,6 +100,7 @@ def prepare_for_rules(df: pd.DataFrame) -> pd.DataFrame:
 
 def run_rules(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     prepared = prepare_for_rules(df)
+    prepared = prepared.drop(columns=[c for c in prepared.columns if c.startswith("vr_")])
     flags = pd.DataFrame(index=prepared.index)
     for rule in RULES:
         flags[f"vr_{rule.name}"] = rule.fn(prepared).astype(int)

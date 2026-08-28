@@ -99,8 +99,8 @@ def anomaly_scores(pipe, df: pd.DataFrame, cols: list[str]) -> pd.Series:
     return pd.Series(np.clip((raw - lo) / max(hi - lo, 1e-9), 0, 1), index=df.index)
 
 
-def anomaly_drivers(df: pd.DataFrame, cols: list[str], reference_mask: np.ndarray,
-                    top_k: int = 3) -> pd.DataFrame:
+def anomaly_drivers(df: pd.DataFrame, cols: list[str], reference_mask=None,
+                    top_k: int = 3, reference: pd.DataFrame | None = None) -> pd.DataFrame:
     """Per-record driver attribution by robust deviation from the training distribution.
 
     Isolation forest gives no native per-feature attribution. Rather than fabricate one, each
@@ -108,7 +108,7 @@ def anomaly_drivers(df: pd.DataFrame, cols: list[str], reference_mask: np.ndarra
     distribution, and the largest deviations are named. This is what a reviewer can actually
     check against the record in front of them.
     """
-    ref = df.loc[reference_mask, cols]
+    ref = (reference[cols] if reference is not None else df.loc[reference_mask, cols])
     med = ref.median()
     mad = (ref - med).abs().median() * 1.4826
     mad = mad.replace(0, np.nan).fillna(ref.std().replace(0, 1.0)).fillna(1.0)
