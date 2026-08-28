@@ -225,3 +225,138 @@ reaching for hyperparameters. No amount of tuning recovers a coefficient the dat
 identify.
 
 ---
+## Tasks 6-7 — Explainability and the LLM copilot
+
+**Date:** 2026-08-28
+**AI-generated code share (est.):** ~85% generated, 100% reviewed, ~20% rewritten.
+
+### Task 6
+
+**Accepted.** Computing SHAP against the raw LightGBM margin rather than the calibrated
+probability. SHAP values are additive in log-odds; explaining the calibrated probability
+breaks additivity and the contributions stop summing to anything. Local explanations report
+log-odds contributions *and* the calibrated probability, labelled separately.
+
+**Rejected — my own narrative, not the code.** The first draft of the cross-model
+observations asserted that "delinquency and default are dominated by payment history, not
+origination credit attributes." Checking it against the actual SHAP output showed that is only
+true for the 3-month model; the 12-month default model is led by credit band, DTI band and
+note rate. Rewritten to the accurate and more interesting finding: **short-horizon risk is
+behavioural, long-horizon risk is structural**, and both models saw identical features.
+
+*This is the failure mode to watch for when an AI assistant writes reports: plausible summary
+prose that was never checked against the numbers it summarises.*
+
+### Task 7
+
+**Accepted — the grounding validator.** The system prompt tells the model not to invent
+numbers. That is not a control, it is a request. The validator extracts every number from the
+generated text and matches it against the grounding pack, including values scaled by 100 or
+rounded, which are the forms a helpful model reaches for. Unmatched numbers block the output.
+
+**Rejected — reporting an 11/11 validator pass rate as evidence.** The offline template only
+ever emits pack numbers, so a 100% pass rate proved nothing at all. Added a six-case self-test
+that feeds the validator deliberately bad output: a fabricated 41.7% probability, a rescaled
+figure, a causal assertion, an overconfident foreclosure directive, and a note with no
+reviewer framing, plus one clean case. All six behave as specified. *A validator that has only
+seen well-behaved output is untested.*
+
+**Not done, and stated rather than faked.** No Anthropic credential was available in the build
+environment. The five adversarial probes are defined in code and execute, but against the
+deterministic offline template — which cannot hallucinate and therefore cannot demonstrate the
+failure modes the probes exist to catch. Writing plausible-looking transcripts and presenting
+them as captured API output would be fabricating evidence, so that section says what is
+missing and exactly how to produce it. This is the one incomplete item in the submission.
+
+---
+
+## Deliverables, model card and the drift problem
+
+**Date:** 2026-08-28
+
+**Rejected — a hand-written model card.** The first model card was written by hand with
+metrics copied from the reports. Within one retraining run six figures were already stale
+(3-month ROC-AUC quoted 0.892 against an actual 0.900; next-state macro-F1 0.440 against
+0.434). Replaced with `src/report_model_card.py`, which authors the narrative but reads every
+figure from the pipeline's own report CSVs. Retraining regenerates the card and the numbers
+cannot drift away from the models.
+
+**Accepted.** Making `run_rules` idempotent after a test caught that re-running it on an
+already-flagged frame raised a column-overlap error. Small bug, found by a test that existed
+for a different reason.
+
+---
+
+## 9. Human review process
+
+Three lenses on every AI-generated module, applied before it was kept:
+
+1. **Leakage lens** — could this feature or split let the model see the future, or let the
+   same `loan_id` sit on both sides of a boundary? Caught the forward-target censoring bug and
+   drove the whole purge/embargo/observability design.
+2. **Numeric lens** — run it, print the distribution, sanity-check against the data-generating
+   process. Caught the loss-severity skew, the 0.92x anomaly lift, the near-zero adverse
+   scenario, and the base-case prepayment jump from 0.156 to 0.396.
+3. **Judge lens** — does this map to a rubric line item, or is it decoration?
+
+**What the AI was good at.** Vectorised numerical code, boilerplate across parallel modules
+(five report writers with the same shape), test scaffolding, and remembering to handle the
+edge cases of an API it had just been told about.
+
+**What it consistently got wrong without review.** The *edges* — the ends of the time axis,
+the tails of distributions, and the boundary between correlation and identification. Every
+significant defect in this build was at one of those three edges:
+
+| Defect | Edge | Caught by |
+|---|---|---|
+| Forward targets zero-filled instead of censored | End of time axis | Leakage lens |
+| Loss severity 83% in the top band | Tail of a distribution | Numeric lens |
+| Isotonic calibration selected on its own fitting data | Model-selection boundary | Numeric lens |
+| Anomaly features measuring size, not defect | Tail vs. defect confusion | Numeric lens |
+| Macro credit channel unidentified | Correlation vs. identification | Numeric lens |
+| Narrative claim contradicted by the SHAP output | Prose vs. evidence | Judge lens |
+
+---
+
+## 10. Rough AI-generated code share
+
+| Component | Generated | Rewritten after review |
+|---|---|---|
+| Data generation and messiness | ~90% | ~20% |
+| Profiling and validation | ~85% | ~15% |
+| Features and splits | ~80% | ~35% |
+| Models, calibration, metrics | ~85% | ~30% |
+| Survival and transitions | ~85% | ~25% |
+| Anomaly and exceptions | ~85% | ~30% |
+| Scenarios | ~85% | ~40% |
+| Explainability | ~85% | ~20% |
+| Copilot | ~80% | ~25% |
+| Tests | ~90% | ~10% |
+| Reports and narrative | ~75% | ~40% |
+| **Overall** | **~85%** | **~27%** |
+
+Every line was read before being kept. The rewrite share is the honest measure of how much
+review actually changed.
+
+---
+
+## 11. Lessons
+
+1. **Check the edges of the time axis first.** When an assistant writes label construction for
+   forward-looking targets, the bug will be at the panel boundary. It was here, and it would
+   have inflated every metric in Task 2.
+2. **A model giving an implausible answer is a specification problem more often than a tuning
+   problem.** The adverse-credit scenario returning +0.15% was not fixable with
+   hyperparameters — the macro credit effect is not identified from one macro path, and no
+   amount of tuning recovers a coefficient the data cannot support.
+3. **Validators need adversarial tests, not happy-path ones.** An 11/11 pass rate on
+   well-behaved input is not evidence a guard works.
+4. **Generate documents that contain numbers.** Hand-copied metrics were stale within one
+   retraining run.
+5. **The most dangerous AI output is fluent summary prose.** Code that is wrong usually
+   crashes or produces an obviously bad number. A paragraph confidently describing what the
+   SHAP values show, written without looking at them, passes review unless you specifically go
+   and check.
+6. **Report the honest comparison.** LightGBM tying a nine-feature logistic model on ranking
+   was not the result I wanted, and the reasoning behind keeping the GBM anyway — calibration,
+   not discrimination — is more defensible than a claimed clean sweep would have been.

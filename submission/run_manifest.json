@@ -1,0 +1,254 @@
+{
+  "run_started_utc": "2026-08-28T12:08:12.474006+00:00",
+  "run_finished_utc": "2026-08-28T12:11:59.172566+00:00",
+  "total_seconds": 226.7,
+  "stages": [
+    {
+      "stage": "data",
+      "status": "ok",
+      "seconds": 1.84,
+      "error": null
+    },
+    {
+      "stage": "prepare",
+      "status": "ok",
+      "seconds": 3.29,
+      "error": null
+    },
+    {
+      "stage": "profile",
+      "status": "ok",
+      "seconds": 2.44,
+      "error": null
+    },
+    {
+      "stage": "models",
+      "status": "ok",
+      "seconds": 184.28,
+      "error": null
+    },
+    {
+      "stage": "survival",
+      "status": "ok",
+      "seconds": 0.57,
+      "error": null
+    },
+    {
+      "stage": "anomaly",
+      "status": "ok",
+      "seconds": 11.01,
+      "error": null
+    },
+    {
+      "stage": "scenarios",
+      "status": "ok",
+      "seconds": 1.42,
+      "error": null
+    },
+    {
+      "stage": "explain",
+      "status": "ok",
+      "seconds": 8.31,
+      "error": null
+    },
+    {
+      "stage": "copilot",
+      "status": "ok",
+      "seconds": 1.93,
+      "error": null
+    },
+    {
+      "stage": "submission",
+      "status": "ok",
+      "seconds": 10.84,
+      "error": null
+    },
+    {
+      "stage": "model_card",
+      "status": "ok",
+      "seconds": 0.76,
+      "error": null
+    }
+  ],
+  "results": {
+    "data": {
+      "loans": 1500,
+      "rows": 49116,
+      "months": 90,
+      "servicer_update_rows": 17651,
+      "status_mix": {
+        "Current": 0.9562,
+        "DQ90plus": 0.0199,
+        "DQ30": 0.0135,
+        "DQ60": 0.0104
+      },
+      "target_rates": {
+        "next_3m_delinquency_flag": 0.06397412471383866,
+        "next_6m_delinquency_flag": 0.08526879621798625,
+        "next_12m_default_flag": 0.0617416715371128,
+        "next_12m_prepayment_flag": 0.15520748100526008
+      },
+      "censored_rows": {
+        "next_3m_delinquency_flag": 1503,
+        "next_6m_delinquency_flag": 3003,
+        "next_12m_default_flag": 6341,
+        "next_12m_prepayment_flag": 6341
+      },
+      "exception_rate": 0.126801856828732,
+      "exception_mix": {
+        "none": 0.8732,
+        "missing_documentation": 0.054,
+        "balance_reconciliation_break": 0.0316,
+        "invalid_date_relationship": 0.0179,
+        "stale_servicer_reporting": 0.0134,
+        "unexpected_balance_movement": 0.0057,
+        "status_dpd_mismatch": 0.0043
+      }
+    },
+    "prepare": {
+      "rows": 48924,
+      "columns": 133
+    },
+    "profile": {
+      "records": 48924,
+      "mean_dq_score": 95.27685798381162,
+      "rules": 17,
+      "batches": 450
+    },
+    "models": {
+      "targets": [
+        "next_3m_delinquency_flag",
+        "next_6m_delinquency_flag",
+        "next_12m_default_flag",
+        "next_12m_prepayment_flag",
+        "next_state"
+      ]
+    },
+    "survival": {
+      "defaults": 227,
+      "cox_c_index_test": 0.8236
+    },
+    "anomaly": {
+      "score_cutoff": 0.653432232085985,
+      "flagged_share": 0.060057471264367814,
+      "precision_vs_exception_label": 0.2631578947368421,
+      "recall_vs_exception_label": 0.1211453744493392,
+      "base_exception_rate": 0.13045977011494253,
+      "lift_over_base": 2.01715743102249,
+      "roc_auc_vs_exception_label": 0.8452814229686332
+    },
+    "scenarios": {
+      "scenarios": [
+        "adverse_credit",
+        "base",
+        "high_prepayment"
+      ]
+    },
+    "explain": {
+      "next_3m_delinquency_flag": [
+        "current performance status",
+        "credit score band",
+        "consecutive clean months"
+      ],
+      "next_12m_default_flag": [
+        "credit score band",
+        "note rate",
+        "state"
+      ],
+      "next_12m_prepayment_flag": [
+        "note rate",
+        "market rate delta 12m",
+        "consecutive clean months"
+      ],
+      "exception_required": [
+        "record data-quality score",
+        "dq violation count",
+        "missing field count"
+      ]
+    },
+    "copilot": {
+      "mode": "offline_template",
+      "outputs_generated": 11,
+      "passed_validation": 11,
+      "blocked_by_validator": 0,
+      "total_ungrounded_numbers_caught": 0,
+      "pass_rate": 1.0
+    },
+    "submission": {
+      "rows": 1500,
+      "actions": {
+        "monitor_no_action": 507,
+        "retention_review": 497,
+        "raise_exception_for_review": 255,
+        "escalate_loss_mitigation": 215,
+        "watchlist_monitor": 18,
+        "early_stage_collections_outreach": 8
+      }
+    },
+    "model_card": {
+      "lines": 218
+    }
+  },
+  "outputs": [
+    "anomaly_by_servicer.csv",
+    "anomaly_report.md",
+    "anomaly_review_queue.csv",
+    "backtest_folds.csv",
+    "batch_quality_scores.csv",
+    "copilot_report.md",
+    "copilot_validator_self_test.csv",
+    "cox_default_coefficients.csv",
+    "cox_prepay_coefficients.csv",
+    "cumulative_incidence.csv",
+    "data_intelligence_report.md",
+    "drift_report.csv",
+    "exception_binary_metrics.csv",
+    "exception_type_metrics.csv",
+    "explainability_report.md",
+    "hyperparameter_search.csv",
+    "km_default_by_credit_band.csv",
+    "km_default_curve.csv",
+    "km_prepay_curve.csv",
+    "leakage_probe.csv",
+    "markov_projection.csv",
+    "markov_transition_matrix.csv",
+    "markov_validation.csv",
+    "missingness_mechanism_tests.csv",
+    "model_metrics.csv",
+    "model_performance_report.md",
+    "next_state_metrics.csv",
+    "profile_categorical.csv",
+    "profile_numeric.csv",
+    "record_quality_scores.csv",
+    "scenario_drivers_default.csv",
+    "scenario_drivers_prepay.csv",
+    "scenario_headline.csv",
+    "scenario_markov_paths.csv",
+    "scenario_report.md",
+    "scenario_segment_credit_score_band.csv",
+    "scenario_segment_ltv_band.csv",
+    "scenario_segment_prepay_by_rate_incentive.csv",
+    "scenario_segment_servicer_name.csv",
+    "scenario_segment_state.csv",
+    "scenario_segment_vintage_year.csv",
+    "shap_global_exception_required.csv",
+    "shap_global_next_12m_default_flag.csv",
+    "shap_global_next_12m_prepayment_flag.csv",
+    "shap_global_next_3m_delinquency_flag.csv",
+    "shap_local_high_exception_required.csv",
+    "shap_local_high_next_12m_default_flag.csv",
+    "shap_local_high_next_12m_prepayment_flag.csv",
+    "shap_local_high_next_3m_delinquency_flag.csv",
+    "split_summary.csv",
+    "survival_report.md",
+    "uncertainty_exception_required.csv",
+    "uncertainty_next_12m_default_flag.csv",
+    "uncertainty_next_12m_prepayment_flag.csv",
+    "uncertainty_next_3m_delinquency_flag.csv",
+    "validation_rule_summary.csv",
+    "submission/AI_DEVELOPMENT_LOG.md",
+    "submission/MODEL_CARD.md",
+    "submission/llm_prompt_log.jsonl",
+    "submission/submission.csv"
+  ]
+}

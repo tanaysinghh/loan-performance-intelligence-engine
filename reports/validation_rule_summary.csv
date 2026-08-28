@@ -1,18 +1,18 @@
 rule,dimension,severity,description,violations,violation_rate
-servicer_record_absent,reconciliation,3.0,No servicer feed record exists for this loan month.,36119,0.6719063918446313
-missing_critical_field,completeness,9.0,A field required for credit assessment is missing.,5671,0.10549520053575415
-document_file_incomplete,completeness,7.0,Document custody status is missing or in exception.,3979,0.07401964431877373
-servicer_balance_break,reconciliation,13.0,Servicer feed balance differs from the panel by >1% and >$500.,2025,0.03767021355755636
-stale_servicer_reporting,timeliness,6.0,Record last updated more than 75 days after the period closed.,1494,0.027792246446908253
-servicer_status_conflict,reconciliation,11.0,Servicer feed reports a different performance status than the panel.,708,0.013170622814197485
-last_updated_before_period_end,validity,8.0,Servicing record was last written before the reporting period closed.,517,0.009617531066299576
-loan_age_inconsistent_with_dates,consistency,9.0,Reported loan age disagrees with reporting minus origination month by >2 months.,513,0.00954312076791428
-remaining_term_inconsistent,consistency,6.0,Remaining term plus loan age is not a standard contractual term.,310,0.0057667981248604805
-origination_after_reporting,validity,14.0,Origination month is later than the reporting month.,216,0.004018156112806012
-balance_increase_month_over_month,consistency,7.0,Unpaid principal balance rose month over month on a non-modified loan.,213,0.00396234838901704
-status_dpd_mismatch,consistency,11.0,Days past due is inconsistent with the reported performance status.,172,0.0031996428305677504
-balance_exceeds_original,plausibility,12.0,Current balance exceeds original balance by more than 2%.,155,0.0028833990624302403
-dpd_sentinel_value,validity,10.0,"Days past due carries a sentinel value (9999, -1).",137,0.002548552719696406
-interest_rate_out_of_range,validity,10.0,Note rate outside a plausible 0.5%-25% range.,83,0.001544013691494903
-negative_balance,validity,16.0,Current balance is negative.,66,0.0012277699233573926
+servicer_record_absent,reconciliation,3.0,No servicer feed record exists for this loan month.,33136,0.6772953969421961
+missing_critical_field,completeness,9.0,A field required for credit assessment is missing.,5257,0.10745237511241926
+document_file_incomplete,completeness,7.0,Document custody status is missing or in exception.,3775,0.07716049382716049
+servicer_balance_break,reconciliation,13.0,Servicer feed balance differs from the panel by >1% and >$500.,1805,0.03689395797563568
+stale_servicer_reporting,timeliness,6.0,Record last updated more than 75 days after the period closed.,1322,0.027021502738942032
+servicer_status_conflict,reconciliation,11.0,Servicer feed reports a different performance status than the panel.,606,0.012386558744174637
+last_updated_before_period_end,validity,8.0,Servicing record was last written before the reporting period closed.,470,0.009606736979805413
+loan_age_inconsistent_with_dates,consistency,9.0,Reported loan age disagrees with reporting minus origination month by >2 months.,451,0.0092183795274303
+remaining_term_inconsistent,consistency,6.0,Remaining term plus loan age is not a standard contractual term.,277,0.00566184285831085
+origination_after_reporting,validity,14.0,Origination month is later than the reporting month.,196,0.004006213719238001
+balance_increase_month_over_month,consistency,7.0,Unpaid principal balance rose month over month on a non-modified loan.,185,0.003781375194178726
+status_dpd_mismatch,consistency,11.0,Days past due is inconsistent with the reported performance status.,142,0.0029024609598561034
+balance_exceeds_original,plausibility,12.0,Current balance exceeds original balance by more than 2%.,139,0.0028411413621126647
+dpd_sentinel_value,validity,10.0,"Days past due carries a sentinel value (9999, -1).",119,0.0024323440438230727
+interest_rate_out_of_range,validity,10.0,Note rate outside a plausible 0.5%-25% range.,103,0.002105306189191399
+negative_balance,validity,16.0,Current balance is negative.,56,0.0011446324912108576
 terminal_status_with_balance,consistency,12.0,Loan is in a terminal status but still carries a material balance.,0,0.0

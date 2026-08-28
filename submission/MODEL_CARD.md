@@ -106,35 +106,35 @@ Hyperparameters are selected per target on **validation** average precision from
 | target | model | roc_auc | pr_auc | pr_auc_lift_over_base | best_f1 | recall_at_precision_30 | brier | ece |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | next_3m_delinquency_flag | baseline_logistic | 0.9060 | 0.7870 | 11.8470 | 0.8140 | 0.8180 | 0.0790 | 0.1930 |
-| next_3m_delinquency_flag | lgbm_calibrated | 0.9000 | 0.7850 | 11.8190 | 0.8180 | 0.7940 | 0.0210 | 0.0140 |
+| next_3m_delinquency_flag | lgbm_calibrated | 0.8940 | 0.7850 | 11.8200 | 0.8140 | 0.8020 | 0.0210 | 0.0140 |
 | next_6m_delinquency_flag | baseline_logistic | 0.8880 | 0.7360 | 8.0200 | 0.7390 | 0.7990 | 0.1150 | 0.2300 |
-| next_6m_delinquency_flag | lgbm_calibrated | 0.8780 | 0.7320 | 7.9760 | 0.7410 | 0.7630 | 0.0390 | 0.0220 |
+| next_6m_delinquency_flag | lgbm_calibrated | 0.8820 | 0.7380 | 8.0430 | 0.7310 | 0.7630 | 0.0390 | 0.0240 |
 | next_12m_default_flag | baseline_logistic | 0.9020 | 0.6360 | 8.7930 | 0.6860 | 0.7600 | 0.0840 | 0.1610 |
-| next_12m_default_flag | lgbm_calibrated | 0.8970 | 0.6250 | 8.6540 | 0.6610 | 0.7770 | 0.0380 | 0.0210 |
+| next_12m_default_flag | lgbm_calibrated | 0.8970 | 0.5860 | 8.1130 | 0.6240 | 0.7770 | 0.0400 | 0.0230 |
 | next_12m_prepayment_flag | baseline_logistic | 0.6510 | 0.3150 | 1.8390 | 0.3700 | 0.4020 | 0.2560 | 0.2740 |
-| next_12m_prepayment_flag | lgbm_calibrated | 0.6690 | 0.2550 | 1.4920 | 0.3840 | 0.3000 | 0.1610 | 0.1150 |
+| next_12m_prepayment_flag | lgbm_calibrated | 0.6700 | 0.2610 | 1.5270 | 0.3790 | 0.2170 | 0.1640 | 0.1170 |
 | exception_required | baseline_logistic | 0.5330 | 0.1700 | 1.3050 | 0.2400 |  | 0.2440 | 0.3630 |
-| exception_required | lgbm_calibrated | 0.9640 | 0.8330 | 6.3830 | 0.8630 |  | 0.0320 | 0.0060 |
+| exception_required | lgbm_calibrated | 0.9650 | 0.8330 | 6.3850 | 0.8600 |  | 0.0320 | 0.0070 |
 
-**Read the baseline comparison honestly.** LightGBM does *not* dominate the nine-feature logistic baseline on ranking. The largest ROC-AUC gap on the four performance targets is 0.017, and the baseline wins outright on some of them. The dominant delinquency signals are near-monotone in the log-odds, which is exactly where a linear model is hard to beat on ranking.
+**Read the baseline comparison honestly.** LightGBM does *not* dominate the nine-feature logistic baseline on ranking. The largest ROC-AUC gap on the four performance targets is 0.018, and the baseline wins outright on some of them. The dominant delinquency signals are near-monotone in the log-odds, which is exactly where a linear model is hard to beat on ranking.
 
 Where they separate decisively is **calibration**: the baseline's Brier score is 2.6x worse on average and its expected calibration error runs 0.16-0.27, because `class_weight=balanced` inflates every probability. It can rank a queue; it cannot answer "what is the probability", which is what the submission format asks for.
 
-The exception model is the one case where the gap is total — 0.964 against 0.533. That gap is itself the finding: the baseline is deliberately the same nine *credit* fields, and operational exceptions are not a credit phenomenon.
+The exception model is the one case where the gap is total — 0.965 against 0.533. That gap is itself the finding: the baseline is deliberately the same nine *credit* fields, and operational exceptions are not a credit phenomenon.
 
 **Multiclass and time-to-event:**
 
 | model | metric | value | baseline |
 | --- | --- | --- | --- |
-| Next state (1 month) | macro-F1 | 0.4340 | 0.375 (Markov), 0.439 (persistence) |
-| Next state (1 month) | macro-ROC-AUC | 0.8820 | 0.841 (Markov) |
+| Next state (1 month) | macro-F1 | 0.4220 | 0.375 (Markov), 0.439 (persistence) |
+| Next state (1 month) | macro-ROC-AUC | 0.8900 | 0.841 (Markov) |
 | Exception type (6-class) | macro-F1 | 0.8690 | 0.096 (majority class) |
 | Exception type (6-class) | macro-ROC-AUC | 0.9970 | - |
 | Markov 12-month projection | MAE vs realised default rate | 0.0504 | - |
 
 Cox proportional-hazards discrimination and the full survival results are in `reports/survival_report.md`. Kaplan-Meier assigns every loan the same curve, so its concordance is 0.50 by construction — that is the baseline Cox is beating.
 
-Persistence ("next state = current state") edges the covariate model on raw accuracy (0.959 against 0.950) and ties it on macro-F1. Reported rather than buried: when 95%+ of transitions are Current-to-Current, a rule that never predicts a transition is hard to beat on accuracy and useless in practice, because it assigns zero probability to every event a servicer cares about. Macro-AUC and log loss are where the difference lives.
+Persistence ("next state = current state") edges the covariate model on raw accuracy (0.959 against 0.956) and ties it on macro-F1. Reported rather than buried: when 95%+ of transitions are Current-to-Current, a rule that never predicts a transition is hard to beat on accuracy and useless in practice, because it assigns zero probability to every event a servicer cares about. Macro-AUC and log loss are where the difference lives.
 
 ---
 
@@ -161,10 +161,10 @@ Positive rates run 5-17%. Two mechanisms, kept deliberately separate:
 
 | target | purged_time_split | loan_disjoint_time_split | random_row_split_unsound | random_split_inflation |
 | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 0.9000 | 0.8960 | 0.9900 | 0.0900 |
-| next_6m_delinquency_flag | 0.8780 | 0.8710 | 0.9970 | 0.1180 |
-| next_12m_default_flag | 0.8970 | 0.8760 | 0.9970 | 0.0990 |
-| next_12m_prepayment_flag | 0.6690 | 0.5810 | 0.9960 | 0.3280 |
+| next_3m_delinquency_flag | 0.8940 | 0.8930 | 0.9910 | 0.0960 |
+| next_6m_delinquency_flag | 0.8820 | 0.8660 | 0.9970 | 0.1140 |
+| next_12m_default_flag | 0.8970 | 0.8910 | 0.9970 | 0.0990 |
+| next_12m_prepayment_flag | 0.6700 | 0.5830 | 0.9970 | 0.3270 |
 
 The loan-disjoint column additionally forces no `loan_id` into both the fitting data and the test window. Performance holding there means the model learned loan *characteristics*, not loan *identities*.
 
@@ -174,11 +174,11 @@ The loan-disjoint column additionally forces no `loan_id` into both the fitting 
 
 **Model limitations**
 
-- **Prepayment is the weakest model** (test ROC-AUC 0.669). It depends on refinance incentive, which depends on a rate path the panel contains exactly one realisation of.
+- **Prepayment is the weakest model** (test ROC-AUC 0.670). It depends on refinance incentive, which depends on a rate path the panel contains exactly one realisation of.
 - **Regime change on the 12-month targets.** Train and test sit in different macro regimes; the default rate moves from 5.1% to 7.2% between them. Reported, not corrected — correcting it by reweighting would hide the most useful fact about the model's operating conditions.
 - **Data volume on long horizons.** The 12-month targets lose 7,723 rows to the embargo and 1,075 to the observability cap: 26,257 training rows against 37,491 for the 3-month target. Confidence intervals are correspondingly wider.
-- **The scenario engine's credit channel is not identified.** Macro levels are constant across loans within a month, so with one realised macro path a loan-level model cannot separate unemployment from calendar time. The symptom is diagnostic: a 2.3pp unemployment shock moves projected 12-month default by 0.15% in relative terms, and the high-prepayment scenario *raises* projected default. **Use Engine B (macro-conditioned Markov) to size credit stress; use Engine A only for which-loans segment detail.** Engine B moves cumulative 12-month default from 0.174 to 0.227 under adverse conditions.
-- **The Markov first-order assumption is wrong**, usefully. A loan five months into DQ30 differs from one that entered last month. The covariate model beats the chain on macro-AUC (0.882 against 0.841); the chain is kept for transparency and multi-period projection.
+- **The scenario engine's credit channel is not identified.** Macro levels are constant across loans within a month, so with one realised macro path a loan-level model cannot separate unemployment from calendar time. The symptom is diagnostic: a 2.3pp unemployment shock moves projected 12-month default by 0.51% in relative terms, and the high-prepayment scenario *raises* projected default. **Use Engine B (macro-conditioned Markov) to size credit stress; use Engine A only for which-loans segment detail.** Engine B moves cumulative 12-month default from 0.174 to 0.227 under adverse conditions.
+- **The Markov first-order assumption is wrong**, usefully. A loan five months into DQ30 differs from one that entered last month. The covariate model beats the chain on macro-AUC (0.890 against 0.841); the chain is kept for transparency and multi-period projection.
 - **Proportional hazards is assumed, not tested.** No Schoenfeld residual test is run.
 - **No loss-given-default model.** Nothing here converts default probability into an expected dollar loss.
 - **Single-seed point estimates.** No repeated-run variance is reported.
@@ -187,7 +187,7 @@ The loan-disjoint column additionally forces no `loan_id` into both the fitting 
 
 - **Servicer is a confound.** The two servicers with the worst reporting hygiene also have elevated delinquency, and SHAP cannot separate credit risk from reporting behaviour. A servicer-driven score is a prompt to investigate the servicer, not a statement about the borrower.
 - **False negatives concentrate in specific segments**, quantified per segment in `reports/explainability_report.md`. That is a coverage issue, not just an accuracy one.
-- **Synthetic-label optimism.** The exception label comes from rule breaches plus a materiality threshold and ~1.2% reviewer noise. Real reviewers are less consistent, so the 0.964 ROC-AUC is an upper bound.
+- **Synthetic-label optimism.** The exception label comes from rule breaches plus a materiality threshold and ~1.2% reviewer noise. Real reviewers are less consistent, so the 0.965 ROC-AUC is an upper bound.
 - **Confidence bands are a boosting-stability proxy**, not statistical confidence intervals, and do not capture regime-change risk — the dominant risk on the 12-month targets.
 
 ---

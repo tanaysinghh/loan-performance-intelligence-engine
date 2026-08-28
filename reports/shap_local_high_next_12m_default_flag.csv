@@ -1,11 +1,11 @@
 loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
-LN100307,2025-01,DQ90plus,0.9932,-6.4548,12.1647,current performance status,3.0,2.2689,months delinquent in last 12 months,7.0,1.1962,days past due,103.0,1.1233,credit score band,1.0,1.0516
-LN100743,2025-02,DQ90plus,0.9931,-6.4548,12.1583,current performance status,3.0,2.7473,months delinquent in last 12 months,5.0,1.4938,days past due,102.0,1.297,current status,DQ90plus,0.9885
-LN100778,2025-06,DQ90plus,0.9931,-6.4548,12.1528,current performance status,3.0,2.527,days past due,94.0,1.3013,months delinquent in last 12 months,5.0,1.2773,current status,DQ90plus,0.868
-LN100307,2025-02,DQ90plus,0.993,-6.4548,12.1322,current performance status,3.0,2.2292,months delinquent in last 12 months,8.0,1.2744,days past due,99.0,1.063,credit score band,1.0,1.0233
-LN100365,2025-02,DQ90plus,0.992,-6.4548,11.9776,current performance status,3.0,2.4516,months delinquent in last 12 months,6.0,1.41,days past due,110.0,1.2495,months delinquent in last 6 months,6.0,0.8203
-LN100778,2025-05,DQ90plus,0.9915,-6.4548,11.9086,current performance status,3.0,2.5771,days past due,111.0,1.3082,months delinquent in last 12 months,4.0,1.2695,current status,DQ90plus,0.9236
-LN100366,2025-06,DQ90plus,0.9904,-6.4548,11.7724,current performance status,3.0,2.4501,months delinquent in last 12 months,7.0,1.4322,days past due,102.0,1.1859,credit score band,1.0,0.9888
-LN100366,2025-04,DQ60,0.9899,-6.4548,11.7061,current performance status,2.0,2.2584,months delinquent in last 12 months,5.0,1.4683,days past due,77.0,1.1057,credit score band,1.0,1.0464
-LN100366,2025-05,DQ60,0.9898,-6.4548,11.6976,current performance status,2.0,2.2643,months delinquent in last 12 months,6.0,1.4505,days past due,72.0,1.104,credit score band,1.0,1.0377
-LN100366,2025-03,DQ60,0.9896,-6.4548,11.6798,current performance status,2.0,2.2964,months delinquent in last 12 months,4.0,1.3308,days past due,77.0,1.1668,credit score band,1.0,1.0646
+LN100455,2025-03,DQ90plus,1.0,-6.7,10.6184,current performance status,3.0,2.0289,months delinquent in last 12 months,6.0,1.1705,days past due,94.0,1.0464,credit score band,2.0,0.9021
+LN100455,2025-04,DQ90plus,1.0,-6.7,11.2164,current performance status,3.0,2.0761,months delinquent in last 12 months,7.0,1.1895,days past due,111.0,1.0519,credit score band,2.0,0.921
+LN100455,2025-05,DQ90plus,1.0,-6.7,11.3225,current performance status,3.0,2.0582,months delinquent in last 12 months,8.0,1.2262,days past due,104.0,1.0859,credit score band,2.0,0.9107
+LN100455,2025-06,DQ90plus,1.0,-6.7,11.1483,current performance status,3.0,2.0335,months delinquent in last 12 months,9.0,1.3959,days past due,106.0,1.0842,credit score band,2.0,0.9161
+LN101437,2025-06,DQ90plus,1.0,-6.7,10.7393,current performance status,3.0,2.7015,months delinquent in last 12 months,7.0,1.5715,days past due,92.0,1.262,current status,DQ90plus,0.9519
+LN101437,2025-04,DQ60,1.0,-6.7,7.8974,current performance status,2.0,2.5028,months delinquent in last 12 months,5.0,1.5138,months delinquent in last 6 months,5.0,0.8669,state,OH,-0.7639
+LN100510,2025-04,DQ90plus,1.0,-6.7,10.055,current performance status,3.0,2.7422,months delinquent in last 12 months,5.0,1.4993,days past due,91.0,1.4078,credit score band,5.0,-0.934
+LN101437,2025-05,DQ60,1.0,-6.7,8.7769,current performance status,2.0,2.5058,months delinquent in last 12 months,6.0,1.5449,days past due,78.0,1.2399,months delinquent in last 6 months,6.0,0.9326
+LN100510,2025-03,DQ90plus,1.0,-6.7,9.265,current performance status,3.0,2.7914,months delinquent in last 12 months,4.0,1.5248,days past due,90.0,1.3623,credit score band,5.0,-0.9176
+LN101462,2025-01,DQ90plus,1.0,-6.7,11.1574,current performance status,3.0,2.2757,credit score band,0.0,1.2905,months delinquent in last 12 months,6.0,1.2078,days past due,111.0,1.0729
