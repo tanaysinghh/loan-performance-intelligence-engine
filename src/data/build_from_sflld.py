@@ -378,6 +378,8 @@ def main(loans_per_vintage: int = LOANS_PER_VINTAGE, seed: int = C.RANDOM_SEED) 
     out.to_csv(C.LOAN_PANEL, index=False)
     updates.to_csv(C.SERVICER_UPDATES, index=False)
     defect_log.to_csv(C.DATA_RAW / "ground_truth_defect_log.csv", index=False)
+    from src.data.validate import export_rules_json
+    export_rules_json()
 
     # The dictionary is the copilot's grounding source for field semantics, so its
     # allowed-values must describe the data actually on disk. The shared DICTIONARY carries

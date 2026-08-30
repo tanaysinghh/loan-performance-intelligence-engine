@@ -22,7 +22,7 @@ This is the control that makes *no LLM-produced numbers* an enforced property ra
 
 | outputs_generated | passed_validation | blocked_by_validator | total_ungrounded_numbers_caught | pass_rate |
 | --- | --- | --- | --- | --- |
-| 11 | 11 | 0 | 0 | 1.0000 |
+| 12 | 12 | 0 | 0 | 1.0000 |
 
 A 100% pass rate on its own means nothing — a validator that has only ever seen well-behaved output is untested. The table below feeds it six deliberately bad outputs covering the failure modes a language model actually produces under pressure, and checks that it blocks the five that should be blocked and releases the one that should not.
 
@@ -163,6 +163,255 @@ Data dictionary entries retrieved:
 ```
 
 Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
+
+### `rule_suggestion`
+
+*Rule-suggestion drafting over the deterministic rule set (Task 7).*
+
+```
+[OFFLINE TEMPLATE OUTPUT — no language model was called. Set ANTHROPIC_API_KEY and re-run for the live copilot.]
+
+{
+  "existing_rules": [
+    {
+      "name": "origination_after_reporting",
+      "dimension": "validity",
+      "severity": 14.0,
+      "description": "Origination month is later than the reporting month."
+    },
+    {
+      "name": "last_updated_before_period_end",
+      "dimension": "validity",
+      "severity": 8.0,
+      "description": "Servicing record was last written before the reporting period closed."
+    },
+    {
+      "name": "loan_age_inconsistent_with_dates",
+      "dimension": "consistency",
+      "severity": 9.0,
+      "description": "Reported loan age disagrees with reporting minus origination month by >2 months."
+    },
+    {
+      "name": "negative_balance",
+      "dimension": "validity",
+      "severity": 16.0,
+      "description": "Current balance is negative."
+    },
+    {
+      "name": "balance_exceeds_original",
+      "dimension": "plausibility",
+      "severity": 12.0,
+      "description": "Current balance exceeds original balance by more than 2%."
+    },
+    {
+      "name": "balance_increase_month_over_month",
+      "dimension": "consistency",
+      "severity": 7.0,
+      "description": "Unpaid principal balance rose month over month on a non-modified loan."
+    },
+    {
+      "name": "dpd_sentinel_value",
+      "dimension": "validity",
+      "severity": 10.0,
+      "description": "Days past due carries a sentinel value (9999, -1)."
+    },
+    {
+      "name": "status_dpd_mismatch",
+      "dimension": "consistency",
+      "severity": 11.0,
+      "description": "Days past due is inconsistent with the reported performance status."
+    },
+    {
+      "name": "interest_rate_out_of_range",
+      "dimension": "validity",
+      "severity": 10.0,
+      "description": "Note rate outside a plausible 0.5%-25% range."
+    },
+    {
+      "name": "remaining_term_inconsistent",
+      "dimension": "consistency",
+      "severity": 6.0,
+      "description": "Remaining term plus loan age is not a standard contractual term."
+    },
+    {
+      "name": "missing_critical_field",
+      "dimension": "completeness",
+      "severity": 9.0,
+      "description": "A field required for credit assessment is missing."
+    },
+    {
+      "name": "document_file_incomplete",
+      "dimension": "completeness",
+      "severity": 7.0,
+      "description": "Document custody status is missing or in exception."
+    },
+    {
+      "name": "stale_servicer_reporting",
+      "dimension": "timeliness",
+      "severity": 6.0,
+      "description": "Record last updated more than 75 days after the period closed."
+    },
+    {
+      "name": "servicer_balance_break",
+      "dimension": "reconciliation",
+      "severity": 13.0,
+      "description": "Servicer feed balance differs from the panel by >1% and >$500."
+    },
+    {
+      "name": "servicer_status_conflict",
+      "dimension": "reconciliation",
+      "severity": 11.0,
+      "description": "Servicer feed reports a different performance status than the panel."
+    },
+    {
+      "name": "servicer_record_absent",
+      "dimension": "reconciliation",
+      "severity": 3.0,
+      "description": "No servicer feed record exists for this loan month."
+    },
+    {
+      "name": "terminal_status_with_balance",
+      "dimension": "consistency",
+      "severity": 12.0,
+      "description": "Loan is in a terminal status but still carries a material balance."
+    }
+  ],
+  "dimensions_covered": [
+    "completeness",
+    "consistency",
+    "plausibility",
+    "reconciliation",
+    "timeliness",
+    "validity"
+  ],
+  "observed_violation_rates": [
+    {
+      "rule": "servicer_record_absent",
+      "dimension": "reconciliation",
+      "severity": 3.0
+    },
+    {
+      "rule": "missing_critical_field",
+      "dimension": "completeness",
+      "severity": 9.0
+    },
+    {
+      "rule": "document_file_incomplete",
+      "dimension": "completeness",
+      "severity": 7.0
+    },
+    {
+      "rule": "servicer_balance_break",
+      "dimension": "reconciliation",
+      "severity": 13.0
+    },
+    {
+      "rule": "remaining_term_inconsistent",
+      "dimension": "consistency",
+      "severity": 6.0
+    },
+    {
+      "rule": "stale_servicer_reporting",
+      "dimension": "timeliness",
+      "severity": 6.0
+    },
+    {
+      "rule": "servicer_status_conflict",
+      "dimension": "reconciliation",
+      "severity": 11.0
+    },
+    {
+      "rule": "loan_age_inconsistent_with_dates",
+      "dimension": "consistency",
+      "severity": 9.0
+    },
+    {
+      "rule": "last_updated_before_period_end",
+      "dimension": "validity",
+      "severity": 8.0
+    },
+    {
+      "rule": "balance_exceeds_original",
+      "dimension": "plausibility",
+      "severity": 12.0
+    },
+    {
+      "rule": "balance_increase_month_over_month",
+      "dimension": "consistency",
+      "severity": 7.0
+    },
+    {
+      "rule": "origination_after_reporting",
+      "dimension": "validity",
+      "severity": 14.0
+    },
+    {
+      "rule": "terminal_status_with_balance",
+      "dimension": "consistency",
+      "severity": 12.0
+    },
+    {
+      "rule": "dpd_sentinel_value",
+      "dimension": "validity",
+      "severity": 10.0
+    },
+    {
+      "rule": "status_dpd_mismatch",
+      "dimension": "consistency",
+      "severity": 11.0
+    },
+    {
+      "rule": "interest_rate_out_of_range",
+      "dimension": "validity",
+      "severity": 10.0
+    },
+    {
+      "rule": "negative_balance",
+      "dimension": "validity",
+      "severity": 16.0
+    }
+  ],
+  "provenance": {
+    "rules": "data/raw/validation_rules.json",
+    "rates": "reports/validation_rule_summary.csv",
+    "llm_role": "draft candidate rules for human review; the LLM does not add rules to the engine and cannot execute one"
+  },
+  "worst_scoring_batches": [
+    {
+      "reporting_month": "2019-02",
+      "servicer_name": "FIFTH THIRD BANK",
+      "mean_dq_score": 87.0,
+      "batch_grade": "B"
+    },
+    {
+      "reporting_month": "2019-10",
+      "servicer_name": "SPECIALIZED LOAN SERVICING LLC",
+      "mean_dq_score": 88.0,
+      "batch_grade": "B"
+    },
+    {
+      "reporting_month": "2019-02",
+      "servicer_name": "SUNTRUST BANK",
+      "mean_dq_score": 89.0,
+      "batch_grade": "B"
+    },
+    {
+      "reporting_month": "2019-01",
+      "servicer_name": "OTHER",
+      "mean_dq_score": 90.5,
+      "batch_grade": "B"
+    },
+    {
+      "reporting_month": "2019-04",
+      "servicer_name": "PNC BANK, NA",
+      "mean_dq_score": 91.625,
+      "batch_grade": "A"
+    }
+  ]
+}
+```
+
+Validator: **released to reviewer queue** — 31 numbers checked, 0 ungrounded.
 
 ## 4. Adversarial probes — where the copilot is invited to fail
 

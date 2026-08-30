@@ -117,3 +117,33 @@ def extract_numbers(pack: dict) -> set[float]:
 
 import re
 _NUM_RE = re.compile(r"-?\d+\.?\d*")
+
+
+def rule_pack(rule_summary: pd.DataFrame, rules_json: dict,
+              worst_batches: pd.DataFrame | None = None) -> dict:
+    """Grounding pack for rule-suggestion questions.
+
+    Carries the existing rule definitions and their observed firing rates, so the model can
+    only reason about coverage gaps in terms of rules that exist and violations that were
+    actually measured. It is deliberately given no access to the panel: proposing a rule is a
+    drafting task for a human to accept or reject, not a data-mining task.
+    """
+    cols = [c for c in ("rule", "dimension", "severity", "rows_flagged", "flag_rate")
+            if c in rule_summary.columns]
+    pack = {
+        "existing_rules": rules_json.get("rules", []),
+        "dimensions_covered": rules_json.get("dimensions", []),
+        "observed_violation_rates": json.loads(rule_summary[cols].to_json(orient="records")),
+        "provenance": {
+            "rules": "data/raw/validation_rules.json",
+            "rates": "reports/validation_rule_summary.csv",
+            "llm_role": ("draft candidate rules for human review; the LLM does not add rules "
+                         "to the engine and cannot execute one"),
+        },
+    }
+    if worst_batches is not None and len(worst_batches):
+        keep = [c for c in ("reporting_month", "servicer_name", "mean_dq_score",
+                            "batch_grade") if c in worst_batches.columns]
+        pack["worst_scoring_batches"] = json.loads(
+            worst_batches[keep].head(5).to_json(orient="records"))
+    return pack

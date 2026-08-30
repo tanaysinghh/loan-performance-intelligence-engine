@@ -651,6 +651,27 @@ By `state`:
 
 ## Limitations
 
+## Anomaly-score drivers
+
+Task 6 asks for drivers of the anomaly score alongside the three predictive scores. The anomaly score is unsupervised, so it has no SHAP decomposition: an isolation forest gives no native per-feature attribution and inventing one would be exactly the kind of plausible-but-unfounded explanation this layer exists to prevent.
+
+Instead each flagged record is attributed by **robust deviation** — every anomaly feature is scored by its distance from the training-window median in MAD units, and the largest deviations are named. That is a quantity a reviewer can check against the record in front of them, which a SHAP value for an unsupervised model would not be.
+
+| top_anomaly_driver | share_of_records |
+| --- | --- |
+| balance against expected amortisation for term elapsed | 0.2122 |
+| three-month balance movement | 0.1318 |
+| servicer feed record present | 0.1230 |
+| servicer reporting lag | 0.1189 |
+| scheduled payment relative to balance | 0.1060 |
+| count of missing credit fields | 0.0878 |
+| document file incomplete | 0.0588 |
+| record arrived by manual upload | 0.0563 |
+| month-over-month balance movement | 0.0472 |
+| servicer feed balance gap | 0.0190 |
+
+Across 63,678 held-out records, the leading driver is **balance against expected amortisation for term elapsed** (21.2% of records). Per-record attributions for the reviewer queue are in `reports/anomaly_review_queue.csv`, and the distributional detail is in `reports/anomaly_report.md`.
+
 - SHAP attributes to *features*, not to causes. A high contribution from days past due does not mean delinquency causes default in any actionable sense; it means the model reads it as the strongest available signal.
 - Correlated features split their attribution arbitrarily between them. The DPD family (current, lagged, rolling maxima) is highly correlated, so individual rankings within that family are not stable and should be read as a group.
 - Explanations are computed on a sample of up to 4,000 test rows for tractability.

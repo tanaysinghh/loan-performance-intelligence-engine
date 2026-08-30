@@ -124,6 +124,32 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
         dict_pack, validator=grounding_validator,
         purpose="Data-dictionary retrieval and plain-language explanation."))
 
+    # Rule suggestion — the fourth use case named in Task 7. It is the one that pairs with
+    # validation_rules.json, and it is deliberately scoped as *drafting for human review*:
+    # the copilot sees the rule definitions and their observed firing rates, never the panel,
+    # and nothing it proposes reaches the rule engine without a person adding it.
+    try:
+        import json as _json
+        from src.data.validate import export_rules_json
+        _rules_path = C.DATA_RAW / "validation_rules.json"
+        _rules_json = (_json.loads(_rules_path.read_text(encoding="utf-8"))
+                       if _rules_path.exists() else export_rules_json())
+        _rule_summary = pd.read_csv(C.REPORTS / "validation_rule_summary.csv")
+        _batches = pd.read_csv(C.REPORTS / "batch_quality_scores.csv").sort_values(
+            "mean_dq_score").head(5)
+        rule_pack = G.rule_pack(_rule_summary, _rules_json, _batches)
+        records.append(copilot.ask(
+            "rule_suggestion",
+            "Given the existing validation rules and their observed firing rates, identify "
+            "coverage gaps and draft at most three candidate rules a data-quality reviewer "
+            "should consider adding. For each, name the dimension it belongs to and what it "
+            "would catch. Do not propose a rule that duplicates an existing one, and state "
+            "plainly that these are drafts requiring human review before implementation.",
+            rule_pack, validator=grounding_validator,
+            purpose="Rule-suggestion drafting over the deterministic rule set (Task 7)."))
+    except (FileNotFoundError, KeyError, ValueError) as exc:
+        print(f"  [copilot] rule_suggestion skipped: {type(exc).__name__}: {exc}", flush=True)
+
     probe_row = df.iloc[picks[0]]
     probe_pack = G.loan_pack(probe_row, {k: v[picks[0]] for k, v in preds.items()},
                              driver_strings.get(picks[0], ""))

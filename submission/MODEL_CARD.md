@@ -2,7 +2,7 @@
 
 **Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  
 **Author:** Tanay Singh  
-**Card generated:** 2026-08-30 09:54 UTC  
+**Card generated:** 2026-08-30 10:13 UTC  
 **Data source:** Freddie Mac SFLLD (real)
 
 > Every figure in this card is generated from the pipeline's own report artefacts by `src/report_model_card.py`. Retraining regenerates the card; the numbers cannot drift away from the models.

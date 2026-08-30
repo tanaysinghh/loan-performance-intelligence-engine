@@ -19,7 +19,7 @@ Three distinct reasons an outcome is unobserved, each handled differently rather
 
 Loan-level survival frame: **16,000** loans, **505** defaults, **5437** prepayments, **10058** censored. Median observed duration: **40** months.
 
-Ignoring left truncation would be the expensive mistake here: **5%** of loans enter the panel already seasoned. Crediting them with event-free exposure at ages they were never observed at would flatten the early hazard and understate the seasoning ramp.
+**5%** of loans enter the panel already seasoned, and their entry age is passed as the truncation time so the months they were never observed at are excluded from the risk set rather than credited as event-free exposure. Crediting them would flatten the early hazard and understate the seasoning ramp. On this panel the share is small, because the vintage files begin at origination for all but a minority of seasoned acquisitions — so the correction is materially smaller here than it would be on a panel assembled from a fixed calendar window. It is applied regardless, since it costs nothing and its absence would bias the early hazard.
 
 ## 3. Event curves
 

@@ -145,21 +145,25 @@ properly (12-month cumulative default 17.4% → 22.7%). See §5 for how a judge 
 
 ---
 
-### Task 6 — Explainability Layer → **PARTIALLY MET**
+### Task 6 — Explainability Layer → **FULLY MET** (was PARTIALLY MET)
 
 | Sub-requirement | Status | Implementation |
 |---|---|---|
 | Global feature importance and local explanations | Met | `src/explain/shap_explain.py::global_importance`, `::local_explanations` (10 highest-risk + 5 lowest-risk contrast set per target) |
-| **Drivers of default, delinquency, prepayment, and anomaly scores** | **PARTIAL** | SHAP covers delinquency, default, prepayment, and `exception_required` (`run_explain.py::EXPLAINED_TARGETS`). **The anomaly score is not in the explainability layer** |
+| **Drivers of default, delinquency, prepayment, and anomaly scores** | **Met** — closed | SHAP covers delinquency, default, prepayment and `exception_required`; the anomaly score now has its own section in `reports/explainability_report.md`, attributed by robust MAD deviation |
 | Show model confidence or uncertainty | Met | `shap_explain.py::uncertainty` (staged-boosting spread) and `::confidence_band` |
 | Analyze false positives and false negatives | Met | `shap_explain.py::error_analysis` — segment-level FP/FN rates by credit band, servicer, status and state, plus mean-feature profiling of each error class |
 
-**Gap 6a — anomaly-score drivers are absent from the explainability report.** They exist
-(`anomaly.py::anomaly_drivers`, robust-z attribution) and appear in
-`reports/anomaly_report.md` §5, but `reports/explainability_report.md` contains **zero
-mentions of anomaly** (verified by grep). A judge reading the explainability deliverable
-against the Task 6 checklist will find one of the four named score types missing. The
-substance exists; the placement does not match the checklist.
+**Gap 6a — CLOSED.** The explainability report now carries an **Anomaly-score drivers**
+section. The substance existed in `anomaly.py::anomaly_drivers` and in the anomaly report, but
+the Task 6 deliverable named four score types and covered three; a judge working the checklist
+would have found one missing.
+
+The section also states *why* the attribution is a robust-deviation ranking rather than SHAP:
+an isolation forest has no native per-feature attribution, and manufacturing one would be the
+precise failure this layer exists to prevent. Leading driver across 63,678 held-out records is
+`balance against expected amortisation for term elapsed` (21.2%), which is defect-shaped rather
+than size-shaped — the correction recorded in the AI Development Log.
 
 ---
 
@@ -167,7 +171,7 @@ substance exists; the placement does not match the checklist.
 
 | Sub-requirement | Status | Implementation |
 |---|---|---|
-| LLM for grounded summaries, reviewer notes, data-dictionary retrieval, **rule suggestions**, scenario summaries, or NL analysis | **PARTIAL** | 3 of 6 use cases built: `reviewer_note`, `scenario_summary`, `data_dictionary` in `src/copilot/run_copilot.py`. **No rule-suggestion task exists** (grep for `rule_suggestion`/`suggest_rule`: no matches). The list is "or"-joined so three suffice for a literal reading, but rule suggestion is the one that pairs with the missing `validation_rules.json` |
+| LLM for grounded summaries, reviewer notes, data-dictionary retrieval, **rule suggestions**, scenario summaries, or NL analysis | **Met** | 4 of 6 use cases built: `reviewer_note`, `scenario_summary`, `data_dictionary`, and `rule_suggestion` (added in the real-data pass, grounded on `data/raw/validation_rules.json` and the observed firing rates in `reports/validation_rule_summary.csv`). The list is "or"-joined, so this exceeds a literal reading; rule suggestion was added because it is the one that pairs with the `validation_rules.json` deliverable |
 | Log prompt, model, timestamp, and output | Met (mechanism) | `src/copilot/client.py::Copilot.ask` writes `submission/llm_prompt_log.jsonl` with 14 fields including full system and user prompts, hashes, usage, request id, and validator verdict |
 | Label LLM output as recommendation, not decision | Met | `client.py::DISCLAIMER` on every record; enforced by `validators.py` requiring reviewer framing |
 | **Examples where the LLM was wrong, vague, or overconfident** | **MISSING** | Five adversarial probes are *defined* (`run_copilot.py::ADVERSARIAL_PROBES`) and execute, but against the deterministic template — see below |
@@ -201,21 +205,24 @@ fixtures, and `reports/copilot_report.md` §4 labels them as such.
 
 ---
 
-### Task 8 — Agentic ML Development Evidence → **PARTIALLY MET**
+### Task 8 — Agentic ML Development Evidence → **FULLY MET** (was PARTIALLY MET)
 
 | Sub-requirement | Status | Implementation |
 |---|---|---|
 | Submit an AI Development Log | Met | `submission/AI_DEVELOPMENT_LOG.md`, 362 lines, 17 sections |
 | Document AI tools used | Met | §0 table — Claude Code (Opus 5), Anthropic Messages API, modelling stack |
-| **Representative prompts** | **MISSING** | The log describes *what was asked and rejected* in prose but contains **no verbatim prompt text**. Grep for "prompt" returns one hit, referring to the copilot's system prompt — not to development prompts |
+| **Representative prompts** | **Met** — closed | `AI_DEVELOPMENT_LOG.md` §13 quotes five development prompts verbatim, each with why it worked, plus §13.4, a prompt whose literal instruction was rejected and the reasoning for rejecting it |
 | Accepted/rejected outputs | Met — strong | Nine documented rejections with reasons: censoring bug, deterministic exception labels, loss-severity skew, isotonic-on-own-fitting-data, anomaly feature set (0.92× lift), next-state baseline, restricted scenario channel, hand-written model card, unchecked SHAP narrative |
 | Human review process | Met | §9 — three-lens process (leakage / numeric / judge) with a table mapping each defect to the lens that caught it |
 | Approximate AI-generated code share | Met | §10 — per-component table, ~85% generated / ~27% rewritten |
 | Lessons learned | Met | §11 — six lessons |
 
-**Gap 8a — no verbatim representative prompts.** The problem statement names this explicitly.
-The log is strong on *outcomes* and weak on *inputs*: a judge cannot see a single prompt that
-was actually issued during development.
+**Gap 8a — CLOSED.** §13 of the AI Development Log now quotes development prompts as sent,
+excerpted only where marked. It includes the prompt that surfaced the 31/35 layout discrepancy
+before a loader was written, the gate that made the real-data switch abandonable, the
+instruction that pre-committed the honest branch on the missing API credential, and — most
+useful for a judge — §13.4, an instruction that was implemented, measured, and then rejected
+with the measurement that justified rejecting it.
 
 ---
 
