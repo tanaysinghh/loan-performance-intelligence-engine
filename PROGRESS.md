@@ -253,13 +253,66 @@ go/no-go decision is outstanding from you.*
 | **Lost prompt-log history** | ~87 calls from six early runs are unrecoverable. No current claim depends on them; the 10× fabrication recurred and is quoted from a live log, and the LaTeX case is described rather than reconstructed |
 | **Exception/DQ layer is fabricated** | Long-standing and disclosed per-layer in model card §2. SFLLD provides no second source, no ingestion timestamps and no operational exception feed |
 
-*Branch `real-data-switch`: **6 commits, all local — not pushed.** This repository has **no
-git remote configured** (`git remote -v` is empty), so there is nothing to push to. Add one and
-push with:*
+---
 
-```bash
-git remote add origin <your-repo-url>
-git push -u origin real-data-switch
-```
+# FINAL — `master` is the submission state
 
-*Not merged into `master` — that is yours. `master` @ `91fe18d` untouched as a fallback.*
+**Branch structure is settled.** `real-data-switch` was merged into `master` with a merge
+commit (`--no-ff`), preserving all 17 commits rather than squashing them. Both branches are on
+GitHub. **`master` is the default branch and the state to submit.**
+
+| | |
+|---|---|
+| Repository | `github.com/tanaysinghh/loan-performance-intelligence-engine` |
+| Submission branch | **`master`** — default branch |
+| Feature branch | `real-data-switch` — retained, identical tree, kept for history |
+| Pre-switch fallback | `91fe18d`, now backed up on GitHub, reachable as the merge's first parent |
+| Tests | 40/40 · validator self-test 12/12 |
+
+**The merge changed nothing.** `master^{tree}` and `real-data-switch^{tree}` are the same git
+object (`8c6c8ce`) and `git diff master real-data-switch` is empty — so no conflict was
+silently resolved, and nothing was reverted or left stale. Every deliverable on `master` is
+byte-identical to what was verified on the feature branch.
+
+## One real gap was found while finalising, and fixed
+
+`data/raw/*` was gitignored wholesale to keep the licence-gated Freddie Mac panels out of the
+repository. That was right for the panels and wrong for the rest of the directory: **three
+artefacts named in section 6 of the problem statement were being excluded with them**, so
+anyone cloning the repo got no `validation_rules.json`, no `data_dictionary.csv` and no
+`macro_scenarios.csv`.
+
+Earlier audits missed it because they tested whether files existed *on disk* rather than
+whether they were *tracked*. Fixed by whitelisting those three plus `macro_history.csv` and
+`ground_truth_defect_log.csv` — 32 KB total, no loan-level data in any of them. The two
+licensed panels (`loan_panel.csv`, 149 MB; `servicer_updates.csv`, 24 MB) stay excluded, with
+the reason now written into `.gitignore` instead of left implicit, and representative samples
+of both remain tracked under `data/samples/`.
+
+## What is left for you before submitting
+
+1. **Record the five-minute demo video.** The only outstanding deliverable, and the only thing
+   that cannot be produced without you. `reports/demo_video_script.md` is ready to read from
+   directly: 15 beats mapped to the PS §14 flow, every figure verified against current
+   artefacts, and the exact file to have on screen named for each beat. Two rules are written
+   into the script — read the copilot's execution mode off the screen rather than from the
+   page, and never describe a failure that is not visible.
+2. **Attach the video** wherever the HackerEarth portal expects it, and paste the repository
+   link.
+3. **Optional, only if the portal asks for a runnable notebook.** `notebooks/` is empty. It is
+   not a named §11 deliverable and the reports carry the narrative a notebook would, so this
+   is a gap only if the portal specifically requires one.
+
+Nothing else is outstanding. Every other deliverable is committed, pushed and verified against
+the git index rather than the working directory.
+
+## Open risks, unchanged
+
+| Risk | Assessment |
+|---|---|
+| **Prepayment weak out of time** (ROC 0.626, ECE 0.135) | Real, disclosed in model card §8. The macro window spans a full rate cycle so the regime genuinely shifts. Reported, not patched over |
+| **Copilot run-to-run variance** | Gemini is sampled; a re-run may block different outputs, or none. The report names which run it shows and points at the archive. Stated rather than hidden |
+| **Free-tier quota** | `gemini-3.5-flash-lite` clears a full run. `gemini-3.6-flash` does **not** — 20 requests/day against 15–20 per run. Do not switch models before recording |
+| **LaTeX ablation is negative** | The no-LaTeX prompt rule could not be shown to be what fixed the markup. Reported as negative; detection is the load-bearing control |
+| **~87 calls of prompt-log history unrecoverable** | Destroyed by the log-deletion bug before it was found. No current claim depends on them: the 10× fabrication recurred and is quoted from a live log; the LaTeX case is described, not reconstructed |
+| **Exception / DQ layer is fabricated** | Long-standing, disclosed per-layer in model card §2. SFLLD provides no second source, no ingestion timestamps and no operational exception feed |
