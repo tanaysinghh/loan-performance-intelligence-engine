@@ -14,8 +14,9 @@ of reading the narration while stepping through the listed artefacts.
 5. `reports/scenario_report.md`
 6. `reports/explainability_report.md`
 7. `reports/copilot_report.md`
-8. `submission/submission.csv`
-9. `submission/AI_DEVELOPMENT_LOG.md`
+8. `submission/llm_prompt_log_archive.jsonl` (for beat 13)
+9. `submission/submission.csv`
+10. `submission/AI_DEVELOPMENT_LOG.md`
 
 **Figures below are from the run of 2026-08-30 and match the committed reports.** If you
 retrain before recording, re-read them off the screen. Never say a number that is not visible.
@@ -184,16 +185,27 @@ retrain before recording, re-read them off the screen. Never say a number that i
 
 ## Beat 12 — LLM reviewer note (4:25–4:45)
 
-> "The copilot never sees the dataframe or the models. It receives a grounding pack — a JSON
-> object of figures a non-LLM model already produced — and turns those into reviewer prose."
+> "Task 7. The copilot runs live against **Google Gemini** — `gemini-3.5-flash-lite`. That
+> was a deliberate choice, not a fallback: it is free-tier eligible, so everything you are
+> looking at reproduces for anyone with a free API key rather than only for someone holding a
+> paid credential.
+>
+> The copilot never sees the dataframe or the models. It receives a **grounding pack** — a
+> JSON object of figures a non-LLM model already produced — and turns those into reviewer
+> prose. Four use cases: per-record reviewer notes, the portfolio scenario summary,
+> data-dictionary retrieval, and drafting candidate validation rules.
+>
+> Every call is logged in full: prompt, provider, model, timestamp, tokens, finish reason and
+> the validator's verdict. And every output is labelled **recommendation, not decision** —
+> individually, with its model and timestamp, not once in a footer."
 
-**On screen:** `reports/copilot_report.md`, then `submission/llm_prompt_log.jsonl`.
+**On screen:** `reports/copilot_report.md` — the first line stating `live_api` and the model,
+then section 3, then one record in `submission/llm_prompt_log.jsonl`.
 
-> **Say the execution mode that is on screen.** As committed it reads `offline_template`, so
-> say: "No API credential was available in the build environment, so this ran in
-> offline-template mode. The report states that in its first line rather than dressing
-> deterministic text up as model output." If a key has since been set and the report says
-> `live_api`, say that instead.
+> **Read the mode off the screen.** It should say `live_api` with the Gemini model named. If
+> you re-run without `GEMINI_API_KEY` set it will say `offline_template`, and you must say
+> that instead — the report states its mode in the first line precisely so this cannot be
+> glossed.
 
 ---
 
@@ -202,13 +214,28 @@ retrain before recording, re-read them off the screen. Never say a number that i
 > "This is the part that matters. The grounding validator is ordinary code, not a prompt. It
 > pulls every number out of the generated text and checks it against the pack. Invent a
 > figure, rescale a real one, or turn an association into a cause, and the output is blocked
-> before a reviewer sees it.
+> before a reviewer sees it — then fed back to the model with the specific finding attached.
 >
-> Six adversarial cases, and the validator returns the expected verdict on every one — this
-> one asserts a 41.7% default probability that appears nowhere in the pack, and is blocked."
+> Here is a real one. Gemini reported `exception_required` as **0.046**. The pack says
+> **0.0046**. One decimal place, otherwise perfectly formatted — exactly the error a human
+> skim-reading a queue will never catch. The validator caught it, and the correction
+> round-trip returned the right figure.
+>
+> And the honest part: **the validator was wrong more often than Gemini was.** It flagged
+> correct output four separate ways — scientific notation split in two, a hyphen in a field
+> name read as a minus sign, numbered list markers read as figures, and 'human review' not
+> counting as reviewer framing. The root cause was two number-parsing regexes that had to
+> agree and nothing making them agree. They are now one shared tokenizer, and every one of
+> those failures is pinned by a case in a twelve-case self-test."
 
-**On screen:** `reports/copilot_validator_self_test.csv`, then the blocked cases in
-`reports/copilot_report.md`.
+**On screen:** `reports/copilot_validator_self_test.csv` (12 of 12), then
+`reports/copilot_report.md` section 5 — the blocked/corrected pair and the *Model failure, or
+validator false positive?* table.
+
+> **If the current run blocked nothing interesting**, the `0.046` case is retained in
+> `submission/llm_prompt_log_archive.jsonl` (timestamp `13:16:54`). Section 5 of the report
+> tells you which run's failures it is showing. Never describe a failure that is not on the
+> screen in front of you.
 
 ---
 
@@ -228,13 +255,31 @@ retrain before recording, re-read them off the screen. Never say a number that i
 
 > "And the development log: tools used, what we accepted, what we rejected and why. Including
 > the run that completed cleanly and regenerated every report from a stale cache — caught on
-> two figures that could not be true, and fixed at the root."
+> two figures that could not be true, and fixed at the root. And section 14: a bug that was
+> deleting the prompt log at the start of every run, so each run destroyed the failures the
+> run before had captured. On a task whose deliverable *is* captured failures, that one
+> mattered."
 
-**On screen:** `submission/AI_DEVELOPMENT_LOG.md`, section 12.
+**On screen:** `submission/AI_DEVELOPMENT_LOG.md`, section 12, then section 14.
 
 ---
 
 ## Backup answers for likely questions
+
+**"Why Gemini and not Claude or GPT?"**
+> Cost and availability, stated plainly in the model card and the copilot report. Gemini
+> flash-lite is free-tier eligible, so the whole Task 7 deliverable reproduces for anyone with
+> a free key. It was a deliberate provider choice, not a fallback after a failure. The design
+> is vendor-neutral — grounding packs, system prompt, validators and probes are unchanged from
+> the earlier Anthropic wiring; only the client layer differs. The import guard that keeps
+> LLMs out of the modelling path is written against the capability, not one vendor: it blocks
+> `anthropic`, `openai`, `google`, `cohere`, `mistralai` and `ollama` alike.
+
+**"Did you pick the best Gemini model?"**
+> No — the best one was unusable. `gemini-3.6-flash` writes better prose but allows 20
+> requests per *day* on the free tier, and one Task 7 run issues 15 to 20 calls, so it is
+> effectively single-shot. That was measured, not read off a pricing page. Flash-lite clears a
+> full run with headroom.
 
 **"Isn't the exception label synthetic?"**
 > Yes, and section 2 of the model card says so with a per-layer table. SFLLD has no second
