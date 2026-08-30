@@ -66,7 +66,8 @@ def _read_cache():
     except (ImportError, ValueError, OSError):
         pass
     if CACHE_CSV.exists():
-        df = pd.read_csv(CACHE_CSV)
+        from src.data.loaders import _PANEL_STRING_COLS
+        df = pd.read_csv(CACHE_CSV, dtype=_PANEL_STRING_COLS)
         return _restore_types(df)
     return None
 

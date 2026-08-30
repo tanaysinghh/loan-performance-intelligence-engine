@@ -20,6 +20,7 @@ def _pct(x, digits=1):
 
 
 def build() -> str:
+    real = C.real_build_summary()
     df = prepare()
     features = F.feature_columns(df)
     splits = pd.read_csv(C.REPORTS / "split_summary.csv")
@@ -79,7 +80,11 @@ def build() -> str:
     A("")
     A("**Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  ")
     A("**Author:** Tanay Singh  ")
-    A("**Date:** 2026-08-28")
+    # Generated, not hand-typed: a stale date on a regenerated card is exactly the kind of
+    # drift this module exists to prevent.
+    from datetime import datetime, timezone
+    A(f"**Card generated:** {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC  ")
+    A(f"**Data source:** {'Freddie Mac SFLLD (real)' if real else 'synthetic generator'}")
     A("")
     A("> Every figure in this card is generated from the pipeline's own report artefacts by "
       "`src/report_model_card.py`. Retraining regenerates the card; the numbers cannot drift "
@@ -113,7 +118,6 @@ def build() -> str:
     A("")
     A("## 2. Data")
     A("")
-    real = C.real_build_summary()
     if real:
         A("### Source: real Freddie Mac loan-level data")
         A("")

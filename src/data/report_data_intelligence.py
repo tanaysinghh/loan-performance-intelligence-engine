@@ -96,7 +96,7 @@ def build(df: pd.DataFrame = None) -> dict:
           "document data. The fabricated servicer feed is anchored on real servicing "
           f"transfers — **{diag.get('servicer_transfer_loans', 0):,}** of "
           f"**{real.get('loans', 0):,}** sampled loans genuinely change servicer at least "
-          "once. Section 4 of the model card sets out exactly which columns are which.")
+          "once. Section 2 of the model card sets out exactly which columns are which.")
         A("")
         A("> ### The 12-month default target is a 90+ DPD proxy")
         A("> ")

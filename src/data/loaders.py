@@ -15,8 +15,16 @@ DPD_SENTINELS = {9999.0, -1.0, 999.0}
 RATE_SENTINELS = {0.0, 99.99, -1.0}
 
 
+#: Banded/categorical columns that are overwhelmingly null on real data (loss severity is
+#: populated only on liquidation), which makes pandas infer a mixed dtype per chunk. Naming
+#: them explicitly keeps the read deterministic and the logs clean.
+_PANEL_STRING_COLS = {"loss_severity_band": "object", "credit_score_band": "object",
+                      "ltv_band": "object", "dti_band": "object",
+                      "document_status": "object", "source_system": "object"}
+
+
 def load_panel(path=None) -> pd.DataFrame:
-    df = pd.read_csv(path or C.LOAN_PANEL)
+    df = pd.read_csv(path or C.LOAN_PANEL, dtype=_PANEL_STRING_COLS)
     df["reporting_period"] = pd.PeriodIndex(df["reporting_month"], freq="M")
     df["origination_period"] = pd.to_datetime(df["origination_month"], format="%Y-%m",
                                               errors="coerce").dt.to_period("M")
