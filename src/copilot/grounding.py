@@ -99,7 +99,7 @@ def extract_numbers(pack: dict) -> set[float]:
         elif isinstance(obj, str):
             for token in _NUM_RE.findall(obj):
                 try:
-                    found.add(float(token))
+                    found.add(float(token.rstrip("%").replace(",", "")))
                 except ValueError:
                     pass
 
@@ -116,7 +116,20 @@ def extract_numbers(pack: dict) -> set[float]:
 
 
 import re
-_NUM_RE = re.compile(r"-?\d+\.?\d*")
+
+# The single number tokenizer, shared with the validator.
+#
+# These two once carried separate patterns and silently disagreed. A live Gemini run wrote
+# the credit band `580-619`; this side tokenized it as [580, -619] while the validator read
+# [580, 619], so a figure copied verbatim out of the pack was reported as ungrounded. Any
+# divergence between "what counts as a number in the pack" and "what counts as a number in
+# the text" shows up as a false accusation against correct output, so there is now one
+# pattern and both sides import it.
+#
+#   (?<![\w.])  a minus inside a word is a hyphen, and digits inside an id are not a number
+#   (?:[eE]..)  scientific notation is one token, not a number and an exponent
+NUMBER_TOKEN_RE = re.compile(r"(?<![\w.])-?\d[\d,]*\.?\d*(?:[eE][+-]?\d+)?%?")
+_NUM_RE = NUMBER_TOKEN_RE
 
 
 def rule_pack(rule_summary: pd.DataFrame, rules_json: dict,

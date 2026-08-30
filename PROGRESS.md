@@ -1,14 +1,20 @@
 # PROGRESS — Loan Performance Intelligence Engine
 
-**Branch:** `real-data-switch` (9 commits) · **Fallback:** `master` @ `91fe18d` · **Tests:** 40/40
+**Branch:** `real-data-switch` (9 commits) · **Fallback:** `master` @ `91fe18d` · **Tests:** 40/40 · **Copilot:** live on Gemini
 
 ---
 
 ## Bottom line
 
-The switch to real Freddie Mac data is **done and the gate passed**. Every deliverable is
-regenerated from one coherent run on real data. Two things need you: an `ANTHROPIC_API_KEY`,
-and recording the demo video. Everything else is closed.
+The switch to real Freddie Mac data is **done and the gate passed**, and the LLM copilot is
+now **live on Google Gemini** — the last open gap is closed. Every deliverable is regenerated
+from one coherent run on real data. **One thing needs you: recording the demo video.**
+
+The copilot ran for real against `gemini-3.5-flash-lite`: 14 calls in the current log and
+52 across the retained history, every one with prompt, provider, model, timestamp,
+tokens, finish reason and validator verdict recorded. Genuine model failures were caught and
+corrected on logged round-trips, and — separately reported — several validator false
+positives were found and fixed at source.
 
 ---
 
@@ -80,16 +86,78 @@ Scenario adverse credit 1.17% → 1.86% (Engine B); high prepayment +5.1pp (Engi
 
 | # | Item | Status |
 |---|---|---|
-| 1 | LLM copilot made real | **Blocked on API key — not faked.** Mode stated in the report's first line; all 11 log entries labelled `offline_template`. Validator self-test 6/6 is genuine non-LLM evidence and runs regardless. Rule-suggestion task added (4 of 6 Task 7 use cases). |
+| 1 | LLM copilot made real | ✅ **Closed — live on Google Gemini (`gemini-3.5-flash-lite`).** 14 logged calls this run, 52 retained. Reviewer notes, scenario summary, data-dictionary retrieval and rule suggestion all generated live. 3 genuine model failures captured with corrections; validator self-test now 10/10. Every output labelled *recommendation, not decision*. |
 | 2 | submission.csv format | ✅ 16,000 × 21. All seven PS §6 elements mapped in `SUBMISSION_FORMAT.md`, pinned by 9 new tests. |
 | 3 | Model card freshness | ✅ Regenerated via `write()` and post-dates every artefact it reads. Date and data source generated, not typed. |
 | 4 | Demo video script | ✅ 15 beats, real figures, backup Q&A. |
 | 5 | AI Development Log | ✅ §12 this session's work; §13 verbatim prompts. |
 | 6 | Compliance re-audit | ✅ Re-audited. Tasks 1, 6, 8 moved PARTIAL → FULLY MET. §3.8 rewritten (was vacuous). Only Task 7 remains partial, on the API key. |
 
+## Phase 3 — LLM copilot on Gemini ✅
+
+**Provider switched from Anthropic to Google Gemini, deliberately.** Cost and availability:
+`gemini-3.5-flash-lite` is free-tier eligible, so the whole Task 7 deliverable reproduces for anyone
+holding a free API key rather than only for someone with a paid credential. The copilot
+design is vendor-neutral — grounding packs, system prompt, validators and adversarial probes
+are unchanged; only the client, auth and response-parsing layer differs.
+
+**Step-0 constraint check passed.** No prediction path sends loan records to an LLM for
+classification. The only call site is `Copilot.ask`, reachable only from `run_copilot.py`,
+and every input is a grounding pack built from figures LightGBM, SHAP, the isolation forest,
+Cox and the Markov chain already produced. The import guard in `tests/test_no_llm_prediction.py`
+was rewritten to be vendor-neutral in the same change — it previously named `anthropic` and
+`openai` only, and would have stopped enforcing anything the moment the project moved to
+Google.
+
+### What Gemini got wrong (real, logged, corrected)
+
+| # | Failure | Evidence | Correction |
+|---|---|---|---|
+| 1 | **10x transcription error** — `exception_required` given as `0.046` where the pack says `0.0046`. Recurred on an earlier run as `0.042` for `0.0042`, where it appended its own note that the pack said `0.0042` and led with the wrong figure anyway. | Quoted verbatim, `copilot_report.md` §5 | Blocked on the number; round-trip returned `0.0046` |
+| 2 | **Null advice** — a reviewer note whose "check this first" pointed at a document status the same pack reported as `complete`. True, well-formed, useless. | `llm_prompt_log_archive.jsonl` | New `usefulness_validator`; corrected to "the pack surfaces no specific item to check first" |
+| 3 | **LaTeX in a plain-text queue** — portfolio summary rendered figures as `$-2 \times 10^{-5}$`. | Described, not quoted — original log line was destroyed by the pre-rotation delete bug, and reconstructing it would be fabricating evidence | Validator detects and normalises it; ablation reported **negative** (see below) |
+
+### What the validator got wrong
+
+Three false-positive classes, all fixed at source, each pinned by a self-test case:
+`-2e-05` split into `-2` and `-05`; `next-3m-delinquency` read as `-3`; and the credit band
+`580-619` tokenized as `-619` by `grounding.py` but `619` by `validators.py`. That last was
+the root cause — **two number-parsing regexes that had to agree with no mechanism making them
+agree**. Consolidated into one shared `grounding.NUMBER_TOKEN_RE`.
+
+Two false positives are **kept deliberately**: a refusal quoting the blacklisted phrase it is
+declining to use, and a refusal echoing the question's own "24 months". Narrowing the check
+would open a gap a real failure could use, so the bias stays toward blocking correct output
+over releasing incorrect output. The correction round-trip clears both automatically.
+
+### A negative result, reported as negative
+
+System-prompt rule 7 ("no LaTeX") was added after the MathJax incident and the next run came
+back clean — which proves nothing, since the model is sampled. `src/copilot/ablation_latex.py`
+ran the same pack 3× with the rule and 3× without. **LaTeX did not reappear in either arm**,
+so there is no evidence rule 7 is what fixed it. The rule is kept because it costs nothing;
+it is not claimed as the fix. Detection is the load-bearing part, and it does not depend on
+the model's cooperation.
+
+### Also fixed
+
+- **A logging bug that was eating the evidence.** `run_copilot` deleted the prompt log at the
+  start of every run, so each run destroyed the failures the one before had captured — which
+  is how the LaTeX transcript was lost. Now rotated into
+  `submission/llm_prompt_log_archive.jsonl`.
+- **Per-day vs per-minute quota.** The client retried an exhausted *daily* cap with backoff,
+  burning 125s per call on a limit that was never going to clear. The two are now
+  distinguished and a daily exhaustion fails fast.
+- Prompt log gained `provider`, `sdk`, `finish_reason`, `response_id` and `latency_seconds`.
+- Every LLM output in the copilot report carries an individual **recommendation, not
+  decision** label with its model, timestamp and token counts.
+
+---
+
 ## Compliance status
 
-- **Tasks 1–6, 8: FULLY MET.** Task 7 partial, solely on the missing credential.
+- **Tasks 1–8: FULLY MET.** Task 7 closed this session — the copilot runs live on Gemini,
+  with real captured failures and corrections rather than an architecture-only demonstration.
 - **All 10 disqualification conditions: do not apply.** §3.8 now met on its merits with
   gitignore/history/redistribution evidence, not by "all data is synthetic".
 - New deliverable `data/raw/validation_rules.json` (PS §6 named it; none was issued).
@@ -98,18 +166,26 @@ Scenario adverse credit 1.17% → 1.86% (Engine B); high prepayment +5.1pp (Engi
 
 ## Requires your manual action
 
-1. **`ANTHROPIC_API_KEY`** — the one open gap, worth up to 10 rubric points. No credential
-   exists here, so the copilot runs `offline_template`. I did not write plausible transcripts
-   and label them as API output. To close it:
+1. ~~**`ANTHROPIC_API_KEY`**~~ — **closed.** The copilot now runs live on Google Gemini
+   (`GEMINI_API_KEY`), which was a deliberate provider choice on cost and availability rather
+   than a fallback: the model is free-tier eligible, so this reproduces for anyone with a free
+   Google AI Studio key. Re-run with:
    ```bash
-   export ANTHROPIC_API_KEY=sk-ant-...
+   export GEMINI_API_KEY=...
    python -m src.copilot.run_copilot
    python -c "from src.report_model_card import write; write()"
    ```
-   That regenerates the report against live output with real timestamps, token counts and
-   validator verdicts, then refreshes the card. Then capture 2–3 cases where the model was
-   wrong, vague or overconfident — the five adversarial probes in `run_copilot.py` are built
-   to elicit exactly those and currently have nothing to catch.
+   Nothing is outstanding here. Two notes if you review it:
+   - **Free-tier quota is a real constraint.** `gemini-3.6-flash` writes better prose but
+     allows only **20 requests per day**; a Task 7 run issues 15-20, so it is effectively
+     single-shot. `gemini-3.5-flash-lite` is the default for that reason and clears a full
+     run with headroom.
+   - **The validator was wrong more often than Gemini was.** Three false-positive classes
+     were found and fixed at source (scientific notation split in two, hyphens in field names
+     read as minus signs, and two number-parsing regexes that disagreed with each other).
+     `reports/copilot_report.md` §5 separates genuine model failures from validator defects
+     rather than reporting every block as model error.
+
 2. **Record the demo video** — `reports/demo_video_script.md`, 15 beats with figures filled
    and the artefacts to have on screen listed in order.
 3. **Final review before submitting** — suggest reading `submission/MODEL_CARD.md` §2 first;

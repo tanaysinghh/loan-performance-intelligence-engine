@@ -15,13 +15,13 @@ what was learned.
 | Tool | Role in this project |
 |---|---|
 | Claude Code (Opus 5) | Agentic pair-programmer: scaffolding, module implementation, refactors, test authoring, report generation |
-| Anthropic Messages API (`claude-sonnet-5`) | Runtime component only — the reviewer copilot in `src/copilot/`. Never used for prediction. |
+| Google Gemini API (`gemini-3.5-flash-lite`) | Runtime component only — the reviewer copilot in `src/copilot/`. Never used for prediction. Switched from the Anthropic Messages API in session 3; see section 14. |
 | LightGBM / scikit-learn / lifelines / SHAP | The actual modelling stack. All predictive numbers come from these. |
 
 **Hard rule enforced throughout:** no LLM produces a predictive number anywhere in this
 system. The LLM reads model outputs and writes prose. Every probability, score, rate, and
 ranked driver in `submission/submission.csv` traces to a fitted non-LLM estimator. This is
-verified by a test (`tests/test_no_llm_leakage.py`) that fails if the copilot module is
+verified by a test (`tests/test_no_llm_prediction.py`) that fails if the copilot module is
 importable from any modelling path.
 
 **Human review process.** Every AI-generated module was reviewed under three lenses before
@@ -469,6 +469,8 @@ literal mechanism was not the way to meet it.
 
 ### Not done, and not faked: live LLM copilot
 
+> **Superseded in session 3 (2026-08-30).** A Gemini key became available and the copilot now runs live; see section 14. This entry is left standing as written because it records what was true when it was written, and because the decision it describes — refusing to fabricate transcripts while waiting for a credential — is the reason there was nothing to unwind when the key arrived.
+
 No `ANTHROPIC_API_KEY` is present in the build environment, so `src/copilot/` runs in
 `offline_template` mode. The option of writing plausible reviewer transcripts and presenting
 them as captured API output was available and was **not taken** — section 13 of the problem
@@ -477,9 +479,10 @@ statement lists fabricated results as a disqualification condition, and the dist
 whole layer exists to police.
 
 The grounding validator itself is ordinary code, not a prompt, and it is genuinely exercised:
-`run_self_test()` feeds six deliberately bad outputs through it — a fabricated probability, a
+`run_self_test()` feeds deliberately bad outputs through it — a fabricated probability, a
 rescaled real figure, a causal assertion, an overconfident decision, missing reviewer framing,
-and one clean case — and asserts the expected verdict on each. That evidence is real regardless
+and one clean case — and asserts the expected verdict on each. (Session 3 grew this suite
+from six cases to ten.) That evidence is real regardless
 of execution mode. The copilot report states its mode in the first line rather than burying it.
 
 ### Prepayment degrades out of time, and that is reported
@@ -602,3 +605,138 @@ What produced good output, consistently:
 - **Ask for the disagreement.** "say so plainly rather than continuing to sink time into it"
   and "recommend one path plainly" both produced direct answers where an open-ended request
   would have produced a survey of options.
+
+---
+
+## 14. Session 3 (2026-08-30) — wiring the copilot to Gemini
+
+A `GEMINI_API_KEY` became available, so the copilot moved off `offline_template` and ran for
+real. The instruction was explicit that this was a provider choice, not a rescue, and the
+record should reflect that.
+
+### Why Gemini, stated plainly
+
+Cost and availability. `gemini-3.5-flash-lite` is free-tier eligible, so the whole Task 7
+deliverable reproduces for anyone holding a free Google AI Studio key. An assessment artefact
+that only runs for someone with a paid credential is worth less than one that runs for
+anybody. This was a deliberate selection, not a fallback after an Anthropic failure — the
+Anthropic path worked, it was simply not the one available here.
+
+The specific model was chosen by measurement rather than from the docs. The first live run
+used `gemini-3.6-flash`, which writes noticeably better prose, and it died partway through
+with `ResourceExhausted`: the free allowance for that model is **20 requests per day**
+(`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, `quota_value: 20`). A single Task 7 run
+issues 15-20 calls, so one attempt would have burned the day's quota and left the deliverable
+un-rerunnable. The lite tier clears a full run with headroom. Two things came out of that:
+the model default changed, and the client learned to tell a per-**day** quota from a
+per-minute one, because retrying the former with backoff just burns wall time — the first run
+spent 125 seconds per call retrying a cap that was never going to clear.
+
+### What actually changed in the code
+
+Only the client, auth and response-parsing layer. Grounding packs, the system prompt, the
+validators and the adversarial probes are the same objects they were under Anthropic, which
+was the point of keeping the LLM behind a grounding pack in the first place. The vendor swap
+touched `src/copilot/client.py` and nothing in the copilot's design.
+
+The import guard in `tests/test_no_llm_prediction.py` was rewritten to be vendor-neutral in
+the same commit. It previously forbade `anthropic` and `openai` by name, which would have
+silently stopped enforcing anything the moment the project moved to Google. The constraint is
+"no LLM in the modelling path", not "no Anthropic in the modelling path", so it now blocks
+`anthropic`, `openai`, `google`, `cohere`, `mistralai` and `ollama` alike.
+
+### The first check was the one that mattered
+
+Before any code changed, the standing instruction was to confirm that no prediction path
+sends loan records to an LLM for classification. It held: the only call site is
+`Copilot.ask`, reachable only from `run_copilot.py`, and every input to it is a grounding
+pack built from figures that LightGBM, SHAP, the isolation forest, Cox and the Markov chain
+had already produced. Nothing needed flagging. Worth recording that the check was run against
+the *capability* rather than the vendor, because a provider swap is exactly the kind of change
+under which a name-based guarantee quietly stops guaranteeing anything.
+
+### What Gemini got wrong
+
+Three genuine failures, all caught and all corrected on a logged round-trip.
+
+1. **A 10x transcription error, twice.** Gemini drops a decimal place restating small
+   probabilities: `exception_required` reported as `0.046` where the pack said `0.0046`, and
+   on an earlier run `0.042` for `0.0042`. The earlier one is the more interesting: it
+   appended its own parenthetical noting that the pack said `0.0042`, and then led with the
+   wrong figure anyway. It caught its own error and published it. This is precisely the
+   failure a reviewer cannot catch by eye — correctly formatted, plausible, wrong by one
+   decimal place — and precisely what a validator comparing against the pack does catch.
+2. **Null advice.** A reviewer note whose "check this first" instruction pointed at a
+   document status the same pack reported as `complete`. True, well-formed, and it told the
+   reviewer to go and look at nothing. Nothing in the existing controls had an opinion about
+   it, because they were all truthfulness controls.
+3. **LaTeX in a plain-text queue.** A portfolio summary rendered every scientific-notation
+   figure as MathJax (`$-2 \times 10^{-5}$`), which the servicing queue does not render.
+
+Failure 2 produced a new control (`usefulness_validator`) rather than a prompt tweak, because
+a prompt tweak would not have been checkable. It is deliberately narrow: it fires only when
+the text steers the reviewer at a field the grounding pack itself reports as clean, which is
+a question the pack can settle. General vagueness is not mechanically detectable and no claim
+is made that it is caught.
+
+### Where the validator was wrong, which was more often than Gemini
+
+The uncomfortable finding. Of the outputs blocked across the live runs, several were correct
+Gemini output that the validator flagged in error:
+
+- `-2e-05`, copied verbatim from the pack, split into `-2` and `-05` and reported twice as
+  ungrounded.
+- `next-3m-delinquency` — a field name — read as the number `-3`.
+- The credit band `580-619` tokenized as `-619` by `grounding.py` and as `619` by
+  `validators.py`, so a figure copied verbatim out of the pack was "ungrounded" purely
+  because the two sides of the comparison disagreed about what a number is.
+
+That last one is the root cause worth naming: **there were two number-parsing regexes that
+had to agree and no mechanism making them agree.** They were consolidated into one
+(`grounding.NUMBER_TOKEN_RE`), imported by the validator, so they cannot drift apart again.
+Each of the three is pinned by a self-test case that fails if it regresses.
+
+These mattered more than they look. A validator that cries wolf on correct output trains a
+reviewer to wave blocks through, which costs more than the errors it was built to catch. Two
+false positives are being kept anyway: a refusal that quotes the blacklisted phrase it is
+refusing to use, and a refusal that echoes the question's own "24 months". Narrowing the
+check to admit them would open a gap a real failure could walk through — a model can refuse
+and still slip a fabricated number into the refusal — so the bias stays toward blocking
+correct output rather than releasing incorrect output.
+
+### An ablation that came out negative, and is reported that way
+
+Rule 7 ("write plain prose, no LaTeX") was added to the system prompt after the MathJax
+incident, and the next run came back clean. That is not evidence: the model is sampled, and it
+might simply not have reached for LaTeX. So the same pack was run three times with the rule
+and three times without it (`src/copilot/ablation_latex.py`).
+
+LaTeX did not reappear in either arm. **The ablation gives no evidence that rule 7 is what
+fixed anything**, and the copilot report says so. The markup was most likely low-frequency
+sampling behaviour these samples did not hit. The rule is kept because it costs nothing, but
+it is not claimed as the fix. What is load-bearing is detection, which does not depend on the
+model's cooperation: the validator now recognises LaTeX, normalises the figure inside it
+*before* checking grounding — so the markup is not additionally mis-reported as a fabricated
+number — and blocks with that named as the reason.
+
+### A logging bug that was eating the evidence
+
+`run_copilot` deleted the prompt log at the start of every run. Since captured failures are
+the deliverable for this task, each run was destroying the evidence the run before had
+collected — which is how the original LaTeX transcript was lost. The log is now rotated into
+`submission/llm_prompt_log_archive.jsonl` instead of unlinked.
+
+The 10x error recurred later and is quoted verbatim from the live log, so it needed no
+reconstruction. The LaTeX transcript did not recur and its log line is gone; it is described
+from the analysis made at the time and deliberately **not** written out as a quoted
+transcript, because reproducing a log entry that no longer exists would be fabricating
+evidence however accurate the reconstruction. The same reasoning as session 2, applied to a
+case where it was tempting to cut a corner because the text had genuinely once existed.
+
+### AI-generated code share, this session
+
+| Area | AI share | Human-directed revision |
+|---|---|---|
+| Gemini client / auth / response parsing | ~85% | ~30% — quota handling and the empty-response path were rewritten after live failures |
+| Validator fixes (regex consolidation, LaTeX, usefulness) | ~70% | ~45% — each fix was driven by a specific observed failure, not written speculatively |
+| Report and log prose | ~80% | ~35% |
