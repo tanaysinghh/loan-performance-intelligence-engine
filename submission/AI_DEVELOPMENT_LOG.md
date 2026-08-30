@@ -681,7 +681,7 @@ is made that it is caught.
 
 ### Where the validator was wrong, which was more often than Gemini
 
-The uncomfortable finding. Of the outputs blocked across the live runs, several were correct
+The uncomfortable finding. Of the outputs blocked across the live runs, most were correct
 Gemini output that the validator flagged in error:
 
 - `-2e-05`, copied verbatim from the pack, split into `-2` and `-05` and reported twice as
@@ -690,6 +690,12 @@ Gemini output that the validator flagged in error:
 - The credit band `580-619` tokenized as `-619` by `grounding.py` and as `619` by
   `validators.py`, so a figure copied verbatim out of the pack was "ungrounded" purely
   because the two sides of the comparison disagreed about what a number is.
+- `15.` and `17.` — markdown ordered-list markers — read as the numbers 15 and 17. The
+  rule-suggestion task enumerates the existing rule set, so its output is inherently a
+  numbered list and it tripped this every time.
+- "three draft candidate rules **for human review**... drafts requiring human review before
+  implementation" blocked for missing reviewer framing, because the check demanded the
+  literal string `reviewer` and the model wrote `review`.
 
 That last one is the root cause worth naming: **there were two number-parsing regexes that
 had to agree and no mechanism making them agree.** They were consolidated into one
@@ -697,12 +703,33 @@ had to agree and no mechanism making them agree.** They were consolidated into o
 Each of the three is pinned by a self-test case that fails if it regresses.
 
 These mattered more than they look. A validator that cries wolf on correct output trains a
-reviewer to wave blocks through, which costs more than the errors it was built to catch. Two
-false positives are being kept anyway: a refusal that quotes the blacklisted phrase it is
+reviewer to wave blocks through, which costs more than the errors it was built to catch. After
+the fixes a live run passes 11 of 12 outputs, against 6 of 12 at the worst point — and the
+improvement is almost entirely the validator getting more accurate, not the model getting
+better. Two false positives are being kept anyway: a refusal that quotes the blacklisted phrase it is
 refusing to use, and a refusal that echoes the question's own "24 months". Narrowing the
 check to admit them would open a gap a real failure could walk through — a model can refuse
 and still slip a fabricated number into the refusal — so the bias stays toward blocking
 correct output rather than releasing incorrect output.
+
+### The self-test was not a regression test
+
+Worth recording separately because it is the kind of defect that makes every other number in
+this section untrustworthy. `run_self_test()` was called with whichever loan pack the live run
+happened to pick. Its cases assert things like "this figure is ungrounded" and "this figure is
+grounded", which are only true relative to a pack — so a case silently flips to a pass the
+moment a real loan happens to carry a number near the fabricated one, and flips to a failure
+whenever the picked loan lacks the grounded one.
+
+It showed up as the suite reporting **8 of 10 on one run and 10 of 10 on another with no code
+change between them**. Two cases were data-dependent. A regression test whose verdict moves
+with the input is not a regression test, and worse, it had been cited as evidence in the model
+card and the demo script.
+
+Fixed by giving the suite a fixed `SELF_TEST_PACK` containing exactly the figures its cases
+reference, and defaulting `run_self_test()` to it. Now deterministic at 12/12. The two cases
+that had been quietly wrong are the two that were added most recently — new tests are exactly
+where this class of defect hides, because nobody has yet seen them fail for the right reason.
 
 ### An ablation that came out negative, and is reported that way
 
@@ -738,5 +765,6 @@ case where it was tempting to cut a corner because the text had genuinely once e
 | Area | AI share | Human-directed revision |
 |---|---|---|
 | Gemini client / auth / response parsing | ~85% | ~30% — quota handling and the empty-response path were rewritten after live failures |
-| Validator fixes (regex consolidation, LaTeX, usefulness) | ~70% | ~45% — each fix was driven by a specific observed failure, not written speculatively |
+| Validator fixes (regex consolidation, LaTeX, usefulness, list markers, framing) | ~70% | ~45% — each fix was driven by a specific observed failure, not written speculatively |
+| Self-test determinism fix | ~60% | ~50% — the defect was found by noticing the same suite report two different scores |
 | Report and log prose | ~80% | ~35% |
