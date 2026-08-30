@@ -11,6 +11,18 @@ Generated from `loan_panel.csv` and `servicer_updates.csv`.
 - Servicers: **42**; states: **53**
 - Secondary servicer feed: **14,118** duplicate loan-month records resolved latest-wins, **920** orphan records referencing loan-months absent from the panel.
 
+### Source and provenance
+
+Built from the **Freddie Mac Single-Family Loan-Level Dataset** sample files, vintages 2019-2023 (250,000 loans, 10,482,492 monthly records), sampled at loan level. The macro series are real (FRED `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA`).
+
+The **exception, reconciliation and document-status layer is fabricated** on top of the real panel, because SFLLD has no second source, no ingestion timestamps and no document data. The fabricated servicer feed is anchored on real servicing transfers — **6,903** of **16,000** sampled loans genuinely change servicer at least once. Section 2 of the model card sets out exactly which columns are which.
+
+> ### The 12-month default target is a 90+ DPD proxy
+> 
+> Realised credit events — third-party sale, short sale, REO disposition, note sale (zero-balance codes 02/03/09/15) — occur on **14 of 16,000 sampled loans**, roughly one row in 200,000. That cannot be modelled. These are post-2019 agency vintages carried by strong house-price appreciation and pandemic-era forbearance, so the scarcity is a property of the cohort rather than of the sample.
+> 
+> **`next_12m_default_flag` is therefore 1 when the loan reaches 90+ days past due, or a realised credit event, within the next 12 months.** Every profiling figure, metric and submission column labelled 'default' refers to that proxy. It is a serious-delinquency model, not a loss model.
+
 ## 2. Column distribution profiling
 
 ### Numeric fields
@@ -47,7 +59,7 @@ Generated from `loan_panel.csv` and `servicer_updates.csv`.
 - Rows with at least one missing profiled field: **100.0%**
 - Mean missing fields per row: **1.216**
 
-Missingness is not random. A chi-square test of each field's missingness indicator against `servicer_name` rejects independence for the fields below, so the mechanism is **missing-at-random conditional on servicer**, not MCAR. Two servicers (Kestrel Financial, Pioneer Mortgage Ops) account for most of the gap. The practical consequence: dropping incomplete rows would silently drop those servicers' books and bias every downstream rate. Models therefore consume missingness natively and carry explicit missing-indicator features.
+Missingness is not random. A chi-square test of each field's missingness indicator against `servicer_name` rejects independence for the fields below, so the mechanism is **missing-at-random conditional on servicer**, not MCAR. The two servicers with the highest mean missingness (CALIBER HOME LOANS, INC. and UNITED SHORE FINANCIAL SERVICES, LLC) account for a disproportionate share of the gap. The practical consequence: dropping incomplete rows would silently drop those servicers' books and bias every downstream rate. Models therefore consume missingness natively and carry explicit missing-indicator features.
 
 | column | chi2_vs_servicer | p_value | cramers_v | verdict |
 | --- | --- | --- | --- | --- |
@@ -222,7 +234,7 @@ A loan's static attributes must not change across its reporting months. Violatio
 
 ## 7. Train / test drift
 
-Split at `2024-06`, matching the time-aware modelling split used in Task 2. PSI below 0.10 is stable, 0.10-0.25 moderate, above 0.25 severe.
+Reference split at `2024-06`. PSI below 0.10 is stable, 0.10-0.25 moderate, above 0.25 severe.
 
 | column | psi | ks_statistic | train_missing_pct | test_missing_pct | severity |
 | --- | --- | --- | --- | --- | --- |
@@ -245,6 +257,42 @@ Split at `2024-06`, matching the time-aware modelling split used in Task 2. PSI 
 | days_past_due | 0.0000 | 0.0050 | 0.0225 | 0.0319 | stable |
 | source_system | 0.0000 |  | 0.0000 | 0.0000 | stable |
 | loss_severity_band |  |  | 1.0000 | 1.0000 | stable |
+
+### Drift at each target's own split boundary
+
+A single global boundary describes a split no model is actually trained on: the purged splits do not share a frontier, because a 12-month horizon must stop training far earlier than a 3-month one. The table below re-measures drift across the **real** train/test boundary used for each target.
+
+| target | train_window | test_window | column | psi | ks_statistic | severity |
+| --- | --- | --- | --- | --- | --- | --- |
+| exception_required | 2019-01..2025-03 | 2025-10..2026-03 | remaining_term_months | 3.8332 | 0.4945 | severe |
+| exception_required | 2019-01..2025-03 | 2025-10..2026-03 | loan_age_months | 3.4034 | 0.6114 | severe |
+| exception_required | 2019-01..2025-03 | 2025-10..2026-03 | servicer_name | 1.2549 |  | severe |
+| exception_required | 2019-01..2025-03 | 2025-10..2026-03 | interest_rate | 0.1308 | 0.1485 | moderate |
+| exception_required | 2019-01..2025-03 | 2025-10..2026-03 | loan_purpose | 0.0174 |  | stable |
+| next_12m_default_flag | 2019-01..2023-03 | 2024-10..2025-03 | loan_age_months | 3.1199 | 0.5691 | severe |
+| next_12m_default_flag | 2019-01..2023-03 | 2024-10..2025-03 | remaining_term_months | 2.6855 | 0.4163 | severe |
+| next_12m_default_flag | 2019-01..2023-03 | 2024-10..2025-03 | servicer_name | 1.6270 |  | severe |
+| next_12m_default_flag | 2019-01..2023-03 | 2024-10..2025-03 | interest_rate | 0.5705 | 0.3141 | severe |
+| next_12m_default_flag | 2019-01..2023-03 | 2024-10..2025-03 | loan_purpose | 0.0801 |  | stable |
+| next_12m_prepayment_flag | 2019-01..2023-03 | 2024-10..2025-03 | loan_age_months | 3.1199 | 0.5691 | severe |
+| next_12m_prepayment_flag | 2019-01..2023-03 | 2024-10..2025-03 | remaining_term_months | 2.6855 | 0.4163 | severe |
+| next_12m_prepayment_flag | 2019-01..2023-03 | 2024-10..2025-03 | servicer_name | 1.6270 |  | severe |
+| next_12m_prepayment_flag | 2019-01..2023-03 | 2024-10..2025-03 | interest_rate | 0.5705 | 0.3141 | severe |
+| next_12m_prepayment_flag | 2019-01..2023-03 | 2024-10..2025-03 | loan_purpose | 0.0801 |  | stable |
+| next_3m_delinquency_flag | 2019-01..2024-09 | 2025-07..2025-12 | remaining_term_months | 3.7432 | 0.4869 | severe |
+| next_3m_delinquency_flag | 2019-01..2024-09 | 2025-07..2025-12 | loan_age_months | 3.4364 | 0.6068 | severe |
+| next_3m_delinquency_flag | 2019-01..2024-09 | 2025-07..2025-12 | servicer_name | 1.3608 |  | severe |
+| next_3m_delinquency_flag | 2019-01..2024-09 | 2025-07..2025-12 | interest_rate | 0.1868 | 0.1769 | moderate |
+| next_3m_delinquency_flag | 2019-01..2024-09 | 2025-07..2025-12 | loan_purpose | 0.0255 |  | stable |
+| next_6m_delinquency_flag | 2019-01..2024-03 | 2025-04..2025-09 | remaining_term_months | 3.6339 | 0.4723 | severe |
+| next_6m_delinquency_flag | 2019-01..2024-03 | 2025-04..2025-09 | loan_age_months | 3.5051 | 0.5979 | severe |
+| next_6m_delinquency_flag | 2019-01..2024-03 | 2025-04..2025-09 | servicer_name | 1.2783 |  | severe |
+| next_6m_delinquency_flag | 2019-01..2024-03 | 2025-04..2025-09 | interest_rate | 0.2886 | 0.2146 | severe |
+| next_6m_delinquency_flag | 2019-01..2024-03 | 2025-04..2025-09 | loan_purpose | 0.0382 |  | stable |
+
+Seasoning is the dominant signal: `loan_age_months` and `remaining_term_months` drift severely on every target, which is structural rather than a data fault — a later window necessarily contains older loans. `servicer_name` drift is also real, and reflects genuine servicing transfers rather than a reporting change. The practical consequence is that absolute age features carry regime information; the models therefore also receive age-relative and rate-incentive features that are stable across the boundary.
+
+Full table: `reports/drift_by_target.csv`.
 
 ### Target stability across months
 
@@ -333,7 +381,7 @@ Record score = 100 minus the severity-weighted sum of rule violations, floored a
 
 ## 9. What this means for modelling
 
-1. **Servicer is a confound, not just a feature.** Kestrel Financial and Pioneer Mortgage Ops have both the worst data quality *and* elevated delinquency. A model given raw servicer identity will partly learn reporting behaviour rather than credit risk. Servicer is retained but its SHAP contribution is inspected separately in the explainability report.
+1. **Servicer is a confound, not just a feature.** The servicers with the lowest mean data-quality score (UNITED WHOLESALE MORTGAGE, LLC, PENNYMAC CORP.) also carry elevated delinquency. A model given raw servicer identity will partly learn reporting behaviour rather than credit risk. Servicer is retained but its SHAP contribution is inspected separately in the explainability report.
 2. **Censoring is real and material.** Forward-looking targets are undefined for rows whose horizon runs past the panel end. These are `NaN`, not `0`, and are excluded from supervised training rather than counted as non-events.
 3. **Repairs are features.** Whether a record needed repair is predictive of whether it needs an exception, so repair indicators are carried forward rather than discarded.
 4. **Drift is concentrated in macro-sensitive fields**, which is expected given the rate path in the panel window and is handled by time-aware validation rather than by reweighting.

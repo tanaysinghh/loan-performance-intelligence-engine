@@ -33,32 +33,46 @@ report.
 | Detect outliers and invalid date relationships | Met | IQR outlier counts in `profile_numeric`; invalid dates via `validate.py` rules `origination_after_reporting`, `last_updated_before_period_end`, `loan_age_inconsistent_with_dates` |
 | Identify correlations and highly dependent fields | Met | `profiling.py::dependency_analysis` — Spearman matrix, bias-corrected Cramér's V, functional-dependency checks |
 | Detect cross-column relationship breaks | Met | `src/data/validate.py::RULES` — 17 named rules across six dimensions, executed by `run_rules` |
-| **Compare train versus test drift** | **PARTIAL** | `profiling.py::drift_report` computes PSI and KS — but see gap below |
+| **Compare train versus test drift** | **Met** — was PARTIAL, closed in the real-data pass | `profiling.py::drift_report` (global reference boundary) **plus** `::drift_report_by_target`, which re-measures PSI and KS across each target's real purged frontier. Output: `reports/drift_by_target.csv` |
 | Record-level and batch-level data-quality scores | Met | `validate.py::score_records` (severity-weighted, 0–100, banded) and `::score_batches` (month × servicer grain) |
 
-**Gap 1a — drift boundary matches no actual model split.** `drift_report` defaults to
-`C.TRAIN_END = "2024-06"` (`src/config.py:62`). The real training windows are per-horizon and
-none of them ends there for the target the drift table is meant to inform:
+**Gap 1a — CLOSED.** The previous audit found that `drift_report` used a single global
+`C.TRAIN_END` boundary that matched no actual model split, while the report claimed it was
+"matching the time-aware modelling split used in Task 2" — inaccurate for four of five
+targets.
 
-| Target | Actual train window ends | Drift boundary |
+`profiling.drift_report_by_target()` now calls `purged_time_split` per target and measures
+drift across the boundary that target's model was actually trained on. The boundaries differ,
+as expected, and the report says so rather than implying a shared frontier:
+
+| Target | Real train window | Real test window |
 |---|---|---|
-| `next_3m_delinquency_flag` | 2024-12 | 2024-06 |
-| `next_6m_delinquency_flag` | 2024-06 | 2024-06 (coincidental match) |
-| `next_12m_default_flag` | 2023-06 | 2024-06 |
-| `next_12m_prepayment_flag` | 2023-06 | 2024-06 |
-| `exception_required` | 2025-06 | 2024-06 |
+| `next_3m_delinquency_flag` | 2019-01..2024-09 | 2025-07..2025-12 |
+| `next_6m_delinquency_flag` | 2019-01..2024-03 | 2025-04..2025-09 |
+| `next_12m_default_flag` | 2019-01..2023-03 | 2024-10..2025-03 |
+| `next_12m_prepayment_flag` | 2019-01..2023-03 | 2024-10..2025-03 |
+| `exception_required` | 2019-01..2025-03 | 2025-10..2026-03 |
 
-`C.TRAIN_END` and `C.VALID_END` are now **vestigial** — they survive from the pre-rewrite
-split design and are no longer read by `splits.py`. The drift report is therefore measuring a
-boundary the models do not use. The report's own text claims the split is "matching the
-time-aware modelling split used in Task 2", which is **inaccurate for four of five targets**.
+The global `drift_report` is retained as a stated reference boundary, no longer described as
+matching the modelling split. `C.TRAIN_END` / `C.VALID_END` remain vestigial for the split
+design and are used only for that reference table.
+
+**Substantive finding from the per-target view:** `loan_age_months` and
+`remaining_term_months` drift severely (PSI > 2.6) on every target. This is structural rather
+than a data fault — a later window necessarily holds older loans — and is now called out in
+the report, alongside genuine `servicer_name` drift driven by real servicing transfers.
 
 **Gap 1b — "train versus test" is interpreted as within-panel time windows.** Section 6 of the
 problem statement anticipates two separate organiser files
 (`loan_monthly_performance_train.csv` and an unlabeled `loan_monthly_performance_test.csv`).
-The repo has one panel and splits it internally. This is a reasonable adaptation given no
-organiser data was supplied, but it is not the same comparison and is not currently
-labelled as an adaptation.
+The repo has one panel and splits it internally.
+
+**Still an adaptation, now a labelled one.** No organiser data pack was ever issued, so there
+is no second file to compare against; the data was sourced directly from Freddie Mac instead.
+An internal purged time split is the closest faithful equivalent, and it is arguably the
+stricter test, because the boundary is chosen to respect each label's horizon rather than
+being handed over pre-split. The adaptation is stated in `MODEL_CARD.md` §2 and `README.md`
+rather than left implicit.
 
 ---
 
@@ -319,16 +333,77 @@ ECE, KS, lift, macro-F1, log loss, c-index, and calibration tables.
 
 ### 3.7 "Fabricates results" → **DOES NOT APPLY — and this was actively guarded**
 
-Two places where fabrication was available and declined:
+Four places where fabrication was available and declined:
+
 - The missing live-LLM transcripts are reported as missing in `reports/copilot_report.md` §5,
-  `MODEL_CARD.md` §9, and `README.md`, rather than filled with invented text.
+  `MODEL_CARD.md` §9, and `README.md`, rather than filled with invented text. No
+  `ANTHROPIC_API_KEY` exists in the build environment; the copilot runs in
+  `offline_template` mode and says so in the first line of its report.
 - `MODEL_CARD.md` is generated from report CSVs by `src/report_model_card.py` after a
-  hand-written version was found to have six stale figures within one retraining run.
+  hand-written version was found to have six stale figures within one retraining run. Its
+  date is generated too, so a regenerated card cannot carry a stale one.
+- **The 90+ DPD proxy is labelled, not passed off as a default rate.** Realised credit events
+  occur on 14 of 16,000 sampled loans. Reporting a "default model" on that basis without
+  saying so would be the most defensible-looking fabrication available in this project. The
+  redefinition and the realised-event count are stated together in `MODEL_CARD.md` §2,
+  `reports/data_intelligence_report.md` §1, `README.md` and `SUBMISSION_FORMAT.md`.
+- **A full set of freshly-dated but stale reports was caught and discarded.** A run with
+  `--skip-data` reused a cached feature frame from a previous data source and regenerated
+  every report from it, exit code 0, no warning. Detected on two impossible figures
+  (`train_loans: 1379` against 16,000 loans; a test window ending 2026-06 when the data ends
+  2026-03), fixed at the root with an mtime-based cache-invalidation guard
+  (`src/features/dataset.py::_cache_is_stale`), and recorded in
+  `submission/AI_DEVELOPMENT_LOG.md` §12. Every artefact in this audit post-dates that fix and
+  comes from a single run — see §0.
 
-### 3.8 "Uses public data in violation of source terms" → **DOES NOT APPLY**
+### 3.8 "Uses public data in violation of source terms" → **DOES NOT APPLY — but it is now a live condition, not a vacuous one**
 
-No external data is downloaded or used. All data is synthetic, generated by
-`src/data/generate_synthetic.py`. No Fannie/Freddie/HMDA file is fetched or redistributed.
+This section previously read "no external data is used, all data is synthetic". That is no
+longer true and the condition now has to be met on its merits.
+
+**What is used.** The Freddie Mac Single-Family Loan-Level Dataset sample files, vintages
+2019–2023 (250,000 loans, 10,482,492 monthly records), plus three FRED macroeconomic series.
+
+**Why the condition is not triggered:**
+
+| Control | Evidence |
+|---|---|
+| Raw SFLLD files are never committed | `.gitignore` carries `dataset/*` with a single negation for the instructions file. `git ls-files dataset` returns only `dataset/download_sflld.md`. |
+| They were never committed historically either | Largest blob in the entire object database is 2.7 MB, against ~1.2 GB of raw data. No history rewrite was required because nothing ever entered history. |
+| Redistribution is not performed | The repository ships instructions to obtain the data under the user's own accepted licence (`dataset/download_sflld.md`), not the data. |
+| Derived artefacts are aggregate | Committed `data/samples/` extracts are drawn from the *derived* panel, not the raw files. |
+| Macro series are separately redistributable | FRED `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA` are US federal / index data, vendored under `data/external/` with series ids and refresh commands recorded in `src/data/macro_real.py`. |
+
+**Residual risk:** a judge cloning the repository cannot reproduce the panel without
+registering with Freddie Mac themselves. That is an unavoidable consequence of respecting the
+licence, and it is the reason the synthetic generator is retained — `python -m src.pipeline`
+reproduces the entire pipeline end to end with no external dependency, on a pack with the
+identical 33-column contract.
+
+### 3.8b Hybrid data provenance → **DISCLOSED, NOT A VIOLATION**
+
+Not one of the ten listed conditions, but adjacent to 3.7, so it is audited here.
+
+The pack is part real and part fabricated, because SFLLD supplies no second data source, no
+ingestion timestamps, no document-custody data and no exception taxonomy, while sections 6 and
+7 of the problem statement require all four.
+
+| Layer | Provenance |
+|---|---|
+| Loan panel, origination and performance attributes | Real |
+| Delinquency / prepayment / credit-event / servicing-transfer outcomes | Real |
+| Macro history | Real |
+| Forward scenario paths | Constructed, at supervisory severity, with observed bounds printed alongside |
+| `last_updated_at`, `source_system`, `document_status` | Fabricated |
+| `servicer_updates.csv`, reconciliation conflicts | Fabricated, anchored on real servicing transfers |
+| `exception_required`, `exception_type`, injected defects | Fabricated at logged rates |
+
+Disclosed in `MODEL_CARD.md` §2 (with a per-layer table), `reports/data_intelligence_report.md`
+§1, `README.md`, and `submission/AI_DEVELOPMENT_LOG.md` §12. The distinction that matters for
+a reader: every delinquency, default, prepayment and next-state metric is measured against
+real outcomes; every exception and data-quality metric is measured against a fabricated label
+and is a demonstration of method, not validated real-world performance. That sentence appears
+in the model card.
 
 ### 3.9 "Cannot explain model behavior" → **DOES NOT APPLY**
 
