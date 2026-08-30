@@ -2,7 +2,7 @@
 
 **Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  
 **Author:** Tanay Singh  
-**Card generated:** 2026-08-30 13:19 UTC  
+**Card generated:** 2026-08-30 15:50 UTC  
 **Data source:** Freddie Mac SFLLD (real)
 
 > Every figure in this card is generated from the pipeline's own report artefacts by `src/report_model_card.py`. Retraining regenerates the card; the numbers cannot drift away from the models.
@@ -226,7 +226,7 @@ The loan-disjoint column additionally forces no `loan_id` into both the fitting 
 The LLM never predicts. This is enforced, not promised:
 
 1. `tests/test_no_llm_prediction.py::test_no_modelling_module_can_reach_a_language_model` parses the AST of every module under `src/data`, `src/features`, `src/models`, `src/scenarios` and `src/explain` and fails if any imports `anthropic`, `openai`, `google`, `cohere`, `mistralai`, `ollama` or `src.copilot`. The modelling code path *cannot* reach a language model. The guard is written against the capability, not against one vendor, so switching provider does not weaken it — adding a provider costs one line.
-2. The **grounding validator** extracts every number from generated text and matches it against the grounding pack, including values scaled by 100 or rounded — the forms a helpful model reaches for. Unmatched numbers block the output. Its ten-case self-test confirms it catches fabricated probabilities, rescaled figures, causal assertions, overconfident decisions, missing reviewer framing and LaTeX markup, and that it does *not* fire on correct output (scientific notation, hyphenated field names, a legitimate refusal). Four of those cases were added after live Gemini runs exposed defects in the validator itself.
+2. The **grounding validator** extracts every number from generated text and matches it against the grounding pack, including values scaled by 100 or rounded — the forms a helpful model reaches for. Unmatched numbers block the output. Its 12-case self-test confirms it catches fabricated probabilities, rescaled figures, causal assertions, overconfident decisions, missing reviewer framing and LaTeX markup, and that it does *not* fire on correct output (scientific notation, hyphenated field names, ordered-list markers, a legitimate refusal). Six of those cases were added after live Gemini runs exposed defects in the validator itself, and the suite runs against a fixed pack so its verdicts do not move with the data.
 3. A **usefulness check** on per-record reviewer notes. The grounding validator is a truthfulness control and says nothing about output that is true and useless; a live run produced a note telling a reviewer to verify a document status the same pack reported as `complete`. That is now blocked and sent back for correction.
 
 Every prompt, provider, model id, SDK, timestamp, response, token count, finish reason, latency and validator verdict is written to `submission/llm_prompt_log.jsonl`, with prior runs rotated into `submission/llm_prompt_log_archive.jsonl` so captured failures are not overwritten by the next run. All LLM output carries *"RECOMMENDATION, NOT DECISION."*

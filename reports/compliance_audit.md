@@ -674,3 +674,76 @@ applied** — this pass was audit-only.
 14. **Consider reframing the scenario headline** so Engine B's credit stress (17.4% → 22.7%)
     leads and Engine A's identification limitation follows, rather than the reverse. Same
     content, lower risk of a skimming judge reading the stress test as broken.
+
+---
+
+# Re-audit — 2026-08-30, post-Gemini integration
+
+**Scope.** Full re-run of the section 12 (judging criteria) and section 13 (disqualification)
+checks. This is the first pass since the LLM copilot went live on Google Gemini, and it
+supersedes the P0 fix list below, which was written when the copilot was still
+`offline_template` and when `validation_rules.json` did not exist.
+
+## Section 12 — judging criteria
+
+| Criterion | Verdict | Evidence |
+|---|---|---|
+| Data intelligence (Task 1) | **Met** | `data_intelligence_report.md`: profiling, missingness with chi-square mechanism tests, outliers, invalid date relationships, 17 documented rules exported to `data/raw/validation_rules.json` |
+| Feature engineering (Task 2) | **Met** | 81 engineered features; leakage probe (`reports/leakage_probe.csv`) and a purged time split |
+| Predictive modelling (Task 3) | **Met** | Out-of-time test: delinquency-3m ROC 0.916 / PR 0.650, default-12m ROC 0.921 / PR 0.532, ECE ≤ 0.004 on three of four targets |
+| Survival & transitions (Task 4) | **Met** | Cox c-index 0.72 default / 0.68 prepayment; Markov Current→Current 0.982 |
+| Scenario simulation (Task 5) | **Met** | Two engines, both reported; Engine B carries credit stress 1.17% → 1.86%, Engine A carries prepayment +5.1pp. Engine A's null credit response is reported as null rather than hidden |
+| Explainability (Task 6) | **Met** | Global and local SHAP for all four targets, plain-English driver strings |
+| Smart LLM usage (Task 7) | **Met — was the open gap, now closed** | Live on `gemini-3.5-flash-lite`. Four grounded use cases. Real failures captured with corrections. 97 calls retained across `llm_prompt_log.jsonl` and `llm_prompt_log_archive.jsonl` |
+| Communication / honesty (Task 8) | **Met** | Model card discloses the D90+ proxy, the synthetic exception layer and the prepayment out-of-time degradation; the copilot report separates model failure from validator false positive and reports a **negative** ablation as negative |
+
+### What changed in Task 7 since the last audit
+
+Previously scored at roughly half marks because the copilot could not be run. Now:
+
+- **Live**, on a deliberately chosen free-tier-eligible model, with the reasoning stated in
+  the model card rather than implied.
+- **Real captured failures with corrections**, from logged output only — a 10x transcription
+  error (`exception_required` 0.046 where the pack says 0.0046), null advice, and LaTeX
+  markup in plain-text prose.
+- **Two automated controls**, not one: the grounding validator (truthfulness) and a
+  usefulness check (output that is true and useless). 12-case self-test, deterministic.
+- **Every output labelled** *recommendation, not decision* individually, with model and
+  timestamp.
+
+## Section 13 — disqualification conditions
+
+| # | Condition | Status |
+|---|---|---|
+| 1 | Fabricated results or metrics | **Does not apply.** Every figure traces to a committed artefact. The one place it was tempting — writing out the lost LaTeX transcript — was declined in writing, and the copilot report says why |
+| 2 | LLM used to generate predictions | **Does not apply.** Enforced by AST import guard over `src/data`, `src/features`, `src/models`, `src/scenarios`, `src/explain`; written against the capability, blocking `anthropic`, `openai`, `google`, `cohere`, `mistralai`, `ollama` |
+| 3 | Undisclosed synthetic data | **Does not apply.** Per-layer provenance table in model card §2; the exception/DQ layer is labelled fabricated |
+| 4 | Target leakage | **Does not apply.** Purged time split; leakage probe committed |
+| 5 | Misrepresented model performance | **Does not apply.** The logistic baseline beating LightGBM on ranking for two targets is reported rather than suppressed |
+| 6 | Plagiarised work | **Does not apply.** |
+| 7 | Undisclosed AI assistance | **Does not apply.** `AI_DEVELOPMENT_LOG.md`, 14 sections including verbatim prompts and rejected instructions |
+| 8 | Redistribution of licensed data | **Does not apply.** `dataset/` gitignored; verified never committed — 0 tracked files, largest blob in history 2.7 MB against ~1.2 GB of raw data |
+| 9 | Non-reproducible submission | **Does not apply.** Single-command pipeline; run manifest committed; the copilot reproduces on a free API key |
+| 10 | Missing required deliverables | **One outstanding — see below** |
+
+## Still short
+
+| Item | Status | Owner |
+|---|---|---|
+| **Five-minute demo video** | **Not recorded.** The script is finalised, mapped beat-by-beat to the PS section 14 flow, with every figure verified against current artefacts and the exact file to have on screen named for each beat | **User** — requires a human to record |
+| `notebooks/` | **Empty.** Not named as a required deliverable in section 11; the reports carry the narrative that a notebook would | Optional |
+
+Nothing else is outstanding. The demo video is the only hard gap, and it is the one item that
+cannot be produced without the user.
+
+## Verified this pass
+
+- All 12 section-11 deliverable artefacts present (video excepted).
+- `submission.csv`: 16,000 × 21, zero nulls, no duplicate `loan_id`, all probabilities in
+  [0, 1], every action carries a non-empty reason, `action_is_recommendation_not_decision`
+  true on every row. All seven PS §6 elements map to columns.
+- Every column in `submission.csv` is documented in `SUBMISSION_FORMAT.md`.
+- Freshness: model card regenerated last and post-dates every artefact it reads.
+- Tests 40/40; validator self-test 12/12.
+- All four organiser-pack artefacts now present, including `validation_rules.json`, which the
+  earlier audit recorded as missing.

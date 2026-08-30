@@ -484,14 +484,20 @@ def build() -> str:
       "*cannot* reach a language model. The guard is written against the capability, not "
       "against one vendor, so switching provider does not weaken it — adding a provider "
       "costs one line.")
-    A("2. The **grounding validator** extracts every number from generated text and matches it "
-      "against the grounding pack, including values scaled by 100 or rounded — the forms a "
-      "helpful model reaches for. Unmatched numbers block the output. Its ten-case "
+    try:
+        _n_cases = len(pd.read_csv(C.REPORTS / "copilot_validator_self_test.csv"))
+    except Exception:
+        _n_cases = None
+    _cases = f"{_n_cases}-case" if _n_cases else "self-"
+    A(f"2. The **grounding validator** extracts every number from generated text and matches it "
+      f"against the grounding pack, including values scaled by 100 or rounded — the forms a "
+      f"helpful model reaches for. Unmatched numbers block the output. Its {_cases} "
       "self-test confirms it catches fabricated probabilities, rescaled figures, causal "
       "assertions, overconfident decisions, missing reviewer framing and LaTeX markup, and "
       "that it does *not* fire on correct output (scientific notation, hyphenated field "
-      "names, a legitimate refusal). Four of those cases were added after live Gemini runs "
-      "exposed defects in the validator itself.")
+      "names, ordered-list markers, a legitimate refusal). Six of those cases were added "
+      "after live Gemini runs exposed defects in the validator itself, and the suite runs "
+      "against a fixed pack so its verdicts do not move with the data.")
     A("3. A **usefulness check** on per-record reviewer notes. The grounding validator is a "
       "truthfulness control and says nothing about output that is true and useless; a live "
       "run produced a note telling a reviewer to verify a document status the same pack "
