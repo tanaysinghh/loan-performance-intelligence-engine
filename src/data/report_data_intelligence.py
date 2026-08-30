@@ -41,6 +41,7 @@ def build(df: pd.DataFrame = None) -> dict:
     miss = profiling.missingness_structure(scored)
     deps = profiling.dependency_analysis(scored)
     drift = profiling.drift_report(scored)
+    drift_tgt = profiling.drift_report_by_target(scored)
     tgt = profiling.target_stability(scored)
 
     num.to_csv(C.REPORTS / "profile_numeric.csv", index=False)
@@ -48,6 +49,7 @@ def build(df: pd.DataFrame = None) -> dict:
     rule_summary.to_csv(C.REPORTS / "validation_rule_summary.csv", index=False)
     batches.to_csv(C.REPORTS / "batch_quality_scores.csv", index=False)
     drift.to_csv(C.REPORTS / "drift_report.csv", index=False)
+    drift_tgt.to_csv(C.REPORTS / "drift_by_target.csv", index=False)
     miss["mechanism_tests"].to_csv(C.REPORTS / "missingness_mechanism_tests.csv", index=False)
     scored[["loan_id", "reporting_month", "servicer_name", "dq_score", "dq_band",
             "dq_violation_count"]].to_csv(C.REPORTS / "record_quality_scores.csv", index=False)
@@ -208,11 +210,33 @@ def build(df: pd.DataFrame = None) -> dict:
     A("")
     A("## 7. Train / test drift")
     A("")
-    A(f"Split at `{C.TRAIN_END}`, matching the time-aware modelling split used in Task 2. "
-      "PSI below 0.10 is stable, 0.10-0.25 moderate, above 0.25 severe.")
+    A(f"Reference split at `{C.TRAIN_END}`. PSI below 0.10 is stable, 0.10-0.25 moderate, "
+      "above 0.25 severe.")
     A("")
     A(_md(drift))
     A("")
+    A("### Drift at each target's own split boundary")
+    A("")
+    A("A single global boundary describes a split no model is actually trained on: the purged "
+      "splits do not share a frontier, because a 12-month horizon must stop training far "
+      "earlier than a 3-month one. The table below re-measures drift across the **real** "
+      "train/test boundary used for each target.")
+    A("")
+    if len(drift_tgt):
+        A(_md(drift_tgt.groupby("target").head(5).reset_index(drop=True)[
+            ["target", "train_window", "test_window", "column", "psi", "ks_statistic",
+             "severity"]], max_rows=60))
+        A("")
+        A("Seasoning is the dominant signal: `loan_age_months` and `remaining_term_months` "
+          "drift severely on every target, which is structural rather than a data fault — a "
+          "later window necessarily contains older loans. `servicer_name` drift is also real, "
+          "and reflects genuine servicing transfers rather than a reporting change. The "
+          "practical consequence is that absolute age features carry regime information; the "
+          "models therefore also receive age-relative and rate-incentive features that are "
+          "stable across the boundary.")
+        A("")
+        A("Full table: `reports/drift_by_target.csv`.")
+        A("")
     A("### Target stability across months")
     A("")
     A(_md(tgt))

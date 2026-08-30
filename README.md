@@ -15,23 +15,60 @@ enforced by a test that parses the AST of every modelling module and fails if it
 
 ---
 
+## Data
+
+The panel is built from the **Freddie Mac Single-Family Loan-Level Dataset (SFLLD)**, vintages
+2019-2023: 250,000 loans and 10,482,492 monthly performance records, sampled at loan level to
+16,000 loans / ~670,000 monthly rows.
+
+The raw files are **not committed** — SFLLD is licence-gated, and redistributing it would
+breach the source terms that section 13 of the problem statement lists as a disqualification
+condition. See **[`dataset/download_sflld.md`](dataset/download_sflld.md)** to obtain them.
+
+The pack is a **hybrid, and the model card says so in section 2**: the loan panel, its
+outcomes and the macro history are real; the exception / reconciliation / document-status
+layer is fabricated, because SFLLD has no second source, no ingestion timestamps and no
+document data. The synthetic generator remains in the repository and produces the identical
+33-column panel contract, so the pipeline runs either way.
+
+> **`next_12m_default_flag` is a 90+ DPD proxy.** Realised credit events occur on 14 of the
+> 16,000 sampled loans (~0.09%) — not modellable. Every "default" figure in this repository
+> refers to that proxy. Stated in full in the model card and the data intelligence report.
+
+---
+
 ## Quick start
 
 ```bash
 pip install -r requirements.txt
-python -m src.pipeline
 ```
 
-That runs everything: generates the synthetic data pack, builds features, trains every model,
-runs survival / anomaly / scenario / explainability / copilot stages, and writes
-`submission/submission.csv`. Expect roughly 10-20 minutes on a laptop.
+**With the real SFLLD files in `dataset/`** (see the link above):
+
+```bash
+python -m src.data.build_from_sflld   # build the pack from real data  (~1 min)
+python -m src.data.macro_real         # real FRED macro history + scenarios
+python -m src.pipeline --skip-data    # Tasks 1-8 + submission.csv
+```
+
+**Without them**, the synthetic generator produces the same contract:
+
+```bash
+python -m src.pipeline                # generates the synthetic pack, then runs everything
+```
+
+Either path writes `submission/submission.csv`. Expect roughly 10-20 minutes on the synthetic
+pack, longer on the real panel.
 
 ```bash
 python -m src.pipeline --skip-data          # reuse the existing data pack and feature cache
 python -m src.pipeline --stage models       # run up to a stage and stop
-python -m src.pipeline --n-loans 400        # smaller pack for a fast smoke run
+python -m src.pipeline --n-loans 400        # smaller synthetic pack for a fast smoke run
 python -m pytest tests -q                   # 31 tests, including the leakage guards
 ```
+
+The feature cache invalidates itself when the raw pack is newer, so switching between the two
+sources cannot silently reuse the other one's frame.
 
 ### Optional: enable the live LLM copilot
 
@@ -50,7 +87,7 @@ output. See "Known gaps" below.
 
 | Stage | Module | Output |
 |---|---|---|
-| Data | `src/data/build_dataset.py` | Synthetic panel, servicer feed, macro history, scenarios, data dictionary, ground-truth defect log |
+| Data | `src/data/build_from_sflld.py` (real) or `build_dataset.py` (synthetic) | Loan panel, servicer feed, macro history, scenarios, data dictionary, ground-truth defect log |
 | Profile | `src/data/report_data_intelligence.py` | `reports/data_intelligence_report.md` + 7 CSV extracts |
 | Models | `src/models/run_performance.py` | `reports/model_performance_report.md`, fitted models, metrics, leakage probe |
 | Survival | `src/models/run_survival.py` | `reports/survival_report.md`, KM / CIF curves, Cox coefficients, transition matrix |
@@ -88,18 +125,28 @@ tests/            31 tests, leakage guards and LLM-boundary enforcement
 
 ---
 
-## Using real data instead of the synthetic pack
+## Swapping the data source
 
-The synthetic generator exists only because organiser data was not available. To swap it out:
+Both loaders write the same 33-column `data/raw/loan_panel.csv` contract, and nothing
+downstream reads either loader directly:
 
-1. Replace `data/raw/loan_panel.csv` with real data matching the schema in
-   `data/raw/data_dictionary.csv`.
-2. Replace `data/raw/servicer_updates.csv` and `data/raw/macro_history.csv` if you have them;
-   the pipeline degrades gracefully if the servicer feed is absent.
-3. Run `python -m src.pipeline --skip-data`.
+| Source | Builder | Notes |
+|---|---|---|
+| Real SFLLD | `src/data/build_from_sflld.py` | Needs `dataset/`; layout asserted at load |
+| Synthetic | `src/data/build_dataset.py` | No external files needed |
+| Your own panel | — | Match `data/raw/data_dictionary.csv` and run `--skip-data` |
 
-Nothing downstream reads the generator. Split boundaries are derived from the data's own month
-range, so a different panel window needs no code change.
+Split boundaries are derived from the data's own month range, so a different panel window
+needs no code change. `servicer_updates.csv` is optional — the pipeline degrades gracefully
+if the second feed is absent.
+
+**On the SFLLD layout.** The sample files carry **31 origination and 35 performance columns**,
+not the 32/32 in Freddie Mac's published `file_layout.xlsx` and January 2026 User Guide.
+`Servicer Name` is absent from the origination file; the performance file appends
+`MI Cancellation Indicator`, `Servicer Name` and a filler column. The mapping was verified
+empirically across all five vintages — the evidence is in `src/data/sflld.py` — and
+`sflld.verify_layout()` refuses to load anything that deviates rather than mis-mapping
+silently.
 
 ---
 
@@ -159,6 +206,9 @@ actually bites.
 | `reports/scenario_report.md` | Scenario assumptions, dual-engine projections, segment impacts, drivers |
 | `reports/explainability_report.md` | Global and local SHAP, uncertainty, false positive / negative analysis |
 | `reports/copilot_report.md` | LLM boundary, grounding validator, adversarial probes |
+| `reports/demo_video_script.md` | Five-minute demo script and storyboard, mapped to PS section 14 |
+| `dataset/download_sflld.md` | How to obtain the licence-gated raw data and refresh the macro series |
+| `PROGRESS.md` | Build status, decisions taken, open gaps |
 
 ---
 
