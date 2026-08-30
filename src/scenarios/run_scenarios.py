@@ -226,12 +226,36 @@ def _write_report(out, scenarios, macro):
     })
     A(_md(cross.round(5)))
     A("")
+    # Computed, never hand-written. An earlier revision of this paragraph carried figures
+    # from a previous data source and survived a regeneration unchanged, which is precisely
+    # the failure mode the generated-report design exists to prevent.
+    def _cum(scenario, col):
+        hit = cb.loc[scenario, col] if scenario in cb.index else float("nan")
+        return float(hit)
+
+    b_def_base = _cum("base", "cumulative_default_12m")
+    b_def_adv = _cum("adverse_credit", "cumulative_default_12m")
+    dq_base = _cum("base", "delinquent_12m")
+    dq_adv = _cum("adverse_credit", "delinquent_12m")
+    dq_mult = (dq_adv / dq_base) if dq_base else float("nan")
+    a_prepay_delta = float(ha.loc["high_prepayment", "delta_next_12m_prepayment_flag"])
+    a_def_delta = float(ha.loc["adverse_credit", "delta_next_12m_default_flag"])
+
     A("The two engines answer different questions and the table above should be read that "
-      "way. Engine B carries the credit stress: adverse conditions move the 12-month "
-      "cumulative default rate from 17.4% to 22.7% and roughly triple the delinquent stock "
-      "(4.1% to 12.2%). Engine A carries the refinance response: the high-prepayment scenario "
-      "lifts projected 12-month prepayment by 13.0 percentage points, concentrated exactly "
-      "where theory says it should be — see the incentive-bucket table in section 5.")
+      "way. **Engine B carries the credit stress**: adverse conditions move the 12-month "
+      f"cumulative default rate from {b_def_base:.2%} to {b_def_adv:.2%}, and the delinquent "
+      f"stock from {dq_base:.2%} to {dq_adv:.2%} ({dq_mult:.1f}x). **Engine A carries the "
+      "refinance response**: the high-prepayment scenario lifts projected 12-month prepayment "
+      f"by {100 * a_prepay_delta:.1f} percentage points. The lift is **not** monotone in "
+      "incentive, and that is the economically correct shape rather than a defect: loans "
+      "already deep in the money are near-saturated and have little headroom left, so the "
+      "largest response comes from loans sitting just below the refinance threshold that the "
+      "rate cut pushes across it. See the incentive-bucket table in section 5.")
+    A("")
+    A(f"Engine A's adverse-credit default delta is {100 * a_def_delta:+.3f} percentage "
+      "points — effectively zero, and the sign is not meaningful. That is the identification "
+      "failure of section 3 showing up in the output rather than being argued about, and it "
+      "is why the credit stress above is quoted from Engine B and not from Engine A.")
     A("")
     A("**For sizing a credit stress, use Engine B. For deciding which loans to act on, use "
       "Engine A's segment detail.** Reporting a single blended number would hide that each "

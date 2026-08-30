@@ -413,9 +413,19 @@ def build() -> str:
     A("")
     A("**Model limitations**")
     A("")
-    A(f"- **Prepayment is the weakest model** (test ROC-AUC "
-      f"{lgb_auc['next_12m_prepayment_flag']:.3f}). It depends on refinance incentive, which "
-      "depends on a rate path the panel contains exactly one realisation of.")
+    _pp = "next_12m_prepayment_flag"
+    A(f"- **Prepayment is the weakest model** (test ROC-AUC {lgb_auc[_pp]:.3f} for the "
+      f"calibrated GBM against {base_auc[_pp]:.3f} for the logistic baseline"
+      + (" — the baseline ranks better here, and that is reported rather than hidden"
+         if base_auc[_pp] > lgb_auc[_pp] else "")
+      + f"; PR-AUC {m(_pp, 'lgbm_calibrated', 'pr_auc'):.3f} against "
+        f"{m(_pp, 'baseline_logistic', 'pr_auc'):.3f}). It depends on refinance incentive, "
+        "which depends on a rate path the panel contains exactly one realisation of. The GBM "
+        f"is still the shipped model because its calibration is usable and the baseline's is "
+        f"not (ECE {m(_pp, 'lgbm_calibrated', 'ece'):.3f} against "
+        f"{m(_pp, 'baseline_logistic', 'ece'):.3f}), but on ranking alone the simpler model "
+        "is the better choice, and anything scenario-shaped should use the "
+        "macro-conditioned transition engine instead of either.")
     A(f"- **Regime change on the 12-month targets.** Train and test sit in different macro "
       f"regimes; the default rate moves from {_pct(d12['train_positive_rate'])} to "
       f"{_pct(d12['test_positive_rate'])} between them. Reported, not corrected — correcting "

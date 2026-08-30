@@ -25,10 +25,21 @@ Three distinct reasons a loan's outcome is unobserved, handled differently:
    cumulative incidence of default, which would need the competing hazard folded in;
    `cumulative_incidence` computes that separately via Aalen-Johansen, and the two are
    reported side by side because confusing them overstates default probability.
-3. **Left truncation.** The panel opens in 2019-01 but loans originate from 2015. A loan
-   entering at age 40 was never at risk in this dataset at ages 0-39. Entry age is passed as
-   the truncation time so those months are excluded from the risk set rather than being
-   silently treated as event-free exposure.
+3. **Left truncation.** Most loans in the SFLLD vintage files are observed from origination,
+   but a minority are seasoned acquisitions that enter the panel at a non-zero age. Such a
+   loan was never at risk in this dataset at the ages before it appears. Entry age is passed
+   as the truncation time so those months are excluded from the risk set rather than being
+   silently treated as event-free exposure. The observed share is reported in
+   `reports/survival_report.md` rather than assumed here.
+
+## Event definition
+
+The `default` event is **first entry into 90+ DPD**, not arrival in an absorbing terminal
+state. This matches `next_12m_default_flag` in the rest of the engine, where realised credit
+events are too rare to model (see `build_from_sflld`), and it is what makes the Cox model
+estimable at all: terminal-state defaults leave single-digit event counts in the training
+window. Prepayment remains a terminal event. The two compete, and whichever occurs first is
+the observation.
 """
 from __future__ import annotations
 

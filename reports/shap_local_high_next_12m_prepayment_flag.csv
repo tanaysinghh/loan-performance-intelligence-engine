@@ -1,11 +1,11 @@
 loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
-LN100026,2025-03,Current,1.0,-4.1407,5.2635,note rate,6.593,1.2419,market rate delta 12m,-0.725,0.7816,scheduled monthly payment,2629.37,0.4497,scheduled payment relative to balance,0.007,0.4195
-LN100526,2025-05,Current,1.0,-4.1407,5.0299,note rate,8.196,1.1524,credit score band,620-659,-0.6906,market rate delta 12m,-0.852,0.6581,loan purpose,cash_out_refi,0.527
-LN101304,2025-04,Current,1.0,-4.1407,5.2445,note rate,7.37,1.0224,market rate delta 12m,-0.792,0.6607,state,IL,0.5906,scheduled monthly payment,2863.61,0.5608
-LN101321,2025-04,Current,1.0,-4.1407,5.3446,note rate,7.014,1.3478,scheduled monthly payment,1812.181,0.6954,scheduled payment relative to balance,0.007,0.58,market rate delta 12m,-0.792,0.5705
-LN101319,2025-03,Current,1.0,-4.1407,5.1556,note rate,7.358,1.5356,market rate delta 12m,-0.725,0.647,credit score band,5.0,0.3423,scheduled payment relative to balance,0.007,0.3405
-LN100524,2025-01,Current,1.0,-4.1407,5.0479,scheduled monthly payment,1874.924,0.6854,note rate,6.652,0.6597,original balance,12.585,0.4074,state,CA,0.3645
-LN100524,2025-02,Current,1.0,-4.1407,5.3526,note rate,6.652,0.8183,scheduled monthly payment,1874.924,0.7405,state,CA,0.4014,original balance,12.585,0.3817
-LN101319,2025-02,Current,1.0,-4.1407,5.0089,note rate,7.358,1.495,market rate delta 12m,-0.649,0.5858,state,AZ,0.3603,credit score band,5.0,0.3417
-LN101298,2025-05,Current,1.0,-4.1407,5.0482,note rate,7.689,1.3576,market rate delta 12m,-0.852,0.6611,scheduled monthly payment,1987.042,0.4475,consecutive clean months,20,0.2485
-LN101298,2025-06,Current,1.0,-4.1407,5.1734,note rate,7.689,1.347,market rate delta 12m,-0.901,0.6887,scheduled monthly payment,1987.042,0.4189,consecutive clean months,21,0.2817
+F23Q30045473,2024-10,Current,1.0,-2.5909,8.8695,current balance,0.0,3.2298,balance change 3m,-1.0,0.9055,balance as a share of original,0.0,0.7857,balance change 1m,-1.0,0.5745
+F22Q30046358,2025-03,Current,1.0,-2.5909,7.9187,current balance,0.0,3.1815,balance against expected amortisation,-0.98,0.9307,balance change 3m,-1.0,0.9136,balance as a share of original,0.0,0.7222
+F22Q10505876,2024-11,Current,1.0,-2.5909,9.0117,current balance,0.0,3.024,balance change 3m,-1.0,0.9763,balance against expected amortisation,-0.98,0.9118,balance as a share of original,0.0,0.7095
+F23Q30008940,2024-10,Current,1.0,-2.5909,8.4856,current balance,0.0,3.2394,balance change 3m,-1.0,0.9425,balance as a share of original,0.0,0.7684,balance change 1m,-1.0,0.5337
+F23Q40056472,2024-12,Current,1.0,-2.5909,7.9336,current balance,0.0,3.4262,balance as a share of original,0.0,0.7571,balance change 3m,-1.0,0.737,state,CA,0.579
+F23Q40067110,2025-01,Current,1.0,-2.5909,7.9325,current balance,0.0,3.8639,state,ND,-0.983,balance as a share of original,0.0,0.8897,balance change 3m,-1.0,0.8177
+F23Q10022362,2024-10,Current,1.0,-2.5909,8.2885,current balance,0.0,2.9829,balance change 3m,-1.0,0.905,balance against expected amortisation,-0.99,0.7807,balance as a share of original,0.0,0.714
+F20Q40695723,2024-10,Current,1.0,-2.5909,7.7243,current balance,0.0,3.4109,balance change 3m,-1.0,1.031,balance against expected amortisation,-0.963,0.7763,balance as a share of original,0.0,0.691
+F19Q30136628,2025-01,Current,1.0,-2.5909,7.8837,current balance,0.0,3.3664,balance against expected amortisation,-0.935,1.0586,balance change 3m,-1.0,1.0214,balance as a share of original,0.0,0.7395
+F19Q10108341,2024-11,Current,1.0,-2.5909,8.5029,current balance,0.0,3.4063,balance change 3m,-1.0,1.0107,balance against expected amortisation,-0.931,0.8353,balance as a share of original,0.0,0.7089

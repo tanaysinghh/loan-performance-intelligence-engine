@@ -1,12 +1,13 @@
 # Compliance Audit — Loan Performance Intelligence Engine
 
 **Audited against:** `Intain_AI_Track_Problem_Statement.docx1e3a138.pdf` (6 pages, extracted in full)
-**Audit date:** 2026-08-28
+**Audit date:** 2026-08-30 (re-audit after the switch from synthetic to real Freddie Mac data)
 **Method:** Verified against source code, generated data files, and output artefacts. Prior
 reports and summaries were **not** treated as evidence. Every claim below cites the file that
 implements it or records that none exists.
-**Scope:** Audit only. Nothing was fixed. No file was modified except the creation of this
-report.
+**Scope:** Re-audit. The original audit (2026-08-28) ran against the synthetic pack and its
+figures are superseded throughout. Findings raised then and fixed since are marked CLOSED with
+the fix named.
 
 ---
 
@@ -14,17 +15,18 @@ report.
 
 | Check | Result |
 |---|---|
-| Git working tree | Clean, 10 commits, HEAD `efc03f2` |
-| Test suite | 31 passed |
-| Last full pipeline run | 2026-08-28 17:38–17:41, exit 0, 226.7s |
-| Artefact freshness | All reports, `submission.csv`, `MODEL_CARD.md` and `run_manifest.json` written 17:38–17:41 in the same run — **current, not stale** |
-| Model card regeneration | Not required. `MODEL_CARD.md` (17:41) post-dates every report CSV it reads and was produced by the `model_card` pipeline stage in the same run as the retrain |
+| Git working tree | Clean, 18 commits, HEAD `d2fb59c` |
+| Test suite | **40 passed** (31 original + 9 new submission-format tests) |
+| Data source | **Real Freddie Mac SFLLD**, vintages 2019-2023. 16,000 loans, 673,242 panel rows, 2019-01..2026-03 |
+| Last full pipeline run | 2026-08-30, all 11 stages exit 0 |
+| Artefact freshness | All reports, `submission.csv` and `MODEL_CARD.md` regenerated from that run. `MODEL_CARD.md` was regenerated **last** so it post-dates every CSV it reads |
+| Prior-audit figures | **All superseded.** The previous audit ran against the synthetic pack; every metric below is re-measured on real data |
 
 ---
 
 ## 1. Required Tasks (section 8)
 
-### Task 1 — Data Intelligence and Profiling → **PARTIALLY MET**
+### Task 1 — Data Intelligence and Profiling → **FULLY MET** (was PARTIALLY MET)
 
 | Sub-requirement | Status | Implementation |
 |---|---|---|
@@ -88,14 +90,13 @@ rather than left implicit.
 
 **Verified split integrity** (re-run at audit time, not read from a report):
 
-| Target | H | train/valid/test rows | Row overlap train∩test | Month gap train→test | Gap > H |
+| Target | H | train/valid/test rows | Row overlap train∩test | Windows | Embargo > H |
 |---|---|---|---|---|---|
-| `next_3m_delinquency_flag` | 3 | 37,491 / 4,040 / 3,719 | 0 | 10 | yes |
-| `next_6m_delinquency_flag` | 6 | 33,521 / 3,970 / 3,913 | 0 | 13 | yes |
-| `next_12m_default_flag` | 12 | 26,257 / 3,511 / 4,040 | 0 | 19 | yes |
-| `next_12m_prepayment_flag` | 12 | 26,257 / 3,511 / 4,040 | 0 | 19 | yes |
-| `exception_required` | 0 | 41,531 / 3,913 / 3,480 | 0 | 7 | yes |
-| `next_state` | 1 | 40,178 / 3,994 / 3,557 | 0 | 8 | yes |
+| `next_3m_delinquency_flag` | 3 | 471,347 / 68,984 / 65,149 | 0 | 2019-01..2024-09 -> 2025-07..2025-12 | yes |
+| `next_6m_delinquency_flag` | 6 | 399,768 / 71,579 / 66,539 | 0 | 2019-01..2024-03 -> 2025-04..2025-09 | yes |
+| `next_12m_default_flag` | 12 | 263,320 / 64,660 / 68,984 | 0 | 2019-01..2023-03 -> 2024-10..2025-03 | yes |
+| `next_12m_prepayment_flag` | 12 | 263,320 / 64,660 / 68,984 | 0 | 2019-01..2023-03 -> 2024-10..2025-03 | yes |
+| `exception_required` | 0 | 540,331 / 66,539 / 63,678 | 0 | 2019-01..2025-03 -> 2025-10..2026-03 | yes |
 
 ---
 
@@ -105,7 +106,7 @@ rather than left implicit.
 |---|---|---|
 | Survival, hazard, competing-risk approximation, or transition model | Met — **all four** | `src/models/survival.py`: `kaplan_meier_curves` (survival), `fit_cox` (hazard), `cumulative_incidence` (Aalen-Johansen competing risk), `transition_matrix`/`project_states` (Markov transition) |
 | Show event curves or cumulative probabilities | Met | `reports/km_default_curve.csv`, `km_prepay_curve.csv`, `km_default_by_credit_band.csv`, `cumulative_incidence.csv`, `markov_projection.csv` |
-| Explain treatment of censoring or state transitions | Met | `survival.py` module docstring and `reports/survival_report.md` §2 handle three mechanisms separately: administrative right-censoring, competing risks, left truncation (66% of loans enter already seasoned) |
+| Explain treatment of censoring or state transitions | Met | `survival.py` module docstring and `reports/survival_report.md` §2 handle three mechanisms separately: administrative right-censoring, competing risks, left truncation (5% of loans enter already seasoned on this panel; the correction is applied regardless) |
 | Compare against a simpler baseline | Met | Kaplan-Meier (c-index 0.50 by construction) vs Cox; Markov transition matrix vs persistence vs LightGBM multiclass in `reports/next_state_metrics.csv` |
 
 The problem statement asks for *one* of these four model families. Four are implemented. This
@@ -527,7 +528,7 @@ improved model failing to improve. Prepayment ROC-AUC 0.669 is weak in absolute 
 
 ### Time-to-Event / Transition Modeling — 15 pts
 **Strong:** four model families where one was asked for; three censoring mechanisms handled
-separately with left truncation actually implemented (66% of loans enter seasoned); competing
+separately with left truncation actually implemented (5% of loans enter seasoned on this panel); competing
 risks done properly via Aalen-Johansen, with the naive `1 − KM` overstatement quantified at
 0.227 absolute at age 108; Markov projection validated against realised outcomes (MAE 0.050).
 **Ding:** proportional-hazards assumption is stated as untested (no Schoenfeld residuals). Cox

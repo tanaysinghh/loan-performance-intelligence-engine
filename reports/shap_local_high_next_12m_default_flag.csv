@@ -1,11 +1,11 @@
 loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
-LN100307,2025-01,DQ90plus,0.9932,-6.4548,12.1647,current performance status,3.0,2.2689,months delinquent in last 12 months,7.0,1.1962,days past due,103.0,1.1233,credit score band,1.0,1.0516
-LN100743,2025-02,DQ90plus,0.9931,-6.4548,12.1583,current performance status,3.0,2.7473,months delinquent in last 12 months,5.0,1.4938,days past due,102.0,1.297,current status,DQ90plus,0.9885
-LN100778,2025-06,DQ90plus,0.9931,-6.4548,12.1528,current performance status,3.0,2.527,days past due,94.0,1.3013,months delinquent in last 12 months,5.0,1.2773,current status,DQ90plus,0.868
-LN100307,2025-02,DQ90plus,0.993,-6.4548,12.1322,current performance status,3.0,2.2292,months delinquent in last 12 months,8.0,1.2744,days past due,99.0,1.063,credit score band,1.0,1.0233
-LN100365,2025-02,DQ90plus,0.992,-6.4548,11.9776,current performance status,3.0,2.4516,months delinquent in last 12 months,6.0,1.41,days past due,110.0,1.2495,months delinquent in last 6 months,6.0,0.8203
-LN100778,2025-05,DQ90plus,0.9915,-6.4548,11.9086,current performance status,3.0,2.5771,days past due,111.0,1.3082,months delinquent in last 12 months,4.0,1.2695,current status,DQ90plus,0.9236
-LN100366,2025-06,DQ90plus,0.9904,-6.4548,11.7724,current performance status,3.0,2.4501,months delinquent in last 12 months,7.0,1.4322,days past due,102.0,1.1859,credit score band,1.0,0.9888
-LN100366,2025-04,DQ60,0.9899,-6.4548,11.7061,current performance status,2.0,2.2584,months delinquent in last 12 months,5.0,1.4683,days past due,77.0,1.1057,credit score band,1.0,1.0464
-LN100366,2025-05,DQ60,0.9898,-6.4548,11.6976,current performance status,2.0,2.2643,months delinquent in last 12 months,6.0,1.4505,days past due,72.0,1.104,credit score band,1.0,1.0377
-LN100366,2025-03,DQ60,0.9896,-6.4548,11.6798,current performance status,2.0,2.2964,months delinquent in last 12 months,4.0,1.3308,days past due,77.0,1.1668,credit score band,1.0,1.0646
+F21Q11301452,2024-10,Default,0.9167,-7.7715,10.0406,current status,Default,3.1411,current performance status,4.0,2.5498,servicer,"PNC BANK, NA",-0.9542,state,PA,0.3955
+F21Q11830711,2024-12,Default,0.9167,-7.7715,10.1873,current status,Default,2.6321,current performance status,4.0,2.6086,months delinquent in last 12 months,12.0,0.6166,months delinquent in last 6 months,6.0,0.4539
+F21Q12142553,2024-11,Default,0.9167,-7.7715,11.1058,current status,Default,3.0742,current performance status,4.0,2.5259,state,IN,0.9701,months delinquent in last 12 months,12.0,0.6563
+F23Q30165448,2025-01,Default,0.9167,-7.7715,10.6717,current status,Default,2.9892,current performance status,4.0,2.6399,months delinquent in last 12 months,8.0,0.523,months delinquent in last 6 months,6.0,0.4331
+F21Q20814664,2024-10,DQ90plus,0.9167,-7.7715,10.795,current status,DQ90plus,2.9352,current performance status,3.0,2.486,state,CA,0.8864,servicer,"PENNYMAC LOAN SERVICES, LLC",0.8788
+F19Q20031612,2025-03,DQ30,0.9167,-7.7715,9.252,current status,DQ30,2.2896,state,CA,0.8803,months delinquent in last 12 months,10.0,0.829,note rate,4.5,0.8011
+F21Q20237707,2025-03,DQ60,0.9167,-7.7715,10.107,current status,DQ60,2.6277,current performance status,2.0,1.499,months delinquent in last 12 months,2.0,0.9191,servicer,OTHER,0.6415
+F19Q30083113,2025-02,Default,0.9167,-7.7715,10.4261,current status,Default,2.5614,current performance status,4.0,2.4291,state,NJ,1.1289,months delinquent in last 12 months,11.0,0.7178
+F23Q10144499,2024-12,DQ90plus,0.9167,-7.7715,9.8194,current status,DQ90plus,2.9758,current performance status,3.0,2.5759,months delinquent in last 12 months,5.0,0.5747,credit score band,3.0,0.4464
+F23Q20189032,2024-12,Default,0.9167,-7.7715,9.8268,current status,Default,3.0449,current performance status,4.0,3.0107,state,CT,-1.1714,months delinquent in last 12 months,9.0,0.9149

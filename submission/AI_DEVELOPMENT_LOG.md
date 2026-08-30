@@ -506,3 +506,99 @@ data has edges that a generator does not. Sentinel values, an undocumented layou
 that barely exists, and a macro window with no downturn in it are all things the assistant
 handled reasonably on the first pass and correctly only after the numbers were checked against
 the actual bytes.
+
+---
+
+## 13. Representative prompts, verbatim
+
+Section 8 of the problem statement asks for representative prompts, and an earlier compliance
+audit correctly flagged that this log described *outcomes* without showing a single *input*.
+These are actual prompts issued during development, quoted as sent. Long prompts are excerpted
+at the marked points; nothing is paraphrased or reconstructed.
+
+### 13.1 The prompt that produced the data diagnostic
+
+> "Five Freddie Mac SFLLD sample-file folders are now in `dataset/` [...] **Step 2 — Map
+> columns using Freddie Mac's official file layout.** SFLLD files are position-based, not
+> self-describing. Find Freddie Mac's current SFLLD file layout/glossary (search if needed, or
+> check if a layout doc came bundled in the download) and map each column index to its real
+> field name for both the origination and performance files."
+
+**Why it worked.** It named the failure mode — position-based, not self-describing — and
+required the layout to be *found* rather than recalled. The assistant's first instinct was to
+map against the published 32/32 layout, which is wrong for these files. The instruction to go
+and check is what surfaced the 31/35 discrepancy before a loader was written, rather than
+after the metrics looked strange.
+
+### 13.2 The prompt that set the gate
+
+> "**Hard gate at hour 6:** the switch is only worth continuing if, by then, you have a clean
+> `loan_panel.csv` that the existing pipeline (`python -m src.pipeline --skip-data` or
+> equivalent) accepts AND the D90+ target has a workable class balance after derivation (not
+> still ~1-in-2000). If either condition fails at hour 6, abandon the real-data branch, return
+> to the last known-good synthetic commit, and say so plainly rather than continuing to sink
+> time into it."
+
+**Why it worked.** Two falsifiable conditions and a named fallback. The value was not that the
+gate fired — it passed at roughly one hour, 1.84% against a 1-in-2000 floor — but that the
+work was framed as abandonable from the start, which kept the first hour aimed at the two
+things that would decide it instead of at polish.
+
+### 13.3 The prompt that prevented a fabrication
+
+> "If `ANTHROPIC_API_KEY` is available in this environment, run it for real against actual
+> model output. [...] Do not write plausible-looking transcripts and label them as captured
+> API output — if no key is available, say so plainly in the copilot report and model card
+> rather than faking it."
+
+**Why it worked.** It pre-committed the honest branch before the answer was known. No
+credential existed, and the temptation to generate reviewer prose that would have read
+perfectly well is real — an LLM writing plausible LLM transcripts is the single easiest
+fabrication available in this project. Naming the prohibition in advance removed the decision
+from the moment it would have been made under time pressure.
+
+### 13.4 A prompt whose literal instruction was not followed
+
+> "loan-level downsampling to a workable row count keeping all rare-event (D90+) loans"
+
+Implemented, measured, then rejected. Retaining all 7,878 ever-90+DPD loans from the
+250,000-loan population while sampling the remainder down would lift their share from 3.2% to
+roughly 40% and destroy the base rates that calibration and the scenario engine consume. A
+plain loan-level stratified sample was used instead, preserving true prevalence and still
+yielding 9,989 positive rows.
+
+**Recorded because the disagreement is the useful part.** The instruction's intent — do not
+lose rare events to downsampling — is met, by sampling at loan level so no retained loan has
+its history truncated. The literal mechanism was not the way to meet it. An assistant that had
+silently complied would have produced a calibrated model against a fabricated base rate.
+
+### 13.5 The standing instruction that caught the most defects
+
+> "**Model card freshness.** Regenerate from current report CSVs after whichever data path is
+> finalized — confirm no stale figures from an earlier run."
+
+**Why it worked.** Applied as a general suspicion rather than a single check, this found five
+separate stale-figure defects: the cached feature frame that regenerated every report from the
+previous data source; hardcoded scenario figures ("17.4% to 22.7%") surviving regeneration; a
+SHAP claim about prepayment buckets that real data contradicts; a left-truncation share of 66%
+that is 5% here; and an anomaly comparison quoting pre-change numbers as if freshly measured.
+
+Only the first was a code bug. The other four were **English sentences containing numbers** —
+which is the failure mode a test suite does not catch and a reader cannot distinguish from a
+computed figure. The rule that came out of it is in section 11: generate documents that
+contain numbers, and treat any hand-typed digit in narrative prose as a defect until proven
+otherwise.
+
+### 13.6 On prompt style, from this session
+
+What produced good output, consistently:
+
+- **Name the failure mode, not just the task.** "SFLLD files are position-based, not
+  self-describing" did more work than "map the columns" would have.
+- **Give falsifiable stopping conditions.** "not still ~1-in-2000" is checkable; "reasonable
+  class balance" is not.
+- **Pre-commit the honest branch.** Deciding what to do if no API key exists, before knowing
+  whether one exists, is worth more than any instruction issued afterwards.
+- **Ask for the disagreement.** "say so plainly rather than continuing to sink time into it"
+  and "recommend one path plainly" both produced direct answers where an open-ended request
+  would have produced a survey of options.

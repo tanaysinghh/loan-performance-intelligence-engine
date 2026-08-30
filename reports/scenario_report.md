@@ -29,7 +29,7 @@ Engine A's **credit** channel is not identified from this data, and the evidence
 
 Macro levels are constant across every loan within a reporting month. With one realised macro path and 90 monthly observations there is no cross-sectional variation in unemployment or HPI growth at all, so a loan-level model cannot separate the effect of unemployment from the effect of calendar time — they are collinear by construction. What the trees learn is a time proxy, and in this panel's history the low-rate period coincided with the pandemic unemployment spike.
 
-The consequence shows up as two specific wrong answers, both visible in the tables below. A 2.3pp unemployment shock moves the projected 12-month default rate by roughly 0.15% in relative terms, which is not a credible stress result. And the high-prepayment scenario *raises* projected default, which has the sign backwards.
+The consequence shows up as two specific wrong answers, both visible in the tables below. The adverse-credit shock moves Engine A's projected 12-month default rate by essentially nothing — a delta indistinguishable from zero, and of a sign that carries no information — which is not a credible stress result for a scenario that raises unemployment by three percentage points and turns house prices negative. And the high-prepayment scenario nudges projected default *upward*, which has the sign backwards. Both are reported in section 8 as computed rather than being corrected.
 
 `rate_incentive` is the exception. It is a loan's own note rate minus the prevailing market rate, so it does vary across loans within a month and its effect is identified cross-sectionally. That is why Engine A's prepayment response is trustworthy and its credit response is not, and why Engine B exists.
 
@@ -39,15 +39,15 @@ An earlier iteration tried to fix this by perturbing only the identified refinan
 
 | scenario_name | loans | projected_next_6m_delinquency_flag | projected_next_12m_default_flag | projected_next_12m_prepayment_flag |
 | --- | --- | --- | --- | --- |
-| adverse_credit | 1500 | 0.1965 | 0.1808 | 0.1627 |
-| base | 1500 | 0.1930 | 0.1801 | 0.1653 |
-| high_prepayment | 1500 | 0.1983 | 0.1828 | 0.1771 |
+| adverse_credit | 16000 | 0.0328 | 0.0085 | 0.4485 |
+| base | 16000 | 0.0328 | 0.0085 | 0.4463 |
+| high_prepayment | 16000 | 0.0327 | 0.0086 | 0.4972 |
 
 | scenario_name | delta_next_6m_delinquency_flag | relative_next_6m_delinquency_flag | delta_next_12m_default_flag | relative_next_12m_default_flag | delta_next_12m_prepayment_flag | relative_next_12m_prepayment_flag |
 | --- | --- | --- | --- | --- | --- | --- |
-| adverse_credit | 0.0036 | 0.0185 | 0.0008 | 0.0042 | -0.0027 | -0.0162 |
+| adverse_credit | -0.0000 | -0.0006 | -0.0000 | -0.0013 | 0.0022 | 0.0049 |
 | base | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
-| high_prepayment | 0.0053 | 0.0275 | 0.0027 | 0.0150 | 0.0118 | 0.0710 |
+| high_prepayment | -0.0001 | -0.0043 | 0.0000 | 0.0025 | 0.0509 | 0.1140 |
 
 ## 5. Engine A — segment-level impacts
 
@@ -55,72 +55,87 @@ An earlier iteration tried to fix this by perturbing only the identified refinan
 
 | credit_score_band | loans | adverse_credit | base | high_prepayment | delta_adverse_credit | delta_high_prepayment |
 | --- | --- | --- | --- | --- | --- | --- |
-| 620-659 | 196 | 0.3805 | 0.3764 | 0.3839 | 0.0040 | 0.0075 |
-| 580-619 | 100 | 0.5361 | 0.5332 | 0.5410 | 0.0029 | 0.0077 |
-| <580 | 63 | 0.6775 | 0.6748 | 0.6909 | 0.0027 | 0.0161 |
-| 740-779 | 334 | 0.0450 | 0.0450 | 0.0454 | -0.0000 | 0.0004 |
-| 780+ | 243 | 0.0319 | 0.0319 | 0.0319 | -0.0000 | -0.0000 |
-| 660-699 | 220 | 0.1650 | 0.1651 | 0.1679 | -0.0001 | 0.0027 |
-| 700-739 | 308 | 0.1137 | 0.1140 | 0.1142 | -0.0003 | 0.0002 |
+| 780+ | 5086 | 0.0020 | 0.0020 | 0.0019 | 0.0000 | -0.0001 |
+| 740-779 | 4975 | 0.0055 | 0.0055 | 0.0055 | 0.0000 | 0.0001 |
+| 700-739 | 3274 | 0.0123 | 0.0123 | 0.0127 | -0.0000 | 0.0004 |
+| 660-699 | 1754 | 0.0191 | 0.0191 | 0.0191 | -0.0000 | -0.0001 |
+| 580-619 | 10 | 0.0022 | 0.0023 | 0.0023 | -0.0001 | 0.0000 |
+| 620-659 | 604 | 0.0390 | 0.0396 | 0.0385 | -0.0005 | -0.0011 |
 
 ### 12-month default probability by ltv band
 
 | ltv_band | loans | adverse_credit | base | high_prepayment | delta_adverse_credit | delta_high_prepayment |
 | --- | --- | --- | --- | --- | --- | --- |
-| >95 | 100 | 0.4375 | 0.4344 | 0.4408 | 0.0032 | 0.0064 |
-| 70-80 | 287 | 0.1632 | 0.1618 | 0.1642 | 0.0014 | 0.0024 |
-| 80-90 | 271 | 0.2660 | 0.2647 | 0.2663 | 0.0013 | 0.0016 |
-| 90-95 | 156 | 0.3092 | 0.3088 | 0.3175 | 0.0004 | 0.0087 |
-| <=60 | 267 | 0.0497 | 0.0496 | 0.0502 | 0.0001 | 0.0006 |
-| 60-70 | 368 | 0.1006 | 0.1008 | 0.1017 | -0.0001 | 0.0009 |
+| >95 | 557 | 0.0117 | 0.0115 | 0.0115 | 0.0002 | 0.0000 |
+| 90-95 | 2205 | 0.0144 | 0.0143 | 0.0148 | 0.0001 | 0.0005 |
+| 80-90 | 1789 | 0.0082 | 0.0081 | 0.0081 | 0.0001 | -0.0000 |
+| 70-80 | 5138 | 0.0075 | 0.0075 | 0.0075 | -0.0000 | -0.0000 |
+| <=60 | 3695 | 0.0058 | 0.0059 | 0.0056 | -0.0001 | -0.0002 |
+| 60-70 | 2118 | 0.0081 | 0.0083 | 0.0083 | -0.0002 | 0.0001 |
 
 ### 12-month default probability by vintage
 
 | vintage_year | loans | adverse_credit | base | high_prepayment | delta_adverse_credit | delta_high_prepayment |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2024 | 176 | 0.1586 | 0.1563 | 0.1633 | 0.0024 | 0.0070 |
-| 2023 | 125 | 0.2144 | 0.2127 | 0.2243 | 0.0018 | 0.0117 |
-| 2025 | 120 | 0.0619 | 0.0604 | 0.0820 | 0.0015 | 0.0217 |
-| 2015 | 125 | 0.1782 | 0.1772 | 0.1769 | 0.0010 | -0.0003 |
-| 2016 | 133 | 0.1710 | 0.1702 | 0.1704 | 0.0008 | 0.0001 |
-| 2027 | 3 | 0.0042 | 0.0036 | 0.0042 | 0.0006 | 0.0006 |
-| 2019 | 144 | 0.1904 | 0.1899 | 0.1899 | 0.0005 | 0.0000 |
-| 2017 | 151 | 0.1742 | 0.1738 | 0.1741 | 0.0004 | 0.0002 |
-| 2018 | 123 | 0.2540 | 0.2538 | 0.2542 | 0.0002 | 0.0004 |
-| 2020 | 132 | 0.2471 | 0.2470 | 0.2446 | 0.0000 | -0.0024 |
-| 2026 | 2 | 0.0017 | 0.0017 | 0.0019 | -0.0001 | 0.0002 |
-| 2022 | 142 | 0.1677 | 0.1680 | 0.1685 | -0.0003 | 0.0005 |
-| 2021 | 124 | 0.1827 | 0.1831 | 0.1746 | -0.0004 | -0.0084 |
+| 2023 | 3237 | 0.0136 | 0.0133 | 0.0137 | 0.0002 | 0.0003 |
+| 2027 | 13 | 0.0027 | 0.0027 | 0.0031 | 0.0000 | 0.0004 |
+| 2022 | 3155 | 0.0141 | 0.0142 | 0.0139 | -0.0000 | -0.0002 |
+| 2024 | 226 | 0.0073 | 0.0073 | 0.0076 | -0.0001 | 0.0003 |
+| 2020 | 3190 | 0.0038 | 0.0039 | 0.0040 | -0.0001 | 0.0001 |
+| 2021 | 3226 | 0.0052 | 0.0052 | 0.0052 | -0.0001 | -0.0001 |
+| 2019 | 2927 | 0.0055 | 0.0056 | 0.0055 | -0.0001 | -0.0001 |
+| 2025 | 7 | 0.0056 | 0.0064 | 0.0069 | -0.0008 | 0.0005 |
+| 2026 | 19 | 0.0620 | 0.0635 | 0.0665 | -0.0016 | 0.0030 |
 
 ### 12-month default probability by state
 
 | state | loans | adverse_credit | base | high_prepayment | delta_adverse_credit | delta_high_prepayment |
 | --- | --- | --- | --- | --- | --- | --- |
-| TX | 207 | 0.1606 | 0.1587 | 0.1628 | 0.0019 | 0.0041 |
-| WA | 77 | 0.1768 | 0.1753 | 0.1763 | 0.0015 | 0.0010 |
-| FL | 188 | 0.2132 | 0.2119 | 0.2147 | 0.0014 | 0.0028 |
-| NC | 60 | 0.1485 | 0.1475 | 0.1530 | 0.0010 | 0.0056 |
-| NJ | 51 | 0.1074 | 0.1066 | 0.1085 | 0.0008 | 0.0019 |
-| GA | 90 | 0.1586 | 0.1579 | 0.1597 | 0.0007 | 0.0019 |
-| NY | 125 | 0.1499 | 0.1492 | 0.1552 | 0.0007 | 0.0060 |
-| CO | 35 | 0.1961 | 0.1955 | 0.1973 | 0.0006 | 0.0019 |
-| OH | 63 | 0.1300 | 0.1295 | 0.1333 | 0.0005 | 0.0038 |
-| CA | 271 | 0.2290 | 0.2285 | 0.2311 | 0.0005 | 0.0025 |
-| MI | 45 | 0.1511 | 0.1507 | 0.1536 | 0.0005 | 0.0029 |
-| PA | 64 | 0.1482 | 0.1481 | 0.1485 | 0.0001 | 0.0004 |
-| AZ | 70 | 0.1612 | 0.1611 | 0.1601 | 0.0000 | -0.0011 |
-| IL | 92 | 0.2003 | 0.2011 | 0.2011 | -0.0008 | 0.0000 |
-| NV | 62 | 0.2218 | 0.2226 | 0.2256 | -0.0008 | 0.0030 |
+| MN | 354 | 0.0121 | 0.0115 | 0.0122 | 0.0006 | 0.0007 |
+| MD | 352 | 0.0043 | 0.0037 | 0.0045 | 0.0006 | 0.0008 |
+| VT | 31 | 0.0122 | 0.0118 | 0.0173 | 0.0004 | 0.0055 |
+| UT | 270 | 0.0034 | 0.0031 | 0.0036 | 0.0003 | 0.0004 |
+| OH | 570 | 0.0149 | 0.0146 | 0.0147 | 0.0003 | 0.0000 |
+| FL | 1186 | 0.0096 | 0.0093 | 0.0092 | 0.0002 | -0.0001 |
+| NV | 183 | 0.0119 | 0.0117 | 0.0123 | 0.0002 | 0.0005 |
+| AZ | 538 | 0.0130 | 0.0129 | 0.0131 | 0.0001 | 0.0002 |
+| CA | 1795 | 0.0071 | 0.0070 | 0.0071 | 0.0001 | 0.0001 |
+| MO | 296 | 0.0061 | 0.0060 | 0.0064 | 0.0001 | 0.0004 |
+| WV | 53 | 0.0007 | 0.0007 | 0.0008 | 0.0001 | 0.0001 |
+| CO | 463 | 0.0096 | 0.0096 | 0.0097 | 0.0000 | 0.0001 |
+| IA | 126 | 0.0004 | 0.0004 | 0.0004 | 0.0000 | 0.0000 |
+| PR | 2 | 0.0006 | 0.0006 | 0.0006 | 0.0000 | 0.0000 |
+| VI | 1 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| KS | 126 | 0.0032 | 0.0032 | 0.0032 | -0.0000 | 0.0000 |
+| VA | 436 | 0.0074 | 0.0075 | 0.0077 | -0.0000 | 0.0002 |
+| DE | 63 | 0.0008 | 0.0008 | 0.0008 | -0.0000 | 0.0000 |
+| OR | 303 | 0.0078 | 0.0079 | 0.0070 | -0.0000 | -0.0009 |
+| NE | 84 | 0.0082 | 0.0082 | 0.0069 | -0.0000 | -0.0013 |
 
 ### 12-month default probability by servicer
 
 | servicer_name | loans | adverse_credit | base | high_prepayment | delta_adverse_credit | delta_high_prepayment |
 | --- | --- | --- | --- | --- | --- | --- |
-| Northgate Servicing | 462 | 0.1601 | 0.1586 | 0.1602 | 0.0015 | 0.0017 |
-| Pioneer Mortgage Ops | 215 | 0.1961 | 0.1946 | 0.1989 | 0.0015 | 0.0043 |
-| Kestrel Financial | 161 | 0.1939 | 0.1933 | 0.1978 | 0.0007 | 0.0046 |
-| Arcadia Capital Servicing | 297 | 0.1874 | 0.1871 | 0.1881 | 0.0004 | 0.0010 |
-| Belmont Loan Services | 365 | 0.1868 | 0.1872 | 0.1908 | -0.0004 | 0.0036 |
+| PENNYMAC LOAN SERVICES, LLC | 277 | 0.0106 | 0.0100 | 0.0110 | 0.0006 | 0.0010 |
+| ONSLOW BAY FINANCIAL LLC | 345 | 0.0072 | 0.0068 | 0.0073 | 0.0004 | 0.0005 |
+| FREEDOM MORTGAGE CORPORATION | 506 | 0.0125 | 0.0123 | 0.0128 | 0.0002 | 0.0005 |
+| LAKEVIEW LOAN SERVICING, LLC | 852 | 0.0143 | 0.0141 | 0.0131 | 0.0002 | -0.0010 |
+| WELLS FARGO BANK, N.A. | 730 | 0.0026 | 0.0025 | 0.0023 | 0.0001 | -0.0002 |
+| U.S. BANK N.A. | 408 | 0.0108 | 0.0106 | 0.0109 | 0.0001 | 0.0002 |
+| CMG MORTGAGE, INC. | 10 | 0.0010 | 0.0009 | 0.0009 | 0.0001 | 0.0000 |
+| JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | 1480 | 0.0029 | 0.0028 | 0.0030 | 0.0001 | 0.0002 |
+| UNITED WHOLESALE MORTGAGE, LLC | 296 | 0.0174 | 0.0174 | 0.0179 | 0.0000 | 0.0005 |
+| SUNTRUST BANK | 1 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| MARLIN MORTGAGE CAPITAL, LLC | 2 | 0.0006 | 0.0006 | 0.0006 | 0.0000 | 0.0000 |
+| GUARANTEED RATE, INC. | 3 | 0.0011 | 0.0011 | 0.0011 | 0.0000 | 0.0000 |
+| BRANCH BANKING AND TRUST COMPANY | 2 | 0.0004 | 0.0004 | 0.0000 | 0.0000 | -0.0004 |
+| MATRIX FINANCIAL SERVICES CORPORATION | 105 | 0.0110 | 0.0110 | 0.0111 | -0.0000 | 0.0001 |
+| LOANDEPOT.COM, LLC | 216 | 0.0048 | 0.0048 | 0.0049 | -0.0000 | 0.0001 |
+| PINGORA LOAN SERVICING, LLC | 50 | 0.0009 | 0.0010 | 0.0009 | -0.0000 | -0.0001 |
+| NATIONSTAR MORTGAGE LLC DBA MR. COOPER | 295 | 0.0008 | 0.0008 | 0.0008 | -0.0000 | -0.0000 |
+| PHH MORTGAGE CORPORATION | 61 | 0.0024 | 0.0024 | 0.0017 | -0.0000 | -0.0008 |
+| PHH ASSET SERVICES LLC | 145 | 0.0049 | 0.0050 | 0.0039 | -0.0000 | -0.0010 |
+| QUICKEN LOANS, LLC | 153 | 0.0014 | 0.0014 | 0.0014 | -0.0000 | -0.0001 |
 
 ### 12-month prepayment probability by refinance incentive
 
@@ -128,12 +143,12 @@ Incentive is the loan's note rate minus the prevailing market rate. Positive mea
 
 | incentive_bucket | loans | adverse_credit | base | high_prepayment | delta_adverse_credit | delta_high_prepayment |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 to 0.5 | 132 | 0.3303 | 0.3297 | 0.3432 | 0.0006 | 0.0135 |
-| <-1.0 | 260 | 0.1104 | 0.1098 | 0.1049 | 0.0005 | -0.0049 |
-| -1.0 to -0.5 | 136 | 0.0810 | 0.0836 | 0.0800 | -0.0026 | -0.0036 |
-| -0.5 to 0 | 112 | 0.0973 | 0.1001 | 0.1035 | -0.0028 | 0.0034 |
-| >1.0 | 612 | 0.1407 | 0.1445 | 0.1685 | -0.0038 | 0.0240 |
-| 0.5 to 1.0 | 223 | 0.2607 | 0.2664 | 0.2778 | -0.0056 | 0.0114 |
+| 0 to 0.5 | 1559 | 0.5924 | 0.5869 | 0.6940 | 0.0055 | 0.1071 |
+| -0.5 to 0 | 1278 | 0.4652 | 0.4604 | 0.6923 | 0.0048 | 0.2319 |
+| -1.0 to -0.5 | 768 | 0.4208 | 0.4168 | 0.6019 | 0.0040 | 0.1851 |
+| 0.5 to 1.0 | 1745 | 0.7711 | 0.7678 | 0.8136 | 0.0033 | 0.0458 |
+| >1.0 | 2097 | 0.8459 | 0.8444 | 0.8718 | 0.0015 | 0.0274 |
+| <-1.0 | 8280 | 0.2537 | 0.2527 | 0.2602 | 0.0010 | 0.0075 |
 
 ## 6. Top scenario drivers
 
@@ -143,43 +158,43 @@ Each macro input is shifted to its scenario value in isolation while everything 
 
 | scenario_name | macro_input | isolated_contribution | share_of_total |
 | --- | --- | --- | --- |
-| adverse_credit | unemployment_delta_12m | 0.0005 | 0.6022 |
-| adverse_credit | unemployment_rate | 0.0003 | 0.3698 |
-| adverse_credit | interaction_residual | 0.0000 | 0.0280 |
-| adverse_credit | market_mortgage_rate | 0.0000 | 0.0000 |
-| adverse_credit | hpi_yoy_growth | 0.0000 | 0.0000 |
-| adverse_credit | rate_incentive | 0.0000 | 0.0000 |
-| adverse_credit | refi_incentive_positive | 0.0000 | 0.0000 |
-| adverse_credit | market_rate_delta_12m | 0.0000 | 0.0000 |
-| high_prepayment | refi_incentive_positive | 0.0021 | 0.7730 |
-| high_prepayment | rate_incentive | 0.0007 | 0.2484 |
-| high_prepayment | interaction_residual | 0.0005 | 0.1858 |
-| high_prepayment | unemployment_rate | 0.0000 | 0.0000 |
-| high_prepayment | hpi_yoy_growth | 0.0000 | 0.0000 |
-| high_prepayment | unemployment_delta_12m | 0.0000 | 0.0000 |
-| high_prepayment | market_rate_delta_12m | -0.0001 | -0.0548 |
-| high_prepayment | market_mortgage_rate | -0.0004 | -0.1524 |
-
-### Drivers of the 12-month prepayment delta
-
-| scenario_name | macro_input | isolated_contribution | share_of_total |
-| --- | --- | --- | --- |
-| adverse_credit | interaction_residual | 0.0000 | -0.0032 |
+| adverse_credit | unemployment_rate | 0.0001 | -10.3539 |
 | adverse_credit | market_mortgage_rate | 0.0000 | -0.0000 |
 | adverse_credit | hpi_yoy_growth | 0.0000 | -0.0000 |
 | adverse_credit | rate_incentive | 0.0000 | -0.0000 |
 | adverse_credit | refi_incentive_positive | 0.0000 | -0.0000 |
 | adverse_credit | market_rate_delta_12m | 0.0000 | -0.0000 |
-| adverse_credit | unemployment_rate | -0.0002 | 0.0674 |
-| adverse_credit | unemployment_delta_12m | -0.0025 | 0.9358 |
-| high_prepayment | refi_incentive_positive | 0.0072 | 0.6168 |
-| high_prepayment | rate_incentive | 0.0054 | 0.4603 |
-| high_prepayment | interaction_residual | 0.0011 | 0.0927 |
-| high_prepayment | market_rate_delta_12m | 0.0011 | 0.0912 |
+| adverse_credit | interaction_residual | -0.0000 | 1.4095 |
+| adverse_credit | unemployment_delta_12m | -0.0001 | 9.9444 |
+| high_prepayment | market_rate_delta_12m | 0.0001 | 3.2769 |
+| high_prepayment | interaction_residual | 0.0001 | 2.6883 |
+| high_prepayment | rate_incentive | 0.0000 | 1.5885 |
 | high_prepayment | unemployment_rate | 0.0000 | 0.0000 |
 | high_prepayment | hpi_yoy_growth | 0.0000 | 0.0000 |
 | high_prepayment | unemployment_delta_12m | 0.0000 | 0.0000 |
-| high_prepayment | market_mortgage_rate | -0.0031 | -0.2611 |
+| high_prepayment | refi_incentive_positive | -0.0001 | -3.1419 |
+| high_prepayment | market_mortgage_rate | -0.0001 | -3.4119 |
+
+### Drivers of the 12-month prepayment delta
+
+| scenario_name | macro_input | isolated_contribution | share_of_total |
+| --- | --- | --- | --- |
+| adverse_credit | unemployment_rate | 0.0016 | 0.7254 |
+| adverse_credit | unemployment_delta_12m | 0.0006 | 0.2653 |
+| adverse_credit | interaction_residual | 0.0000 | 0.0093 |
+| adverse_credit | market_mortgage_rate | 0.0000 | 0.0000 |
+| adverse_credit | hpi_yoy_growth | 0.0000 | 0.0000 |
+| adverse_credit | rate_incentive | 0.0000 | 0.0000 |
+| adverse_credit | refi_incentive_positive | 0.0000 | 0.0000 |
+| adverse_credit | market_rate_delta_12m | 0.0000 | 0.0000 |
+| high_prepayment | refi_incentive_positive | 0.0187 | 0.3677 |
+| high_prepayment | rate_incentive | 0.0104 | 0.2040 |
+| high_prepayment | market_rate_delta_12m | 0.0087 | 0.1709 |
+| high_prepayment | interaction_residual | 0.0086 | 0.1693 |
+| high_prepayment | market_mortgage_rate | 0.0045 | 0.0882 |
+| high_prepayment | unemployment_rate | 0.0000 | 0.0000 |
+| high_prepayment | hpi_yoy_growth | 0.0000 | 0.0000 |
+| high_prepayment | unemployment_delta_12m | 0.0000 | 0.0000 |
 
 ## 7. Engine B — macro-conditioned transition model
 
@@ -187,8 +202,10 @@ Sensitivity of each origin state's monthly deterioration and prepayment rate to 
 
 | origin_state | transition | months_fitted | r_squared | historical_mean_rate | beta_unemployment_rate | beta_hpi_yoy_growth | beta_rate_incentive |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Current | deteriorate | 54 | 0.0535 | 0.0063 | 0.0455 | -2.5667 | 0.1804 |
-| Current | prepay | 54 | 0.7325 | 0.0186 | -0.0421 | -8.6540 | 0.9276 |
+| Current | deteriorate | 50 | 0.1434 | 0.0051 | 0.0822 | -0.8174 | -0.0416 |
+| Current | prepay | 50 | 0.7980 | 0.0133 | 0.1104 | 3.1851 | 0.3307 |
+| DQ30 | deteriorate | 32 | 0.7941 | 0.2265 | 0.2004 | -2.5701 | 0.1391 |
+| DQ30 | prepay | 32 | 1.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
 
 ### 12-month portfolio state distribution
 
@@ -196,49 +213,51 @@ Sensitivity of each origin state's monthly deterioration and prepayment rate to 
 
 | horizon_month | Current | DQ30 | DQ60 | DQ90plus | Default | Prepaid |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 0.8253 | 0.0080 | 0.0047 | 0.1620 | 0.0000 | 0.0000 |
-| 3 | 0.7103 | 0.0146 | 0.0123 | 0.0804 | 0.0840 | 0.0985 |
-| 6 | 0.6125 | 0.0139 | 0.0124 | 0.0500 | 0.1286 | 0.1826 |
-| 9 | 0.5283 | 0.0122 | 0.0109 | 0.0360 | 0.1579 | 0.2548 |
-| 12 | 0.4557 | 0.0105 | 0.0093 | 0.0280 | 0.1795 | 0.3169 |
+| 0 | 0.9859 | 0.0063 | 0.0020 | 0.0023 | 0.0034 | 0.0000 |
+| 3 | 0.9405 | 0.0080 | 0.0041 | 0.0051 | 0.0054 | 0.0369 |
+| 6 | 0.8998 | 0.0077 | 0.0040 | 0.0070 | 0.0092 | 0.0722 |
+| 9 | 0.8615 | 0.0074 | 0.0039 | 0.0074 | 0.0139 | 0.1060 |
+| 12 | 0.8249 | 0.0071 | 0.0037 | 0.0073 | 0.0186 | 0.1383 |
 
 **base**
 
 | horizon_month | Current | DQ30 | DQ60 | DQ90plus | Default | Prepaid |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 0.8253 | 0.0080 | 0.0047 | 0.1620 | 0.0000 | 0.0000 |
-| 3 | 0.7679 | 0.0106 | 0.0103 | 0.0798 | 0.0839 | 0.0476 |
-| 6 | 0.7148 | 0.0104 | 0.0096 | 0.0468 | 0.1276 | 0.0907 |
-| 9 | 0.6655 | 0.0097 | 0.0085 | 0.0314 | 0.1543 | 0.1305 |
-| 12 | 0.6196 | 0.0090 | 0.0076 | 0.0235 | 0.1729 | 0.1674 |
+| 0 | 0.9859 | 0.0063 | 0.0020 | 0.0023 | 0.0034 | 0.0000 |
+| 3 | 0.9460 | 0.0062 | 0.0018 | 0.0032 | 0.0052 | 0.0375 |
+| 6 | 0.9081 | 0.0060 | 0.0018 | 0.0034 | 0.0073 | 0.0734 |
+| 9 | 0.8718 | 0.0057 | 0.0017 | 0.0033 | 0.0095 | 0.1079 |
+| 12 | 0.8369 | 0.0055 | 0.0016 | 0.0032 | 0.0117 | 0.1411 |
 
 **high_prepayment**
 
 | horizon_month | Current | DQ30 | DQ60 | DQ90plus | Default | Prepaid |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 0.8253 | 0.0080 | 0.0047 | 0.1620 | 0.0000 | 0.0000 |
-| 3 | 0.7679 | 0.0106 | 0.0103 | 0.0798 | 0.0839 | 0.0476 |
-| 6 | 0.7148 | 0.0104 | 0.0096 | 0.0468 | 0.1276 | 0.0907 |
-| 9 | 0.6655 | 0.0097 | 0.0085 | 0.0314 | 0.1543 | 0.1305 |
-| 12 | 0.6196 | 0.0090 | 0.0076 | 0.0235 | 0.1729 | 0.1674 |
+| 0 | 0.9859 | 0.0063 | 0.0020 | 0.0023 | 0.0034 | 0.0000 |
+| 3 | 0.9460 | 0.0062 | 0.0018 | 0.0032 | 0.0052 | 0.0375 |
+| 6 | 0.9081 | 0.0060 | 0.0018 | 0.0034 | 0.0073 | 0.0734 |
+| 9 | 0.8718 | 0.0057 | 0.0017 | 0.0033 | 0.0095 | 0.1079 |
+| 12 | 0.8369 | 0.0055 | 0.0016 | 0.0032 | 0.0117 | 0.1411 |
 
 ### Engine B summary
 
 | scenario_name | cumulative_default_12m | cumulative_prepay_12m | delinquent_12m | delta_cumulative_default_12m | delta_cumulative_prepay_12m | delta_delinquent_12m |
 | --- | --- | --- | --- | --- | --- | --- |
-| adverse_credit | 0.1795 | 0.3169 | 0.0478 | 0.0066 | 0.1495 | 0.0077 |
-| base | 0.1729 | 0.1674 | 0.0401 | 0.0000 | 0.0000 | 0.0000 |
-| high_prepayment | 0.1729 | 0.1674 | 0.0401 | 0.0000 | 0.0000 | 0.0000 |
+| adverse_credit | 0.0186 | 0.1383 | 0.0181 | 0.0070 | -0.0027 | 0.0077 |
+| base | 0.0117 | 0.1411 | 0.0104 | 0.0000 | 0.0000 | 0.0000 |
+| high_prepayment | 0.0117 | 0.1411 | 0.0104 | 0.0000 | 0.0000 | 0.0000 |
 
 ## 8. Do the two engines agree?
 
 | scenario_name | engine_a_default_delta | engine_b_default_delta | engine_a_prepay_delta | engine_b_prepay_delta |
 | --- | --- | --- | --- | --- |
-| adverse_credit | 0.0008 | 0.0066 | -0.0027 | 0.1495 |
+| adverse_credit | -0.0000 | 0.0070 | 0.0022 | -0.0027 |
 | base | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
-| high_prepayment | 0.0027 | 0.0000 | 0.0118 | 0.0000 |
+| high_prepayment | 0.0000 | 0.0000 | 0.0509 | 0.0000 |
 
-The two engines answer different questions and the table above should be read that way. Engine B carries the credit stress: adverse conditions move the 12-month cumulative default rate from 17.4% to 22.7% and roughly triple the delinquent stock (4.1% to 12.2%). Engine A carries the refinance response: the high-prepayment scenario lifts projected 12-month prepayment by 13.0 percentage points, concentrated exactly where theory says it should be — see the incentive-bucket table in section 5.
+The two engines answer different questions and the table above should be read that way. **Engine B carries the credit stress**: adverse conditions move the 12-month cumulative default rate from 1.17% to 1.86%, and the delinquent stock from 1.04% to 1.81% (1.7x). **Engine A carries the refinance response**: the high-prepayment scenario lifts projected 12-month prepayment by 5.1 percentage points. The lift is **not** monotone in incentive, and that is the economically correct shape rather than a defect: loans already deep in the money are near-saturated and have little headroom left, so the largest response comes from loans sitting just below the refinance threshold that the rate cut pushes across it. See the incentive-bucket table in section 5.
+
+Engine A's adverse-credit default delta is -0.001 percentage points — effectively zero, and the sign is not meaningful. That is the identification failure of section 3 showing up in the output rather than being argued about, and it is why the credit stress above is quoted from Engine B and not from Engine A.
 
 **For sizing a credit stress, use Engine B. For deciding which loans to act on, use Engine A's segment detail.** Reporting a single blended number would hide that each engine is only trustworthy on one of the two questions.
 
