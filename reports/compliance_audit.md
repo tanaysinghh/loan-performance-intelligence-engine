@@ -747,3 +747,74 @@ cannot be produced without the user.
 - Tests 40/40; validator self-test 12/12.
 - All four organiser-pack artefacts now present, including `validation_rules.json`, which the
   earlier audit recorded as missing.
+
+---
+
+# Final audit — merged `master`, 2026-08-30
+
+**Why this pass exists.** The previous re-audit checked deliverable presence with a filesystem
+existence test. That is the wrong test: it passes for any file sitting in the working
+directory, including files `.gitignore` excludes. This pass checks **`git ls-files` on the
+merged `master`**, which is what a judge cloning the repository actually receives.
+
+## The false pass it caught
+
+`data/raw/*` was gitignored wholesale to keep the licence-gated SFLLD panels out of the
+repository. Correct for the panels, wrong for everything else in that directory — **three
+artefacts named in section 6 of the problem statement were being excluded along with them**:
+
+| Artefact | Prior audit | Reality on clone |
+|---|---|---|
+| `data/raw/validation_rules.json` | recorded present | **absent** |
+| `data/raw/data_dictionary.csv` | recorded present | **absent** |
+| `data/raw/macro_scenarios.csv` | recorded present | **absent** |
+
+Fixed by whitelisting them, plus `macro_history.csv` and `ground_truth_defect_log.csv`. All
+five are metadata, rule definitions, public-domain FRED series or aggregate counts — 32 KB
+total, no loan-level data. The two licensed panels remain excluded, with the reason now
+written into `.gitignore` rather than left implicit.
+
+## Section 11 deliverables — verified against the git index
+
+All fifteen tracked and present on clone. One outstanding:
+
+| Item | Status |
+|---|---|
+| **Five-minute demo video** | **Not recorded** — requires a human. Script finalised and verified |
+| `notebooks/` | Empty; not a named section 11 deliverable |
+
+## Section 12 — judging criteria
+
+All eight met, unchanged from the previous pass and re-verified on the merged tree. Task 7 is
+the one that moved: from roughly half marks (copilot could not run) to met — live on
+`gemini-3.5-flash-lite`, four grounded use cases, real captured failures with corrections, two
+automated controls, per-output *recommendation, not decision* labelling.
+
+## Section 13 — disqualification conditions
+
+| # | Condition | Status on merged `master` |
+|---|---|---|
+| 1 | Fabricated results | **Does not apply.** Every figure traces to a tracked artefact. The lost LaTeX transcript is described, explicitly not reconstructed |
+| 2 | LLM generating predictions | **Does not apply.** AST import guard tracked and passing; written against the capability, not one vendor |
+| 3 | Undisclosed synthetic data | **Does not apply.** Per-layer provenance table, model card §2 |
+| 4 | Target leakage | **Does not apply.** Purged time split; leakage probe tracked |
+| 5 | Misrepresented performance | **Does not apply.** Logistic baseline beating LightGBM on two targets is reported |
+| 6 | Plagiarism | **Does not apply.** |
+| 7 | Undisclosed AI assistance | **Does not apply.** 14-section development log with verbatim prompts |
+| 8 | Redistributing licensed data | **Does not apply — re-verified mechanically.** `loan_panel.csv` tracked: **false**. `servicer_updates.csv` tracked: **false**. Raw SFLLD `.txt` files tracked: **0**. Only `dataset/download_sflld.md` ships |
+| 9 | Non-reproducible | **Does not apply.** `requirements.txt` and `run_manifest.json` tracked; the section 6 metadata artefacts now actually ship; copilot reproduces on a free API key |
+| 10 | Missing deliverables | **One — the demo video** |
+
+## Mechanically verified on the merged tree
+
+- `submission.csv` read **from the git index**, not the working directory: 16,000 × 21, zero
+  nulls, no duplicate `loan_id`, all probabilities in [0, 1],
+  `action_is_recommendation_not_decision` true on every row.
+- Merge introduced no changes: `master^{tree}` and `real-data-switch^{tree}` are the same
+  object (`8c6c8ce`), and `git diff master real-data-switch` is empty. No conflict resolution
+  occurred, nothing was reverted or staled by the merge.
+- No `GEMINI_API_KEY` and no key-shaped strings in any tracked file.
+- Tests 40/40; validator self-test 12/12.
+
+**Verdict: `master` is submittable on every mechanical check. The demo video is the only
+outstanding deliverable.**
