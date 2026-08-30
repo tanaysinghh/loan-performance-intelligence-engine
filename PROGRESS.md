@@ -1,115 +1,122 @@
 # PROGRESS — Loan Performance Intelligence Engine
 
-Running status file. Updated as work proceeds.
-
-**Deadline:** <40h from 2026-08-30. **Branch:** `real-data-switch`. **Fallback:** `master` @ `91fe18d`.
-**Last updated:** during the first clean real-data pipeline run.
+**Branch:** `real-data-switch` (9 commits) · **Fallback:** `master` @ `91fe18d` · **Tests:** 40/40
 
 ---
 
-## Phase 0 — Safety ✅ DONE (~6 min)
+## Bottom line
 
-- `dataset/` gitignored (licence-gated SFLLD raw files); negation fixed so
-  `dataset/download_sflld.md` stays tracked while the raw `.txt` files never are.
+The switch to real Freddie Mac data is **done and the gate passed**. Every deliverable is
+regenerated from one coherent run on real data. Two things need you: an `ANTHROPIC_API_KEY`,
+and recording the demo video. Everything else is closed.
+
+---
+
+## Phase 0 — Safety ✅ (~6 min)
+
+- `dataset/` gitignored; negation fixed so `download_sflld.md` stays tracked.
 - Verified `dataset/` was **never committed**: 0 tracked files, largest blob ever in history
-  2.7 MB. No history rewrite needed.
-- Fallback commit `91fe18d` on `master`; working branch `real-data-switch`.
+  2.7 MB against ~1.2 GB of raw data. No history rewrite needed.
+- Fallback `91fe18d` on `master`.
 
-## Phase 1 — Real data switch ✅ GATE PASSED (~2h15m elapsed; gate was at 6h)
+## Phase 1 — Real data switch ✅ (gate passed at ~1h against a 6h budget)
 
-### Gate result
-
-| Condition | Result |
+| Gate condition | Result |
 |---|---|
-| Clean `loan_panel.csv` the pipeline accepts | **PASS** — 33-column contract, 673,243 rows; `prepare()` builds a 670,548 × 133 feature frame, 16,000 loans, 2019-01..2026-03 |
-| D90+ target class balance not ~1-in-2000 | **PASS** — **1.84% (1-in-54)**, 9,989 positive rows |
+| Pipeline accepts a clean `loan_panel.csv` | **PASS** — 33-column contract, 673,242 rows → 670,548 × 133 feature frame |
+| D90+ balance not ~1-in-2000 | **PASS** — 1.81%, 9,989 positive rows |
 
-Both conditions met roughly 1h into the 6h budget, so the switch continued.
+**Data.** 16,000 loans / 673,242 monthly rows, sampled from 250,000 loans and 10,482,492
+records across vintages 2019–2023. Panel 2019-01 to 2026-03.
 
-### Built
+**Layout.** Sample files carry **31 origination / 35 performance** columns, not the 32/32 in
+Freddie Mac's published `file_layout.xlsx` or January 2026 User Guide. Verified empirically
+across all five vintages; `verify_layout()` refuses to load anything that deviates.
 
-- **`src/data/sflld.py`** — layout module. Sample files carry **31 origination / 35
-  performance** columns, *not* the published 32/32. Mapping verified empirically across all
-  five vintages. `verify_layout()` refuses to load a deviating file rather than mis-mapping.
-- **`src/data/build_from_sflld.py`** — join, banding, status/ZBC mapping, forward targets with
-  censoring at the real end (2026-03), loan-level stratified sampling (3,200/vintage →
-  **16,000 loans, 673,243 rows**). Same 33-column contract as the synthetic generator, so no
-  downstream stage changed.
-- **`src/data/macro_real.py`** — real FRED series vendored under `data/external/`:
-  `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA`. History observed; scenario paths constructed at
-  supervisory severity (+3.0pp unemployment, −10% HPI YoY) with all three candidate
-  calibrations disclosed (COVID +11.1pp, ex-COVID +0.7pp, chosen +3.0pp).
-- **`dataset/download_sflld.md`** — how to re-obtain the licence-gated files; why 31/35.
-- **`submission/SUBMISSION_FORMAT.md`** — maps every PS §6 required element to a column.
-- **`profiling.drift_report_by_target()`** — drift at each target's *actual* purged boundary,
-  closing the PARTIAL finding on Task 1 in the prior audit.
-- README rewritten so real SFLLD is the documented primary path.
+**Macro is real** — FRED `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA`, vendored in `data/external/`.
+Scenario paths are constructed at supervisory severity with all three candidate calibrations
+disclosed (COVID +11.1pp, ex-COVID +0.7pp, chosen +3.0pp).
 
-### Decisions worth knowing
+**Default target is a 90+ DPD proxy.** Realised credit events hit 14 of 16,000 loans (0.09%).
+Disclosed in the model card (own subsection), data intelligence report (call-out), README,
+`SUBMISSION_FORMAT.md` and the data dictionary.
 
-- **Default redefined to a 90+ DPD proxy.** Realised credit events hit **14 of 16,000**
-  sampled loans (0.09%). Disclosed in the model card (own subsection), the data intelligence
-  report (call-out box), the README, and `SUBMISSION_FORMAT.md`.
-- **Rejected the rare-event oversample.** Keeping all 7,878 ever-90+DPD loans from the
-  250,000-loan population would lift their share from 3.2% to ~40% and wreck the base rates
-  calibration and scenarios depend on. Used a plain loan-level stratified sample instead —
-  true prevalence preserved, still 9,989 positive rows. Sampling is loan-level only, so no
-  retained loan's history is truncated.
-- **Adverse scenario is not empirically anchored, deliberately.** The window has no housing
-  downturn, and ex-COVID no material labour deterioration. Supervisory magnitudes used, with
-  the observed bounds printed next to them.
+## Results (out-of-time test, one coherent run)
 
-### Bug found and fixed — stale feature cache
+| Target | Base rate | ROC-AUC | PR-AUC | Lift | ECE |
+|---|---:|---:|---:|---:|---:|
+| Delinquency 3m | 3.1% | 0.916 | 0.650 | 20.7× | 0.003 |
+| Delinquency 6m | 4.1% | 0.878 | 0.578 | 14.3× | 0.002 |
+| Default 12m (D90+) | 1.5% | 0.921 | 0.532 | 34.6× | 0.004 |
+| Prepayment 12m | 7.6% | 0.626 | 0.201 | 2.6× | 0.135 |
 
-The first full run completed exit 0 and rewrote **every report from the Aug-28 synthetic
-frame**. `prepare()` caches the feature frame and `--skip-data` disabled invalidation. Nothing
-crashed; the reports looked current. Caught on two impossible figures: `train_loans: 1379`
-against 16,000, and a test window ending 2026-06 when real data ends 2026-03.
+Cox concordance 0.72 default / 0.68 prepayment. Markov: Current→Current 0.982, ~50% DQ30 cure.
+Scenario adverse credit 1.17% → 1.86% (Engine B); high prepayment +5.1pp (Engine A).
 
-Fixed at the root — `dataset._cache_is_stale()` compares cache mtime against the raw pack and
-forces a rebuild. `config.real_build_summary()` carries the same guard so a synthetic run
-cannot inherit real-data prose. **Any model figure quoted before that fix is void.**
+**Reported honestly:** the logistic baseline beats LightGBM on ranking for the default proxy
+(PR-AUC 0.574 vs 0.532) and prepayment (0.685 vs 0.626 ROC). The GBM ships for calibration
+(ECE 0.004 vs 0.223), and the model card says so rather than claiming a clean sweep.
 
-### In flight
+## Defects found and fixed
 
-- First clean end-to-end run on the real panel. Stages `data`→`profile` done; `models` running
-  (~30 LightGBM fits over ~500k training rows — the long pole).
-- Test suite running.
+1. **Stale feature cache.** A run with `--skip-data` regenerated every report from the
+   previous data source, exit 0, no warning. Caught on two impossible figures. Fixed at root
+   (`_cache_is_stale`).
+2. **Survival stage crash.** `HIGH_OPS_SERVICERS` was a hardcoded synthetic pair → constant
+   column → singular Hessian. Now derived from DQ scores, plus a zero-variance guard.
+3. **Survival event redefined** to first entry into 90+ DPD. Terminal-state defaults gave 59
+   events, 3 in the training window, c-index 0.53. Now 505 events, c-index 0.72 — and
+   consistent with the proxy used everywhere else.
+4. **Five stale narrative figures**, four of them English sentences containing numbers:
+   scenario credit stress (17.4%→22.7% vs real 1.17%→1.86%), prepayment lift (13.0pp vs
+   5.1pp), left truncation (66% vs 5.0%), unemployment shock (2.3pp vs 3.0pp), and an anomaly
+   comparison quoting pre-change numbers as current. All computed or labelled as history.
+5. **A finding that changed, not just a number.** The prepayment response is non-monotone in
+   incentive (+0.232 for −0.5 to 0 vs +0.027 for >1.0): deep-in-the-money loans are saturated
+   at 84% and have no headroom. Better result than the synthetic claim it replaced.
+6. Other synthetic hardcoding purged: data dictionary, orphan feed IDs, missingness narrative.
 
-### Still to do in Phase 1
-
-- Regenerate the `profile` stage (it ran before the provenance / D90+ / per-target-drift
-  edits landed).
-- Fill real figures into `reports/demo_video_script.md`.
-
-## Phase 2 — Gap closure 🔄
+## Phase 2 — Gap closure
 
 | # | Item | Status |
 |---|---|---|
-| 1 | LLM copilot made real | **Blocked — no API key.** Not faked. See manual actions. Validator self-test is genuine non-LLM evidence and runs regardless. |
-| 2 | submission.csv format | ✅ All seven PS §6 elements present; mapping documented in `submission/SUBMISSION_FORMAT.md`. Re-verify after final run. |
-| 3 | Model card freshness | Generator made source-aware; hardcoded `2026-08-28` replaced with a generated timestamp. Regenerates at end of run. |
-| 4 | Demo video script | ✅ Drafted, 15 beats mapped to PS §14. Figures pending final run. |
-| 5 | AI Development Log currency | ✅ Session-2 section added (layout discovery, rejected COVID calibration, stale-cache defect, rejected oversample, un-faked copilot, per-session code share). |
-| 6 | Full compliance re-audit | Pending final run. |
+| 1 | LLM copilot made real | **Blocked on API key — not faked.** Mode stated in the report's first line; all 11 log entries labelled `offline_template`. Validator self-test 6/6 is genuine non-LLM evidence and runs regardless. Rule-suggestion task added (4 of 6 Task 7 use cases). |
+| 2 | submission.csv format | ✅ 16,000 × 21. All seven PS §6 elements mapped in `SUBMISSION_FORMAT.md`, pinned by 9 new tests. |
+| 3 | Model card freshness | ✅ Regenerated via `write()` and post-dates every artefact it reads. Date and data source generated, not typed. |
+| 4 | Demo video script | ✅ 15 beats, real figures, backup Q&A. |
+| 5 | AI Development Log | ✅ §12 this session's work; §13 verbatim prompts. |
+| 6 | Compliance re-audit | ✅ Re-audited. Tasks 1, 6, 8 moved PARTIAL → FULLY MET. §3.8 rewritten (was vacuous). Only Task 7 remains partial, on the API key. |
+
+## Compliance status
+
+- **Tasks 1–6, 8: FULLY MET.** Task 7 partial, solely on the missing credential.
+- **All 10 disqualification conditions: do not apply.** §3.8 now met on its merits with
+  gitignore/history/redistribution evidence, not by "all data is synthetic".
+- New deliverable `data/raw/validation_rules.json` (PS §6 named it; none was issued).
 
 ---
 
 ## Requires your manual action
 
-1. **`ANTHROPIC_API_KEY` for the LLM copilot** — worth up to 10 rubric points.
-   No credential exists in this environment (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` and
-   `.env` all absent), so `src/copilot/` runs in `offline_template` mode. Per your
-   instruction I did **not** write plausible transcripts and label them as captured API
-   output. With a key exported:
+1. **`ANTHROPIC_API_KEY`** — the one open gap, worth up to 10 rubric points. No credential
+   exists here, so the copilot runs `offline_template`. I did not write plausible transcripts
+   and label them as API output. To close it:
    ```bash
    export ANTHROPIC_API_KEY=sk-ant-...
    python -m src.copilot.run_copilot
+   python -c "from src.report_model_card import write; write()"
    ```
-   That regenerates `reports/copilot_report.md` against live output and rewrites
-   `submission/llm_prompt_log.jsonl` with real timestamps, token counts and validator
-   verdicts. The report already states its mode in its first line either way.
-2. **Recording the demo video** — script and storyboard ready at
-   `reports/demo_video_script.md`; you record.
-3. *(Not yet needed)* Go/no-go on the real-data path — **the gate passed**, so no decision is
-   required from you here unless the final run surfaces something.
+   That regenerates the report against live output with real timestamps, token counts and
+   validator verdicts, then refreshes the card. Then capture 2–3 cases where the model was
+   wrong, vague or overconfident — the five adversarial probes in `run_copilot.py` are built
+   to elicit exactly those and currently have nothing to catch.
+2. **Record the demo video** — `reports/demo_video_script.md`, 15 beats with figures filled
+   and the artefacts to have on screen listed in order.
+3. **Final review before submitting** — suggest reading `submission/MODEL_CARD.md` §2 first;
+   it carries the hybrid-provenance table and the D90+ redefinition, which are the two things
+   a judge is most likely to probe.
+4. **Merging `real-data-switch`** — I have not merged or pushed. `master` @ `91fe18d` is
+   untouched as a fallback.
+
+*No organiser/HackerEarth communication has been needed. The real-data gate passed, so no
+go/no-go decision is outstanding from you.*
