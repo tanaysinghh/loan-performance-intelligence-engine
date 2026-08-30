@@ -15,3 +15,9 @@ data/processed/*
 artifacts/
 *.pkl
 *.joblib
+
+# Raw Freddie Mac SFLLD sample files - license-gated, never commit.
+# See dataset/download_sflld.md for how to re-obtain them.
+dataset/
+!dataset/download_sflld.md
+!dataset/.gitkeep
