@@ -7,14 +7,21 @@
 ## Bottom line
 
 The switch to real Freddie Mac data is **done and the gate passed**, and the LLM copilot is
-now **live on Google Gemini** — the last open gap is closed. Every deliverable is regenerated
-from one coherent run on real data. **One thing needs you: recording the demo video.**
+**live on Google Gemini** — the last code gap is closed. **One deliverable still needs you:
+recording the five-minute demo video.** Everything else is complete and verified.
 
-The copilot ran for real against `gemini-3.5-flash-lite`: 14 calls in the current log and
-52 across the retained history, every one with prompt, provider, model, timestamp,
-tokens, finish reason and validator verdict recorded. Genuine model failures were caught and
-corrected on logged round-trips, and — separately reported — several validator false
-positives were found and fixed at source.
+The copilot ran for real against `gemini-3.5-flash-lite`: **15 calls in the current log,
+82 in the retained archive, 97 retained in total.** Genuine model failures were
+captured and corrected on logged round-trips, and — reported separately rather than counted
+against the model — six validator false-positive classes were found and fixed at source.
+
+> **On the prompt-log history, stated precisely.** `llm_prompt_log_archive.jsonl` is **not** a
+> complete record of every call ever made. `run_copilot` used to delete the log at the start of
+> each run, so roughly **six earlier runs (~87 calls) were destroyed** before that bug was
+> found and fixed. The archive holds only calls from the rotation fix onward. That number is
+> reconstructed from this session's run outputs, not from an artefact — the artefacts are
+> exactly what the bug destroyed. The one piece of evidence genuinely lost with them is the
+> original LaTeX transcript, which is described but deliberately not reconstructed.
 
 ---
 
@@ -196,3 +203,54 @@ the model's cooperation.
 
 *No organiser/HackerEarth communication has been needed. The real-data gate passed, so no
 go/no-go decision is outstanding from you.*
+
+---
+
+# Final status — 2026-08-30
+
+## Fully done, verified, committed
+
+| Area | State |
+|---|---|
+| Real-data switch | Gate passed. 16,000 loans / 673,242 rows from Freddie Mac SFLLD, five vintages |
+| Tasks 1–6, 8 | Fully met, unchanged this session |
+| **Task 7 (LLM copilot)** | **Closed.** Live on `gemini-3.5-flash-lite`; four grounded use cases; real failures captured with corrections; every output labelled *recommendation, not decision* |
+| Validators | Two controls (grounding + usefulness). Self-test **12/12, deterministic** against a fixed pack |
+| `submission.csv` | 16,000 × 21. Zero nulls, no duplicate `loan_id`, probabilities in [0,1], every action carries a reason. All seven PS §6 elements mapped |
+| Model card | Regenerated last, post-dates every artefact it reads. Self-test count now data-driven so it cannot go stale |
+| AI Development Log | Current through this session — §14 covers the Gemini switch, the validator defects, the negative ablation and the log-rotation bug |
+| Compliance audit | Re-audited end to end post-Gemini. 8/8 judging criteria met; 10/10 disqualification conditions do not apply |
+| Demo script | Finalised, 15 beats, mapped to PS §14 flow, every figure verified against current artefacts |
+| Tests | 40/40 |
+
+## Needs your eyes before submission
+
+1. **Record the five-minute demo video.** The only hard gap. `reports/demo_video_script.md`
+   is ready to read from directly — each beat names the exact file to have on screen, and the
+   recording setup lists the tabs to open in order. Two standing rules are written into it:
+   read the copilot's execution mode off the screen rather than from the script, and never
+   describe a failure that is not visible.
+2. **The two judgment calls I did not touch, as instructed.** Both read clearly and need no
+   editing — they need your agreement:
+   - *90+ DPD proxy* (`MODEL_CARD.md` §2). Realised credit events hit 14 of 16,000 loans, so
+     `next_12m_default_flag` is a serious-delinquency proxy, not a loss model. Clearly written
+     and disclosed in five places.
+   - *Rejected rare-event oversample* (`AI_DEVELOPMENT_LOG.md` §12). Keeping all 7,878
+     ever-90+DPD loans would have lifted their share from 3.2% to ~40% and destroyed the base
+     rates calibration depends on. One figure a judge may query: the "~40%" is for the
+     counterfactual design as scoped; against the final 16,000-loan sample the share would be
+     closer to 49%. The argument is unaffected either way.
+3. **Merging `real-data-switch`.** Not merged, as instructed. `master` @ `91fe18d` untouched.
+
+## Open risks worth flagging
+
+| Risk | Assessment |
+|---|---|
+| **Prepayment model is weak out of time** (ROC 0.626, ECE 0.135) | Real and disclosed in model card §8. The macro window spans a full rate cycle, so the regime genuinely shifts. It is reported, not patched over |
+| **Copilot run-to-run variance** | Gemini is sampled, so a given run may block little or nothing. The report says which run it is showing and points at the archive for earlier captured failures. A reviewer re-running may see different blocks — this is stated rather than hidden |
+| **Free-tier quota** | `gemini-3.5-flash-lite` clears a full run comfortably. `gemini-3.6-flash` does **not** — 20 requests/day against 15–20 per run. If you switch models before recording, check the quota first |
+| **The LaTeX ablation is negative** | The no-LaTeX prompt rule could not be shown to be what fixed the markup. Reported as negative. Detection is the load-bearing control and does not depend on the model cooperating |
+| **Lost prompt-log history** | ~87 calls from six early runs are unrecoverable. No current claim depends on them; the 10× fabrication recurred and is quoted from a live log, and the LaTeX case is described rather than reconstructed |
+| **Exception/DQ layer is fabricated** | Long-standing and disclosed per-layer in model card §2. SFLLD provides no second source, no ingestion timestamps and no operational exception feed |
+
+*Branch `real-data-switch` pushed to origin. Not merged — that is yours.*
