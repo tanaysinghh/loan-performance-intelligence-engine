@@ -399,6 +399,13 @@ def main(loans_per_vintage: int = LOANS_PER_VINTAGE, seed: int = C.RANDOM_SEED) 
         "exception_mix": out["exception_type"].value_counts(normalize=True).round(4).to_dict(),
         "real_data_diagnostics": diag,
     }
+
+    # Written last, so its mtime is newer than the panel's. Downstream reporting uses that
+    # ordering to tell a real-data pack from a synthetic one: a later synthetic build
+    # overwrites loan_panel.csv and the summary is then correctly treated as stale.
+    import json
+    (C.ARTIFACTS / "sflld_build_summary.json").write_text(
+        json.dumps(summary, indent=2, default=str), encoding="utf-8")
     return summary
 
 

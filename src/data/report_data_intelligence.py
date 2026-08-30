@@ -79,6 +79,38 @@ def build(df: pd.DataFrame = None) -> dict:
       f"resolved latest-wins, **{feed_stats['orphans']:,}** orphan records referencing loan-months "
       f"absent from the panel.")
     A("")
+
+    real = C.real_build_summary()
+    if real:
+        diag = real.get("real_data_diagnostics", {})
+        A("### Source and provenance")
+        A("")
+        A("Built from the **Freddie Mac Single-Family Loan-Level Dataset** sample files, "
+          "vintages 2019-2023 (250,000 loans, 10,482,492 monthly records), sampled at loan "
+          "level. The macro series are real (FRED `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA`).")
+        A("")
+        A("The **exception, reconciliation and document-status layer is fabricated** on top of "
+          "the real panel, because SFLLD has no second source, no ingestion timestamps and no "
+          "document data. The fabricated servicer feed is anchored on real servicing "
+          f"transfers — **{diag.get('servicer_transfer_loans', 0):,}** of "
+          f"**{real.get('loans', 0):,}** sampled loans genuinely change servicer at least "
+          "once. Section 4 of the model card sets out exactly which columns are which.")
+        A("")
+        A("> ### The 12-month default target is a 90+ DPD proxy")
+        A("> ")
+        A(f"> Realised credit events — third-party sale, short sale, REO disposition, note "
+          f"sale (zero-balance codes 02/03/09/15) — occur on **"
+          f"{diag.get('true_credit_event_loans', 0)} of {real.get('loans', 0):,} sampled "
+          f"loans**, roughly one row in 200,000. That cannot be modelled. These are post-2019 "
+          f"agency vintages carried by strong house-price appreciation and pandemic-era "
+          f"forbearance, so the scarcity is a property of the cohort rather than of the "
+          f"sample.")
+        A("> ")
+        A("> **`next_12m_default_flag` is therefore 1 when the loan reaches 90+ days past due, "
+          "or a realised credit event, within the next 12 months.** Every profiling figure, "
+          "metric and submission column labelled 'default' refers to that proxy. It is a "
+          "serious-delinquency model, not a loss model.")
+        A("")
     A("## 2. Column distribution profiling")
     A("")
     A("### Numeric fields")
@@ -96,13 +128,17 @@ def build(df: pd.DataFrame = None) -> dict:
     A(f"- Rows with at least one missing profiled field: **{miss['rows_with_any_missing']:.1%}**")
     A(f"- Mean missing fields per row: **{miss['mean_missing_fields_per_row']:.3f}**")
     A("")
+    _by_srv = miss["by_servicer"]
+    _worst = (_by_srv.mean(axis=1).sort_values(ascending=False).head(2).index.tolist()
+              if len(_by_srv) else [])
+    _worst_txt = (" and ".join(f"{s}" for s in _worst) if _worst else "a small number of servicers")
     A("Missingness is not random. A chi-square test of each field's missingness indicator "
       "against `servicer_name` rejects independence for the fields below, so the mechanism is "
-      "**missing-at-random conditional on servicer**, not MCAR. Two servicers "
-      "(Kestrel Financial, Pioneer Mortgage Ops) account for most of the gap. The practical "
-      "consequence: dropping incomplete rows would silently drop those servicers' books and "
-      "bias every downstream rate. Models therefore consume missingness natively and carry "
-      "explicit missing-indicator features.")
+      f"**missing-at-random conditional on servicer**, not MCAR. The two servicers with the "
+      f"highest mean missingness ({_worst_txt}) account for a disproportionate share of the "
+      "gap. The practical consequence: dropping incomplete rows would silently drop those "
+      "servicers' books and bias every downstream rate. Models therefore consume missingness "
+      "natively and carry explicit missing-indicator features.")
     A("")
     A(_md(miss["mechanism_tests"]))
     A("")

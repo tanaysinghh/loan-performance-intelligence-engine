@@ -360,3 +360,149 @@ review actually changed.
 6. **Report the honest comparison.** LightGBM tying a nine-feature logistic model on ranking
    was not the result I wanted, and the reasoning behind keeping the GBM anyway — calibration,
    not discrimination — is more defensible than a claimed clean sweep would have been.
+
+---
+
+## 12. Session 2 (2026-08-30) — switching from synthetic to real Freddie Mac data
+
+The original build ran on a synthetic generator because the organiser data pack described in
+section 6 of the problem statement was never issued. Five Freddie Mac SFLLD vintage sample
+folders became available, and this session replaced the panel with real data.
+
+**Why switch at all.** With a self-authored generator, the models partly recover the
+generator's own coefficients. That is circular, it is visible to a judge, and it undercuts the
+two heaviest rubric blocks — Data Intelligence (15) and Predictive Modelling (20). Real data
+removes the objection outright and supplies the scale the problem statement asks for.
+
+### The layout was not what the documentation said
+
+The assistant's first instinct was to map columns using Freddie Mac's published layout. That
+would have been wrong. The official `file_layout.xlsx` and the January 2026 General User Guide
+both specify **32 origination and 32 performance fields**; the sample files on disk carry
+**31 and 35**. Mapping to the stock layout would have silently mis-assigned seven origination
+columns and produced plausible-looking garbage — `Super Conforming Flag` read as
+`Servicer Name`, and so on.
+
+Resolved empirically instead, by profiling every column's value distribution across all five
+vintages. The signatures are unambiguous:
+
+| Column | Observed values | Identifies it as |
+|---|---|---|
+| orig 26 | 99.9% blank, rest formatted `F08Q20307907` | Pre-HARP Loan Sequence Number |
+| orig 28 | `Y` present in 2019, never in 2023 | Relief Refinance Indicator (HARP ended) |
+| orig 29 | code `4` appears only from 2022 | Property Valuation Method (ACE+PDR, effective Jul 2022) |
+| perf 33 | exactly `7`/`N`/`Y` | MI Cancellation Indicator |
+| perf 34 | real servicer names | Servicer Name |
+
+Both relocated fields are time-varying, which explains the move to the monthly file.
+`sflld.verify_layout()` now asserts 31/35 and refuses to load anything else, so a
+re-download with a different layout fails loudly instead of quietly mis-mapping.
+
+**Lesson:** when documentation and data disagree, the data is right. Verify the schema against
+the bytes before writing a loader, not after the metrics look odd.
+
+### Rejected: calibrating the adverse scenario to observed history
+
+The assistant wrote scenario calibration that anchored each shock to the largest comparable
+move in the same real series — which is exactly the right instinct, and produced an
+unusable result. The largest 12-month unemployment rise in the window is **+11.1pp**: the
+COVID spike to 14.8% in April 2020. An "adverse credit" scenario built on a once-in-a-century
+labour shock is not a credit scenario.
+
+Excluding COVID (2020-01 to 2021-06) gives the opposite problem — the largest rise is
+**+0.7pp**, which stresses nothing. The window simply contains no credit downturn and no
+housing downturn.
+
+Rejected both and used supervisory (DFAST/CCAR-style) magnitudes instead: **+3.0pp
+unemployment, -10% HPI YoY**. All three figures are written into the scenario file's
+assumption note, so a reader sees the observed bounds, the exclusion, and the override rather
+than a number presented as if it were empirical. The high-prepayment scenario needed no
+override — its -1.19pp rate decline is taken straight from observed history.
+
+### Caught: the pipeline regenerated every report from stale data
+
+The most dangerous defect of the session. `prepare()` caches the engineered feature frame, and
+`--skip-data` disabled cache invalidation. The first full run after the switch completed
+cleanly, exit code 0, and rewrote every report — all of it from the **August 28 synthetic
+frame**. Nothing crashed. Nothing warned. The reports looked entirely current.
+
+Caught by the numeric lens, on two figures that could not be true:
+
+- `train_loans: 1379` in `split_summary.csv`, against 16,000 loans in the new panel.
+- a test window ending **2026-06**, when the real data ends 2026-03.
+
+Fixed at the root rather than by deleting the file: `dataset._cache_is_stale()` compares the
+cache mtime against `loan_panel.csv`, `servicer_updates.csv` and `macro_history.csv` and
+forces a rebuild when the pack is newer. The same guard now protects the model card, which
+reads `artifacts/sflld_build_summary.json` but treats it as stale if the panel was written
+after it — so a synthetic run cannot inherit real-data prose.
+
+**Lesson, and it generalises past this project:** a cache plus a "skip the slow step" flag is a
+silent-staleness machine. Any pipeline offering both needs an invalidation rule, because the
+failure mode is not a crash — it is a full set of confident, wrong, freshly-dated reports.
+
+### The default target had to be redefined, and it is disclosed
+
+Realised credit events (zero-balance codes 02/03/09/15) occur on **14 of 16,000 sampled
+loans** — under a tenth of a percent, roughly one row in 200,000. These are post-2019 agency
+vintages with strong house-price appreciation and pandemic forbearance behind them; the
+scarcity is a property of the cohort, not a sampling artefact.
+
+`next_12m_default_flag` is therefore a **90+ DPD proxy**. This is a real deviation from the
+problem statement's field list, so it is stated in the module docstring, in the data
+intelligence report, and in its own subsection of the model card, with the realised-event
+count reported next to it. A serious-delinquency model labelled "default" without that
+disclosure would be the kind of quiet redefinition this log exists to prevent.
+
+### Sampling: rejected the rare-event oversample
+
+The instruction was to downsample loans while keeping all rare-event (90+ DPD) loans.
+Implemented and then rejected: retaining all 7,878 ever-90+DPD loans from the 250,000-loan
+population while sampling the rest down would lift their share from 3.2% to about 40% and
+destroy the base rates that calibration and the scenario engine depend on.
+
+Used a plain loan-level stratified random sample instead — 3,200 per vintage, 16,000 loans,
+670,548 monthly rows — which preserves true prevalence and still yields 9,989 positive rows on
+the 12-month default proxy. Sampling is at loan level only, so no retained loan has its history
+truncated and no rare event is cut mid-path. The intent behind the instruction is met; the
+literal mechanism was not the way to meet it.
+
+### Not done, and not faked: live LLM copilot
+
+No `ANTHROPIC_API_KEY` is present in the build environment, so `src/copilot/` runs in
+`offline_template` mode. The option of writing plausible reviewer transcripts and presenting
+them as captured API output was available and was **not taken** — section 13 of the problem
+statement lists fabricated results as a disqualification condition, and the distinction between
+"the model said this" and "this is what the model would plausibly say" is exactly the one this
+whole layer exists to police.
+
+The grounding validator itself is ordinary code, not a prompt, and it is genuinely exercised:
+`run_self_test()` feeds six deliberately bad outputs through it — a fabricated probability, a
+rescaled real figure, a causal assertion, an overconfident decision, missing reviewer framing,
+and one clean case — and asserts the expected verdict on each. That evidence is real regardless
+of execution mode. The copilot report states its mode in the first line rather than burying it.
+
+### Prepayment degrades out of time, and that is reported
+
+On real data the prepayment model's PR-AUC drops sharply from validation to test while the
+positive rate more than doubles. This is the rate cycle doing exactly what it should: the test
+window sits in a different rate regime from training. It is a genuine limitation of a
+single-realised-macro-path fit, it is recorded in the model card rather than smoothed over,
+and it is the strongest argument in the build for the macro-conditioned transition engine over
+the loan-level classifier for anything scenario-shaped.
+
+### AI-generated code share, this session
+
+| Component | Generated | Rewritten after review |
+|---|---|---|
+| SFLLD layout module and loader | ~85% | ~30% |
+| Panel derivation and target logic | ~80% | ~35% |
+| Real macro sourcing and scenarios | ~85% | ~45% |
+| Model card / report updates | ~75% | ~35% |
+| **Session overall** | **~82%** | **~35%** |
+
+The rewrite share is higher than session 1 (~27%), and the reason is worth recording: real
+data has edges that a generator does not. Sentinel values, an undocumented layout, a target
+that barely exists, and a macro window with no downturn in it are all things the assistant
+handled reasonably on the first pass and correctly only after the numbers were checked against
+the actual bytes.

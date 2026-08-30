@@ -55,19 +55,19 @@ Why each case matters:
 ```
 [OFFLINE TEMPLATE OUTPUT — no language model was called. Set ANTHROPIC_API_KEY and re-run for the live copilot.]
 
-Loan LN100059, reporting month 2025-10, serviced by Belmont Loan Services.
-Status at month end is DQ90plus with 112.0 days past due.
+Loan LN101348, reporting month 2025-12, serviced by Belmont Loan Services.
+Status at month end is DQ90plus with 98.0 days past due.
 Model output for this record:
-  - next_3m_delinquency_flag: 0.9915
-  - next_6m_delinquency_flag: 0.991
-  - next_12m_default_flag: 1.0
-  - next_12m_prepayment_flag: 0.0301
-  - exception_required: 0.0058
-Leading model drivers: current performance status (+5.44) | current status (+1.57) | months delinquent in last 6 months (+0.55).
+  - next_3m_delinquency_flag: 0.9908
+  - next_6m_delinquency_flag: 0.9948
+  - next_12m_default_flag: 0.9075
+  - next_12m_prepayment_flag: 0.0289
+  - exception_required: 0.0051
+Leading model drivers: current performance status (+6.85) | current status (+1.97) | months delinquent in last 6 months (+0.52).
 Association only; no causal claim is made. RECOMMENDATION, NOT DECISION. Generated narrative over model output. A human reviewer owns the outcome.
 ```
 
-Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
+Validator: **released to reviewer queue** — 13 numbers checked, 0 ungrounded.
 
 ### `reviewer_note`
 
@@ -76,19 +76,19 @@ Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
 ```
 [OFFLINE TEMPLATE OUTPUT — no language model was called. Set ANTHROPIC_API_KEY and re-run for the live copilot.]
 
-Loan LN100059, reporting month 2025-12, serviced by Belmont Loan Services.
-Status at month end is DQ90plus with 93.0 days past due.
+Loan LN101254, reporting month 2025-10, serviced by Arcadia Capital Servicing.
+Status at month end is DQ90plus with 104.0 days past due.
 Model output for this record:
-  - next_3m_delinquency_flag: 0.9911
-  - next_6m_delinquency_flag: 0.9904
-  - next_12m_default_flag: 1.0
-  - next_12m_prepayment_flag: 0.0301
-  - exception_required: 0.004
-Leading model drivers: current performance status (+5.44) | current status (+1.55) | months delinquent in last 6 months (+0.57).
+  - next_3m_delinquency_flag: 0.9908
+  - next_6m_delinquency_flag: 0.9952
+  - next_12m_default_flag: 0.8562
+  - next_12m_prepayment_flag: 0.006
+  - exception_required: 0.005
+Leading model drivers: current performance status (+6.47) | current status (+1.84) | months delinquent in last 6 months (+0.53).
 Association only; no causal claim is made. RECOMMENDATION, NOT DECISION. Generated narrative over model output. A human reviewer owns the outcome.
 ```
 
-Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
+Validator: **released to reviewer queue** — 13 numbers checked, 0 ungrounded.
 
 ### `reviewer_note`
 
@@ -97,19 +97,19 @@ Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
 ```
 [OFFLINE TEMPLATE OUTPUT — no language model was called. Set ANTHROPIC_API_KEY and re-run for the live copilot.]
 
-Loan LN100059, reporting month 2025-11, serviced by Belmont Loan Services.
-Status at month end is DQ90plus with 99.0 days past due.
+Loan LN101348, reporting month 2026-01, serviced by Belmont Loan Services.
+Status at month end is DQ90plus with 111.0 days past due.
 Model output for this record:
   - next_3m_delinquency_flag: 0.9907
-  - next_6m_delinquency_flag: 0.9901
-  - next_12m_default_flag: 1.0
-  - next_12m_prepayment_flag: 0.0301
-  - exception_required: 0.0041
-Leading model drivers: current performance status (+5.46) | current status (+1.57) | months delinquent in last 6 months (+0.57).
+  - next_6m_delinquency_flag: 0.9947
+  - next_12m_default_flag: 0.9507
+  - next_12m_prepayment_flag: 0.0289
+  - exception_required: 0.0058
+Leading model drivers: current performance status (+6.88) | current status (+1.97) | months delinquent in last 6 months (+0.52).
 Association only; no causal claim is made. RECOMMENDATION, NOT DECISION. Generated narrative over model output. A human reviewer owns the outcome.
 ```
 
-Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
+Validator: **released to reviewer queue** — 13 numbers checked, 0 ungrounded.
 
 ### `reviewer_note`
 
@@ -118,19 +118,19 @@ Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
 ```
 [OFFLINE TEMPLATE OUTPUT — no language model was called. Set ANTHROPIC_API_KEY and re-run for the live copilot.]
 
-Loan LN100510, reporting month 2025-10, serviced by Pioneer Mortgage Ops.
-Status at month end is DQ90plus with 103.0 days past due.
+Loan LN100523, reporting month 2026-03, serviced by Northgate Servicing.
+Status at month end is DQ90plus with 91.0 days past due.
 Model output for this record:
-  - next_3m_delinquency_flag: 0.9905
-  - next_6m_delinquency_flag: 0.9869
-  - next_12m_default_flag: 1.0
-  - next_12m_prepayment_flag: 0.0301
-  - exception_required: 0.5853
-Leading model drivers: current performance status (+5.57) | current status (+1.61) | months delinquent in last 6 months (+0.57).
+  - next_3m_delinquency_flag: 0.9906
+  - next_6m_delinquency_flag: 0.9952
+  - next_12m_default_flag: 0.9226
+  - next_12m_prepayment_flag: 0.006
+  - exception_required: 0.0044
+Leading model drivers: current performance status (+6.66) | current status (+1.86) | months delinquent in last 6 months (+0.55).
 Association only; no causal claim is made. RECOMMENDATION, NOT DECISION. Generated narrative over model output. A human reviewer owns the outcome.
 ```
 
-Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
+Validator: **released to reviewer queue** — 13 numbers checked, 0 ungrounded.
 
 ### `scenario_summary`
 
@@ -140,9 +140,9 @@ Validator: **released to reviewer queue** — 12 numbers checked, 0 ungrounded.
 [OFFLINE TEMPLATE OUTPUT — no language model was called. Set ANTHROPIC_API_KEY and re-run for the live copilot.]
 
 Scenario projections as produced by the simulation engines:
-  - adverse_credit: 12-month default 0.18371, 12-month prepayment 0.15997
-  - base: 12-month default 0.18278, 12-month prepayment 0.16093
-  - high_prepayment: 12-month default 0.19116, 12-month prepayment 0.28018
+  - adverse_credit: 12-month default 0.18082, 12-month prepayment 0.16266
+  - base: 12-month default 0.18007, 12-month prepayment 0.16534
+  - high_prepayment: 12-month default 0.18277, 12-month prepayment 0.17708
 Segment and driver detail is in reports/scenario_report.md. RECOMMENDATION, NOT DECISION. Generated narrative over model output. A human reviewer owns the outcome.
 ```
 
@@ -189,27 +189,27 @@ These are not curated after the fact. Each probe is defined in `src/copilot/run_
 
 {
   "record": {
-    "loan_id": "LN100059",
-    "reporting_month": "2025-10",
+    "loan_id": "LN101348",
+    "reporting_month": "2025-12",
     "servicer_name": "Belmont Loan Services",
     "current_status": "DQ90plus",
-    "days_past_due": 112.0,
-    "loan_age_months": 113.0,
-    "credit_score_band": "700-739",
+    "days_past_due": 98.0,
+    "loan_age_months": 107.0,
+    "credit_score_band": "740-779",
     "ltv_band": "70-80",
-    "current_balance": 534000.59,
-    "modification_flag": 0,
+    "current_balance": 145407.87,
+    "modification_flag": 1,
     "document_status": "complete",
     "data_quality_score": 100.0
   },
   "model_predictions": {
-    "next_3m_delinquency_flag": 0.9915,
-    "next_6m_delinquency_flag": 0.991,
-    "next_12m_default_flag": 1.0,
-    "next_12m_prepayment_flag": 0.0301,
-    "exception_required": 0.0058
+    "next_3m_delinquency_flag": 0.9908,
+    "next_6m_delinquency_flag": 0.9948,
+    "next_12m_default_flag": 0.9075,
+    "next_12m_prepayment_flag": 0.0289,
+    "exception_required": 0.0051
   },
-  "top_drivers_from_shap": "current performance status (+5.44) | current status (+1.57) | months delinquent in last 6 months (+0.55)",
+  "top_drivers_from_shap": "current performance status (+6.85) | current status (+1.97) | months delinquent in last 6 months (+0.52)",
   "provenance": {
     "predictions_produced_by": "LightGBM gradient-boosted trees, calibrated",
     "drivers_produced_by": "SHAP TreeExplainer over the same models",
@@ -233,27 +233,27 @@ These are not curated after the fact. Each probe is defined in `src/copilot/run_
 
 {
   "record": {
-    "loan_id": "LN100059",
-    "reporting_month": "2025-10",
+    "loan_id": "LN101348",
+    "reporting_month": "2025-12",
     "servicer_name": "Belmont Loan Services",
     "current_status": "DQ90plus",
-    "days_past_due": 112.0,
-    "loan_age_months": 113.0,
-    "credit_score_band": "700-739",
+    "days_past_due": 98.0,
+    "loan_age_months": 107.0,
+    "credit_score_band": "740-779",
     "ltv_band": "70-80",
-    "current_balance": 534000.59,
-    "modification_flag": 0,
+    "current_balance": 145407.87,
+    "modification_flag": 1,
     "document_status": "complete",
     "data_quality_score": 100.0
   },
   "model_predictions": {
-    "next_3m_delinquency_flag": 0.9915,
-    "next_6m_delinquency_flag": 0.991,
-    "next_12m_default_flag": 1.0,
-    "next_12m_prepayment_flag": 0.0301,
-    "exception_required": 0.0058
+    "next_3m_delinquency_flag": 0.9908,
+    "next_6m_delinquency_flag": 0.9948,
+    "next_12m_default_flag": 0.9075,
+    "next_12m_prepayment_flag": 0.0289,
+    "exception_required": 0.0051
   },
-  "top_drivers_from_shap": "current performance status (+5.44) | current status (+1.57) | months delinquent in last 6 months (+0.55)",
+  "top_drivers_from_shap": "current performance status (+6.85) | current status (+1.97) | months delinquent in last 6 months (+0.52)",
   "provenance": {
     "predictions_produced_by": "LightGBM gradient-boosted trees, calibrated",
     "drivers_produced_by": "SHAP TreeExplainer over the same models",
@@ -277,27 +277,27 @@ These are not curated after the fact. Each probe is defined in `src/copilot/run_
 
 {
   "record": {
-    "loan_id": "LN100059",
-    "reporting_month": "2025-10",
+    "loan_id": "LN101348",
+    "reporting_month": "2025-12",
     "servicer_name": "Belmont Loan Services",
     "current_status": "DQ90plus",
-    "days_past_due": 112.0,
-    "loan_age_months": 113.0,
-    "credit_score_band": "700-739",
+    "days_past_due": 98.0,
+    "loan_age_months": 107.0,
+    "credit_score_band": "740-779",
     "ltv_band": "70-80",
-    "current_balance": 534000.59,
-    "modification_flag": 0,
+    "current_balance": 145407.87,
+    "modification_flag": 1,
     "document_status": "complete",
     "data_quality_score": 100.0
   },
   "model_predictions": {
-    "next_3m_delinquency_flag": 0.9915,
-    "next_6m_delinquency_flag": 0.991,
-    "next_12m_default_flag": 1.0,
-    "next_12m_prepayment_flag": 0.0301,
-    "exception_required": 0.0058
+    "next_3m_delinquency_flag": 0.9908,
+    "next_6m_delinquency_flag": 0.9948,
+    "next_12m_default_flag": 0.9075,
+    "next_12m_prepayment_flag": 0.0289,
+    "exception_required": 0.0051
   },
-  "top_drivers_from_shap": "current performance status (+5.44) | current status (+1.57) | months delinquent in last 6 months (+0.55)",
+  "top_drivers_from_shap": "current performance status (+6.85) | current status (+1.97) | months delinquent in last 6 months (+0.52)",
   "provenance": {
     "predictions_produced_by": "LightGBM gradient-boosted trees, calibrated",
     "drivers_produced_by": "SHAP TreeExplainer over the same models",
@@ -321,27 +321,27 @@ These are not curated after the fact. Each probe is defined in `src/copilot/run_
 
 {
   "record": {
-    "loan_id": "LN100059",
-    "reporting_month": "2025-10",
+    "loan_id": "LN101348",
+    "reporting_month": "2025-12",
     "servicer_name": "Belmont Loan Services",
     "current_status": "DQ90plus",
-    "days_past_due": 112.0,
-    "loan_age_months": 113.0,
-    "credit_score_band": "700-739",
+    "days_past_due": 98.0,
+    "loan_age_months": 107.0,
+    "credit_score_band": "740-779",
     "ltv_band": "70-80",
-    "current_balance": 534000.59,
-    "modification_flag": 0,
+    "current_balance": 145407.87,
+    "modification_flag": 1,
     "document_status": "complete",
     "data_quality_score": 100.0
   },
   "model_predictions": {
-    "next_3m_delinquency_flag": 0.9915,
-    "next_6m_delinquency_flag": 0.991,
-    "next_12m_default_flag": 1.0,
-    "next_12m_prepayment_flag": 0.0301,
-    "exception_required": 0.0058
+    "next_3m_delinquency_flag": 0.9908,
+    "next_6m_delinquency_flag": 0.9948,
+    "next_12m_default_flag": 0.9075,
+    "next_12m_prepayment_flag": 0.0289,
+    "exception_required": 0.0051
   },
-  "top_drivers_from_shap": "current performance status (+5.44) | current status (+1.57) | months delinquent in last 6 months (+0.55)",
+  "top_drivers_from_shap": "current performance status (+6.85) | current status (+1.97) | months delinquent in last 6 months (+0.52)",
   "provenance": {
     "predictions_produced_by": "LightGBM gradient-boosted trees, calibrated",
     "drivers_produced_by": "SHAP TreeExplainer over the same models",
@@ -365,27 +365,27 @@ These are not curated after the fact. Each probe is defined in `src/copilot/run_
 
 {
   "record": {
-    "loan_id": "LN100059",
-    "reporting_month": "2025-10",
+    "loan_id": "LN101348",
+    "reporting_month": "2025-12",
     "servicer_name": "Belmont Loan Services",
     "current_status": "DQ90plus",
-    "days_past_due": 112.0,
-    "loan_age_months": 113.0,
-    "credit_score_band": "700-739",
+    "days_past_due": 98.0,
+    "loan_age_months": 107.0,
+    "credit_score_band": "740-779",
     "ltv_band": "70-80",
-    "current_balance": 534000.59,
-    "modification_flag": 0,
+    "current_balance": 145407.87,
+    "modification_flag": 1,
     "document_status": "complete",
     "data_quality_score": 100.0
   },
   "model_predictions": {
-    "next_3m_delinquency_flag": 0.9915,
-    "next_6m_delinquency_flag": 0.991,
-    "next_12m_default_flag": 1.0,
-    "next_12m_prepayment_flag": 0.0301,
-    "exception_required": 0.0058
+    "next_3m_delinquency_flag": 0.9908,
+    "next_6m_delinquency_flag": 0.9948,
+    "next_12m_default_flag": 0.9075,
+    "next_12m_prepayment_flag": 0.0289,
+    "exception_required": 0.0051
   },
-  "top_drivers_from_shap": "current performance status (+5.44) | current status (+1.57) | months delinquent in last 6 months (+0.55)",
+  "top_drivers_from_shap": "current performance status (+6.85) | current status (+1.97) | months delinquent in last 6 months (+0.52)",
   "provenance": {
     "predictions_produced_by": "LightGBM gradient-boosted trees, calibrated",
     "drivers_produced_by": "SHAP TreeExplainer over the same models",

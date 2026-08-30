@@ -113,11 +113,85 @@ def build() -> str:
     A("")
     A("## 2. Data")
     A("")
-    A("Organiser data was not available, so a synthetic panel is generated from an explicit "
-      "data-generating process (`src/data/generate_synthetic.py`). It is built to be "
-      "replaced: drop real CSVs matching the same schema into `data/raw/` and the pipeline "
-      "runs unchanged.")
-    A("")
+    real = C.real_build_summary()
+    if real:
+        A("### Source: real Freddie Mac loan-level data")
+        A("")
+        A("The panel is built from the **Freddie Mac Single-Family Loan-Level Dataset "
+          "(SFLLD)** sample files for vintages 2019-2023 — a population of 250,000 loans and "
+          "10,482,492 monthly performance records — loaded by `src/data/build_from_sflld.py`. "
+          "The organiser data pack described in section 6 of the problem statement was never "
+          "issued, so the data was sourced directly rather than simulated.")
+        A("")
+        A("The raw files are **not committed**: SFLLD is licence-gated and redistributing it "
+          "would breach the source terms that section 13 of the problem statement lists as a "
+          "disqualification condition. `dataset/download_sflld.md` documents how to re-obtain "
+          "them; everything under `data/` regenerates from them.")
+        A("")
+        A("> **Layout note.** These sample files carry **31 origination and 35 performance "
+          "columns**, not the 32/32 in Freddie Mac's published `file_layout.xlsx` and January "
+          "2026 User Guide. `Servicer Name` is absent from the origination file, and the "
+          "performance file appends `MI Cancellation Indicator`, `Servicer Name` and a filler "
+          "column. The mapping was verified empirically against value distributions in all "
+          "five vintages rather than assumed, and `sflld.verify_layout()` fails loudly if a "
+          "re-download deviates. Evidence is documented in `src/data/sflld.py`.")
+        A("")
+        A("### This pack is a hybrid, by necessity")
+        A("")
+        A("SFLLD supplies no second data source, no ingestion timestamps, no document-custody "
+          "data and no exception taxonomy. Those are required by sections 6 and 7 of the "
+          "problem statement, so they are **fabricated on top of the real panel**. This is a "
+          "documented methodological choice, not an oversight:")
+        A("")
+        A(_md(pd.DataFrame([
+            {"layer": "Loan / month panel, all origination and performance attributes",
+             "provenance": "**Real** — Freddie Mac SFLLD"},
+            {"layer": "Delinquency, prepayment, credit-event and servicing-transfer outcomes",
+             "provenance": "**Real** — derived from SFLLD status and zero-balance codes"},
+            {"layer": "Macro history (mortgage rate, unemployment, HPI)",
+             "provenance": "**Real** — FRED `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA`"},
+            {"layer": "Forward scenario paths",
+             "provenance": "Constructed assumptions at supervisory severity; disclosed in "
+                           "the scenario report"},
+            {"layer": "`last_updated_at`, `source_system`, `document_status`",
+             "provenance": "**Fabricated** — no equivalent exists in SFLLD"},
+            {"layer": "`servicer_updates.csv` second source, reconciliation conflicts",
+             "provenance": "**Fabricated**, but anchored on real servicing transfers "
+                           f"({real.get('real_data_diagnostics', {}).get('servicer_transfer_loans', 0):,} "
+                           "of the sampled loans genuinely change servicer)"},
+            {"layer": "`exception_required`, `exception_type`, injected data-quality defects",
+             "provenance": "**Fabricated** at logged rates, for Task 1 and Task 4"},
+        ])))
+        A("")
+        A("Every model figure for delinquency, default, prepayment and next-state is "
+          "therefore trained and evaluated on real outcomes. Every figure for exceptions and "
+          "data quality is trained on a fabricated label and must be read as a demonstration "
+          "of method, not as validated real-world performance.")
+        A("")
+        A("### Default target is a 90+ DPD proxy — read this before any default figure")
+        A("")
+        diag = real.get("real_data_diagnostics", {})
+        A(f"Realised credit events — third-party sale, short sale, REO disposition, note sale "
+          f"(zero-balance codes 02/03/09/15) — occur on **"
+          f"{diag.get('true_credit_event_loans', 0)} of {real.get('loans', 0):,} sampled "
+          f"loans**, about one in a thousand, and roughly one row in 200,000. That is not a "
+          f"modellable target at this sample size. These are post-2019 agency vintages that "
+          f"benefited from strong house-price appreciation and pandemic-era forbearance, so "
+          f"the scarcity is a property of the cohort, not of the sample.")
+        A("")
+        A("**`next_12m_default_flag` is therefore defined as: the loan reaches 90+ days past "
+          "due, or a realised credit event, within the next 12 months.** Every 'default' "
+          "figure in this card, in `reports/`, and in `submission.csv` refers to that proxy. "
+          "It is a serious-delinquency model, not a loss model, and it must not be read as a "
+          "probability of foreclosure or of loss. The realised-event count above is reported "
+          "rather than hidden precisely so the gap between the two is visible.")
+        A("")
+    else:
+        A("Organiser data was not available, so a synthetic panel is generated from an "
+          "explicit data-generating process (`src/data/generate_synthetic.py`). It is built "
+          "to be replaced: drop real CSVs matching the same schema into `data/raw/` and the "
+          "pipeline runs unchanged.")
+        A("")
     A(_md(pd.DataFrame([
         {"property": "Records (after de-duplication)", "value": f"{len(df):,}"},
         {"property": "Loans", "value": f"{df['loan_id'].nunique():,}"},
@@ -132,17 +206,35 @@ def build() -> str:
         {"property": "Engineered features", "value": str(len(features))},
     ])))
     A("")
-    A(f"**Pool characterisation.** Observed rates over the panel are "
-      f"{_pct(df['next_12m_default_flag'].mean())} for 12-month default and "
-      f"{_pct(df['next_12m_prepayment_flag'].mean())} for 12-month prepayment. That is a "
-      "**seasoned non-QM / alt-A profile**, not an agency prime pool, and these figures "
-      "should not be read as agency benchmarks.")
-    A("")
-    A("**Macro path.** A full rate cycle with a pandemic-shaped unemployment spike. The panel "
-      "was deliberately lengthened from 54 to 90 months during development, because a "
-      "12-month horizon with an embargo left the original window with only one rate regime in "
-      "training — prepayment ROC-AUC came out at 0.51. See the AI Development Log.")
-    A("")
+    if real:
+        A(f"**Pool characterisation.** Observed rates over the panel are "
+          f"{_pct(df['next_12m_default_flag'].mean())} for the 12-month 90+ DPD proxy and "
+          f"{_pct(df['next_12m_prepayment_flag'].mean())} for 12-month prepayment. This is an "
+          "**agency prime pool** — Freddie Mac acquisition criteria, mean origination FICO in "
+          "the 740s across all five vintages — so credit performance is strong and prepayment "
+          "dominates the outcome mix. Figures should not be extrapolated to non-QM, alt-A or "
+          "seasoned distressed collateral.")
+        A("")
+        A("**Macro path.** Real, and it spans a full rate cycle: mean origination rate falls "
+          "from 4.24% (2019) to 2.97% (2021) and then rises to 6.74% (2023), a 377bp "
+          "trough-to-peak move. Prepayment tracks it — 71% of the 2019 vintage prepaid versus "
+          "19% of the 2021 vintage. That gives genuine, non-simulated regime shift for the "
+          "drift analysis in Task 1 and the scenarios in Task 5, and it is also the reason "
+          "the prepayment model degrades out of time (section 8).")
+        A("")
+    else:
+        A(f"**Pool characterisation.** Observed rates over the panel are "
+          f"{_pct(df['next_12m_default_flag'].mean())} for 12-month default and "
+          f"{_pct(df['next_12m_prepayment_flag'].mean())} for 12-month prepayment. That is a "
+          "**seasoned non-QM / alt-A profile**, not an agency prime pool, and these figures "
+          "should not be read as agency benchmarks.")
+        A("")
+        A("**Macro path.** A full rate cycle with a pandemic-shaped unemployment spike. The "
+          "panel was deliberately lengthened from 54 to 90 months during development, because "
+          "a 12-month horizon with an embargo left the original window with only one rate "
+          "regime in training — prepayment ROC-AUC came out at 0.51. See the AI Development "
+          "Log.")
+        A("")
     A("**Injected defects.** Missingness (missing-at-random conditional on servicer), sentinel "
       "values, invalid date relationships, balance outliers, inconsistent loan ages, duplicate "
       "rows and conflicting servicer records — all at logged rates in "
