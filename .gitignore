@@ -11,6 +11,8 @@ data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/samples/
+!data/external/
+!data/external/*
 
 artifacts/
 *.pkl
@@ -18,6 +20,5 @@ artifacts/
 
 # Raw Freddie Mac SFLLD sample files - license-gated, never commit.
 # See dataset/download_sflld.md for how to re-obtain them.
-dataset/
+dataset/*
 !dataset/download_sflld.md
-!dataset/.gitkeep
