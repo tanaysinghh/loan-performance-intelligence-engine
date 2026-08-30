@@ -247,6 +247,16 @@ def build() -> str:
     A("")
     A("---")
     A("")
+    A("**No external test file was issued.** Section 6 of the problem statement anticipates "
+      "an organiser-supplied unlabeled `loan_monthly_performance_test.csv` for final scoring. "
+      "None was released, so this project builds its own data pipeline to fill that gap, and "
+      "`submission/submission.csv` contains held-out predictions on the project's own "
+      "**time-aware split** — the purged out-of-time test window defined in "
+      "`src/models/splits.py` and reported per target in `reports/split_summary.csv` — rather "
+      "than scores against an external file. No code path claims to score one.")
+    A("")
+    A("---")
+    A("")
     A("## 3. Features")
     A("")
     A(f"{len(features)} features from `src/features/build_features.py`, in seven families: "

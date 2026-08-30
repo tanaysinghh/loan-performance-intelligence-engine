@@ -289,6 +289,36 @@ licensed panels (`loan_panel.csv`, 149 MB; `servicer_updates.csv`, 24 MB) stay e
 the reason now written into `.gitignore` instead of left implicit, and representative samples
 of both remain tracked under `data/samples/`.
 
+## Final pre-submission audit — P1 and P2 closed
+
+A first-principles audit against the problem statement PDF (`reports/final_precommit_audit.md`)
+found two items that every earlier audit in this repository had missed, because they checked
+generated artefacts and never re-read `README.md`. Both are now fixed.
+
+**P1 — `README.md` was stale and understated the submission. RESOLVED.** It still described the
+pre-Gemini state, and its *Known gaps* section told a judge that Task 7 had no live LLM
+transcripts — false, and the single deliverable worth 10 rubric points. It also handed over
+`ANTHROPIC_API_KEY`, so anyone following the README to reproduce the copilot would have landed
+in `offline_template` mode and seen the stale claim apparently confirmed. Eleven corrections in
+all: the five originally flagged, plus a stale test count in two places, a "six-case" self-test
+that is now twelve, an incomplete `submission/` layout listing, and — found by re-checking every
+figure rather than only the prose — **two wrong numbers**. The split-inflation range was quoted
+as "+0.10 to +0.32" against an actual −0.01 to +0.36, and LightGBM's calibration advantage as
+"2-4x on Brier" against an actual 2x to 12x. One overstated, one understated; both now read off
+the committed artefacts.
+
+**P2 — no external test file. RESOLVED as a disclosure, not a code change.** Problem statement
+section 6 anticipates an organiser-supplied unlabeled `loan_monthly_performance_test.csv`. None
+was issued, so this project's own pipeline fills that gap. Both `README.md` and
+`MODEL_CARD.md` now state plainly that `submission.csv` contains held-out predictions on the
+project's own time-aware split — the purged out-of-time window in `src/models/splits.py`,
+reported per target in `reports/split_summary.csv` — and that no code path claims to score an
+external file. No defensive loader was built for a file that does not exist.
+
+P3 (self-chosen submission column names, mapped in `SUBMISSION_FORMAT.md`) and P4
+(`data_dictionary` ships as `.csv` where the PS table names `.md`) were reviewed and
+deliberately skipped as cosmetic.
+
 ## What is left for you before submitting
 
 1. **Record the five-minute demo video.** The only outstanding deliverable, and the only thing

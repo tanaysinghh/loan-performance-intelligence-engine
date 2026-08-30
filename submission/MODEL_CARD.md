@@ -2,7 +2,7 @@
 
 **Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  
 **Author:** Tanay Singh  
-**Card generated:** 2026-08-30 15:50 UTC  
+**Card generated:** 2026-08-30 16:55 UTC  
 **Data source:** Freddie Mac SFLLD (real)
 
 > Every figure in this card is generated from the pipeline's own report artefacts by `src/report_model_card.py`. Retraining regenerates the card; the numbers cannot drift away from the models.
@@ -76,6 +76,10 @@ Realised credit events — third-party sale, short sale, REO disposition, note s
 **Macro path.** Real, and it spans a full rate cycle: mean origination rate falls from 4.24% (2019) to 2.97% (2021) and then rises to 6.74% (2023), a 377bp trough-to-peak move. Prepayment tracks it — 71% of the 2019 vintage prepaid versus 19% of the 2021 vintage. That gives genuine, non-simulated regime shift for the drift analysis in Task 1 and the scenarios in Task 5, and it is also the reason the prepayment model degrades out of time (section 8).
 
 **Injected defects.** Missingness (missing-at-random conditional on servicer), sentinel values, invalid date relationships, balance outliers, inconsistent loan ages, duplicate rows and conflicting servicer records — all at logged rates in `data/raw/ground_truth_defect_log.csv`. That log validates detection and is never a model input.
+
+---
+
+**No external test file was issued.** Section 6 of the problem statement anticipates an organiser-supplied unlabeled `loan_monthly_performance_test.csv` for final scoring. None was released, so this project builds its own data pipeline to fill that gap, and `submission/submission.csv` contains held-out predictions on the project's own **time-aware split** — the purged out-of-time test window defined in `src/models/splits.py` and reported per target in `reports/split_summary.csv` — rather than scores against an external file. No code path claims to score one.
 
 ---
 
