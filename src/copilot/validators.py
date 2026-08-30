@@ -52,6 +52,19 @@ _LATEX_SCI_RE = re.compile(
 _LATEX_POW_RE = re.compile(r"(?<![\d.])10\s*\^\s*\{?\s*(-?\d+)\s*\}?")
 
 
+# A markdown ordered-list marker is not a figure.
+#
+# The rule-suggestion task enumerates the existing rule set, so its output is a numbered list;
+# `15.` and `17.` at the start of lines were parsed as the numbers 15 and 17 and reported as
+# ungrounded. Any task that returns a list longer than the figures in its pack would trip this.
+# Only line-leading markers are stripped, so a genuine figure mid-sentence is untouched.
+_LIST_MARKER_RE = re.compile(r"(?m)^([ \t]{0,8})\d{1,3}[.)](?=\s)")
+
+
+def strip_list_markers(text: str) -> str:
+    return _LIST_MARKER_RE.sub(r"\1", text)
+
+
 def has_latex_markup(text: str) -> bool:
     if any(m in text for m in LATEX_MARKERS):
         return True
@@ -77,7 +90,11 @@ CAUSAL_PHRASES = [
     "proves that", "demonstrates that the borrower",
 ]
 
-HEDGE_REQUIRED = ["recommendation", "reviewer", "model"]
+# "reviewer" was too literal. The rule-suggestion task returned "three draft candidate rules
+# for human review... drafts requiring human review before implementation" — framing that could
+# not be clearer — and was blocked because it said "review" rather than "reviewer". The check
+# exists to stop output reading as an autonomous determination, and any of these forms defers.
+HEDGE_REQUIRED = ["recommendation", "reviewer", "review", "model", "draft"]
 
 # A refusal is the correct behaviour on an out-of-scope question, and it is definitionally
 # not an autonomous determination. The framing check exists to stop output reading as a
@@ -109,8 +126,10 @@ def parse_numbers(text: str) -> list[tuple[str, float]]:
 def grounding_validator(text: str, grounding: dict, tolerance: float = 5e-3) -> dict:
     allowed = extract_numbers(grounding)
     latex = has_latex_markup(text)
-    # judge the figures the model meant, not the markup it wrapped them in
+    # judge the figures the model meant, not the markup it wrapped them in, and not the
+    # list scaffolding it numbered them with
     scanned = normalise_latex(text) if latex else text
+    scanned = strip_list_markers(scanned)
     ungrounded = []
     checked = 0
     for raw, val in parse_numbers(scanned):
@@ -308,6 +327,24 @@ SELF_TEST_CASES = [
                "-3 and blocked. Hyphens in field names are not minus signs.",
     },
     {
+        "case": "numbered list markers read as figures",
+        "text": "Draft candidate rules for human review:\n"
+                "15. Flag balance increases on non-modified loans.\n"
+                "17. Flag sentinel values in days past due.",
+        "should_pass": True,
+        "why": "Caught in a live Gemini run on the rule-suggestion task, whose output is "
+               "inherently a numbered list. `15.` and `17.` were parsed as figures and "
+               "reported as ungrounded.",
+    },
+    {
+        "case": "framing expressed as 'human review' rather than 'reviewer'",
+        "text": "Three draft candidate rules are proposed for human review before "
+                "implementation.",
+        "should_pass": True,
+        "why": "Also caught live. The framing could not have been clearer, and it was blocked "
+               "for using the word `review` instead of `reviewer`.",
+    },
+    {
         "case": "correct refusal on an out-of-scope question",
         "text": "The grounding pack does not contain the borrower's employment status or "
                 "monthly income.",
@@ -326,12 +363,41 @@ SELF_TEST_CASES = [
 ]
 
 
-def run_self_test(grounding: dict) -> "list[dict]":
+# The self-test needs a pack it controls.
+#
+# This suite used to be run against whichever loan pack the live run happened to pick, which
+# made its verdict depend on the data: a case asserting "this figure is ungrounded" silently
+# turns into a pass the moment a real loan carries a number near it, and a case asserting
+# "this figure is grounded" fails whenever the picked loan does not. Two cases were doing
+# exactly that. A regression test whose result moves with the input is not a regression test,
+# so the cases now run against a fixed pack containing precisely the figures they reference.
+SELF_TEST_PACK = {
+    "record": {
+        "loan_id": "SELFTEST0001",
+        "credit_score_band": "700-739",
+        "document_status": "incomplete",
+        "data_quality_score": 61.0,
+    },
+    "model_predictions": {
+        "prob_default_12m": 0.1234,
+        "prob_delinquency_3m": 0.55,
+    },
+    "scenario_projections": [
+        {"delta_adverse_credit": -1e-05, "delta_high_prepayment": -2e-05},
+    ],
+}
+
+
+def run_self_test(grounding: dict | None = None) -> "list[dict]":
     """Feeds deliberately bad outputs through the validator to show it actually bites.
 
     Necessary because a validator that has only ever seen well-behaved output is untested.
     Each case is a failure mode a real language model produces under pressure.
+
+    Defaults to `SELF_TEST_PACK` so the verdicts are deterministic. A pack may still be passed
+    explicitly, but note that the expectations are written against the default one.
     """
+    grounding = SELF_TEST_PACK if grounding is None else grounding
     rows = []
     for c in SELF_TEST_CASES:
         v = grounding_validator(c["text"], grounding)

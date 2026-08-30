@@ -194,7 +194,9 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
     stats["corrections_attempted"] = len(corrections)
     stats["corrections_now_passing"] = sum(
         1 for c in corrections if (c["corrected"].get("grounding_validator") or {}).get("passed"))
-    self_test = pd.DataFrame(run_self_test(probe_pack))
+    # Deliberately NOT the live probe pack: see SELF_TEST_PACK. The suite must return
+    # the same verdicts regardless of which loan this run happened to pick.
+    self_test = pd.DataFrame(run_self_test())
     self_test.to_csv(C.REPORTS / "copilot_validator_self_test.csv", index=False)
 
     out = {"records": records, "probes": probe_records, "stats": stats,
@@ -414,6 +416,13 @@ def _write_report(out):
           "**Both halves are real logged API output** — the rejected text below is what the "
           "model actually returned, quoted verbatim from "
           "`submission/llm_prompt_log.jsonl`, not a reconstruction.")
+        A("")
+        A("**A block is not automatically a model error.** Some of these are the validator "
+          "flagging correct output, and the subsection *Model failure, or validator false "
+          "positive?* below classifies each one rather than counting them all against "
+          "Gemini. Runs vary — the validators improved over the course of this build, so a "
+          "given run may block little or nothing. Failures captured on earlier runs are "
+          "retained in `submission/llm_prompt_log_archive.jsonl` and are described there.")
         A("")
         A(_md(pd.DataFrame([{
             "task": c["original"]["task"],
