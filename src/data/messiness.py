@@ -181,7 +181,21 @@ def build_servicer_updates(df: pd.DataFrame, rng: np.random.Generator) -> pd.Dat
     dup["file_batch_id"] = dup["file_batch_id"] + "-R1"
 
     orphans = s.sample(n=max(40, int(0.004 * m)), random_state=11).copy()
-    orphans["loan_id"] = ["LN9" + str(900000 + i)[1:] for i in range(len(orphans))]
+    # Orphans reference loan ids absent from the panel. They must still *look* like ids from
+    # whichever source is in use, or they would be separable by string format rather than by
+    # the reconciliation logic they exist to exercise. Built by perturbing the numeric tail
+    # of a real id and explicitly excluding anything that actually exists.
+    known = set(df["loan_id"].astype(str))
+    template = str(s["loan_id"].iloc[0]) if len(s) else "LN100000"
+    head = template.rstrip("0123456789")
+    width = len(template) - len(head)
+    made, n = [], 0
+    while len(made) < len(orphans):
+        candidate = f"{head}{(9_000_000 + n) % (10 ** width):0{width}d}"
+        if candidate not in known:
+            made.append(candidate)
+        n += 1
+    orphans["loan_id"] = made
     orphans["file_batch_id"] = orphans["file_batch_id"] + "-ORPHAN"
 
     out = pd.concat([s, dup, orphans], ignore_index=True)

@@ -271,10 +271,12 @@ def build(df: pd.DataFrame = None) -> dict:
     A("")
     A("## 9. What this means for modelling")
     A("")
-    A("1. **Servicer is a confound, not just a feature.** Kestrel Financial and Pioneer "
-      "Mortgage Ops have both the worst data quality *and* elevated delinquency. A model "
-      "given raw servicer identity will partly learn reporting behaviour rather than credit "
-      "risk. Servicer is retained but its SHAP contribution is inspected separately in the "
+    _srv_dq = scored.groupby("servicer_name")["dq_score"].mean().sort_values()
+    _dq_worst = ", ".join(_srv_dq.head(2).index.astype(str)) or "the weakest-reporting servicers"
+    A(f"1. **Servicer is a confound, not just a feature.** The servicers with the lowest mean "
+      f"data-quality score ({_dq_worst}) also carry elevated delinquency. A model given raw "
+      "servicer identity will partly learn reporting behaviour rather than credit risk. "
+      "Servicer is retained but its SHAP contribution is inspected separately in the "
       "explainability report.")
     A("2. **Censoring is real and material.** Forward-looking targets are undefined for rows "
       "whose horizon runs past the panel end. These are `NaN`, not `0`, and are excluded from "

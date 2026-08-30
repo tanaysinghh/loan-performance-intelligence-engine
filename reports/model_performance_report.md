@@ -11,23 +11,23 @@ Splitting is time-aware, horizon-purged and label-observability-capped. The two 
 
 | target | horizon_months | train_window | valid_window | embargo_window | test_window |
 | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 3 | 2019-01..2024-12 | 2025-01..2025-06 | 2025-07..2025-09 | 2025-10..2026-03 |
-| next_6m_delinquency_flag | 6 | 2019-01..2024-06 | 2024-07..2024-12 | 2025-01..2025-06 | 2025-07..2025-12 |
-| next_12m_default_flag | 12 | 2019-01..2023-06 | 2023-07..2023-12 | 2024-01..2024-12 | 2025-01..2025-06 |
-| next_12m_prepayment_flag | 12 | 2019-01..2023-06 | 2023-07..2023-12 | 2024-01..2024-12 | 2025-01..2025-06 |
-| exception_required | 0 | 2019-01..2025-06 | 2025-07..2025-12 | none | 2026-01..2026-06 |
+| next_3m_delinquency_flag | 3 | 2019-01..2024-09 | 2024-10..2025-03 | 2025-04..2025-06 | 2025-07..2025-12 |
+| next_6m_delinquency_flag | 6 | 2019-01..2024-03 | 2024-04..2024-09 | 2024-10..2025-03 | 2025-04..2025-09 |
+| next_12m_default_flag | 12 | 2019-01..2023-03 | 2023-04..2023-09 | 2023-10..2024-09 | 2024-10..2025-03 |
+| next_12m_prepayment_flag | 12 | 2019-01..2023-03 | 2023-04..2023-09 | 2023-10..2024-09 | 2024-10..2025-03 |
+| exception_required | 0 | 2019-01..2025-03 | 2025-04..2025-09 | none | 2025-10..2026-03 |
 
 | target | train_rows | valid_rows | test_rows | rows_dropped_embargo | rows_dropped_unobservable_label | train_positive_rate | valid_positive_rate | test_positive_rate |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 37491 | 4040 | 3719 | 1987 | 185 | 0.0581 | 0.0809 | 0.0664 |
-| next_6m_delinquency_flag | 33521 | 3970 | 3913 | 4040 | 484 | 0.0742 | 0.0932 | 0.0917 |
-| next_12m_default_flag | 26257 | 3511 | 4040 | 7723 | 1075 | 0.0512 | 0.0558 | 0.0723 |
-| next_12m_prepayment_flag | 26257 | 3511 | 4040 | 7723 | 1075 | 0.1521 | 0.0721 | 0.1710 |
-| exception_required | 41531 | 3913 | 3480 | 0 | 0 | 0.1251 | 0.1296 | 0.1305 |
+| next_3m_delinquency_flag | 471347 | 68984 | 65149 | 33599 | 1348 | 0.0230 | 0.0276 | 0.0313 |
+| next_6m_delinquency_flag | 399768 | 71579 | 66539 | 68984 | 3946 | 0.0326 | 0.0348 | 0.0405 |
+| next_12m_default_flag | 263320 | 64660 | 68984 | 143367 | 8889 | 0.0187 | 0.0109 | 0.0154 |
+| next_12m_prepayment_flag | 263320 | 64660 | 68984 | 143367 | 8333 | 0.1456 | 0.0469 | 0.0758 |
+| exception_required | 540331 | 66539 | 63678 | 0 | 0 | 0.1398 | 0.1420 | 0.1430 |
 
-Positive rates are stable across train, validation and test for the short-horizon targets. The 12-month default rate moves from 5.1% in training to 7.2% in test; that is genuine regime change driven by the unemployment path in the panel window, not a split artefact, and it is why calibration is re-assessed out-of-time rather than assumed.
+Positive rates are stable across train, validation and test for the short-horizon targets. The 12-month default rate moves from 1.9% in training to 1.5% in test; that is genuine regime change driven by the unemployment path in the panel window, not a split artefact, and it is why calibration is re-assessed out-of-time rather than assumed.
 
-Feature count: **81** (11 categorical, handled natively by LightGBM). Loans appearing in both train and test windows: **562** — expected for a panel, and probed for memorisation in section 4.
+Feature count: **81** (11 categorical, handled natively by LightGBM). Loans appearing in both train and test windows: **11269** — expected for a panel, and probed for memorisation in section 4.
 
 ## 2. Baseline versus improved model
 
@@ -41,31 +41,31 @@ Where the two separate decisively is **calibration**. The baseline's Brier score
 
 | target | model | n | positive_rate | roc_auc | pr_auc | pr_auc_lift_over_base | best_f1 | recall_at_precision_30 | recall_at_precision_50 | brier | ece | ks | lift_at_10pct |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | prior | 3719 | 0.0664 | 0.5000 | 0.0664 | 1.0000 | 0.1246 | 0.0000 | 0.0000 | 0.0621 | 0.0000 | 0.1614 | 0.4058 |
-| next_3m_delinquency_flag | baseline_logistic | 3719 | 0.0664 | 0.9061 | 0.7868 | 11.8472 | 0.8141 | 0.8178 | 0.7611 | 0.0792 | 0.1925 | 0.7151 | 7.5892 |
-| next_3m_delinquency_flag | lgbm_raw | 3719 | 0.0664 | 0.8995 | 0.7849 | 11.8185 | 0.8178 | 0.7935 | 0.7611 | 0.0215 | 0.0177 | 0.7136 | 7.6298 |
-| next_3m_delinquency_flag | lgbm_calibrated | 3719 | 0.0664 | 0.8995 | 0.7849 | 11.8185 | 0.8178 | 0.7935 | 0.7611 | 0.0209 | 0.0136 | 0.7136 | 7.6298 |
-| next_6m_delinquency_flag | prior | 3913 | 0.0917 | 0.5000 | 0.0917 | 1.0000 | 0.1681 | 0.0000 | 0.0000 | 0.0836 | 0.0000 | 0.1251 | 0.4460 |
-| next_6m_delinquency_flag | baseline_logistic | 3913 | 0.0917 | 0.8882 | 0.7358 | 8.0204 | 0.7390 | 0.7994 | 0.6852 | 0.1149 | 0.2303 | 0.6287 | 6.5510 |
-| next_6m_delinquency_flag | lgbm_raw | 3913 | 0.0917 | 0.8784 | 0.7318 | 7.9761 | 0.7411 | 0.7632 | 0.6880 | 0.0405 | 0.0274 | 0.6270 | 6.6346 |
-| next_6m_delinquency_flag | lgbm_calibrated | 3913 | 0.0917 | 0.8784 | 0.7318 | 7.9761 | 0.7411 | 0.7632 | 0.6880 | 0.0393 | 0.0225 | 0.6270 | 6.6346 |
-| next_12m_default_flag | prior | 4040 | 0.0723 | 0.5000 | 0.0723 | 1.0000 | 0.1348 | 0.0000 | 0.0000 | 0.0675 | 0.0000 | 0.1136 | 0.5137 |
-| next_12m_default_flag | baseline_logistic | 4040 | 0.0723 | 0.9022 | 0.6355 | 8.7930 | 0.6864 | 0.7603 | 0.6815 | 0.0843 | 0.1614 | 0.6367 | 6.8151 |
-| next_12m_default_flag | lgbm_raw | 4040 | 0.0723 | 0.8972 | 0.6255 | 8.6539 | 0.6612 | 0.7774 | 0.6678 | 0.0386 | 0.0245 | 0.6585 | 6.6781 |
-| next_12m_default_flag | lgbm_calibrated | 4040 | 0.0723 | 0.8972 | 0.6255 | 8.6539 | 0.6612 | 0.7774 | 0.6678 | 0.0384 | 0.0214 | 0.6585 | 6.6781 |
-| next_12m_prepayment_flag | prior | 4040 | 0.1710 | 0.5000 | 0.1710 | 1.0000 | 0.2921 | 0.0000 | 0.0000 | 0.1421 | 0.0000 | 0.1302 | 1.2590 |
-| next_12m_prepayment_flag | baseline_logistic | 4040 | 0.1710 | 0.6512 | 0.3146 | 1.8393 | 0.3701 | 0.4023 | 0.1389 | 0.2563 | 0.2735 | 0.2647 | 2.0695 |
-| next_12m_prepayment_flag | lgbm_raw | 4040 | 0.1710 | 0.6846 | 0.2751 | 1.6081 | 0.3841 | 0.3415 | 0.0000 | 0.1538 | 0.1131 | 0.3057 | 1.6498 |
-| next_12m_prepayment_flag | lgbm_calibrated | 4040 | 0.1710 | 0.6685 | 0.2552 | 1.4919 | 0.3837 | 0.2996 | 0.0000 | 0.1612 | 0.1149 | 0.2897 | 1.7366 |
+| next_3m_delinquency_flag | prior | 65149 | 0.0313 | 0.5000 | 0.0313 | 1.0000 | 0.0608 | 0.0000 | 0.0000 | 0.0304 | 0.0000 | 0.1721 | 1.0579 |
+| next_3m_delinquency_flag | baseline_logistic | 65149 | 0.0313 | 0.8829 | 0.5813 | 18.5465 | 0.6520 | 0.6430 | 0.5867 | 0.1112 | 0.2716 | 0.6045 | 6.8080 |
+| next_3m_delinquency_flag | lgbm_raw | 65149 | 0.0313 | 0.9173 | 0.6583 | 21.0023 | 0.6730 | 0.7791 | 0.7253 | 0.0190 | 0.0263 | 0.7259 | 7.9884 |
+| next_3m_delinquency_flag | lgbm_calibrated | 65149 | 0.0313 | 0.9161 | 0.6497 | 20.7293 | 0.6717 | 0.7664 | 0.7067 | 0.0151 | 0.0025 | 0.7237 | 7.9884 |
+| next_6m_delinquency_flag | prior | 66539 | 0.0405 | 0.5000 | 0.0405 | 1.0000 | 0.0778 | 0.0000 | 0.0000 | 0.0389 | 0.0000 | 0.1500 | 1.0626 |
+| next_6m_delinquency_flag | baseline_logistic | 66539 | 0.0405 | 0.8376 | 0.5038 | 12.4530 | 0.5583 | 0.5371 | 0.4651 | 0.1339 | 0.2956 | 0.5156 | 5.7400 |
+| next_6m_delinquency_flag | lgbm_raw | 66539 | 0.0405 | 0.8798 | 0.5908 | 14.6042 | 0.6047 | 0.6861 | 0.6207 | 0.0275 | 0.0325 | 0.6264 | 6.9252 |
+| next_6m_delinquency_flag | lgbm_calibrated | 66539 | 0.0405 | 0.8784 | 0.5780 | 14.2869 | 0.6031 | 0.6493 | 0.6100 | 0.0226 | 0.0023 | 0.6232 | 6.9400 |
+| next_12m_default_flag | prior | 68984 | 0.0154 | 0.5000 | 0.0154 | 1.0000 | 0.0303 | 0.0000 | 0.0000 | 0.0152 | 0.0000 | 0.2251 | 1.2819 |
+| next_12m_default_flag | baseline_logistic | 68984 | 0.0154 | 0.9190 | 0.5737 | 37.3018 | 0.6148 | 0.6598 | 0.6070 | 0.1089 | 0.2232 | 0.6867 | 7.6347 |
+| next_12m_default_flag | lgbm_raw | 68984 | 0.0154 | 0.9308 | 0.5584 | 36.3033 | 0.5939 | 0.6777 | 0.6117 | 0.0091 | 0.0050 | 0.7093 | 7.8798 |
+| next_12m_default_flag | lgbm_calibrated | 68984 | 0.0154 | 0.9207 | 0.5321 | 34.5936 | 0.5926 | 0.6748 | 0.5957 | 0.0091 | 0.0040 | 0.6969 | 8.0023 |
+| next_12m_prepayment_flag | prior | 68984 | 0.0758 | 0.5000 | 0.0758 | 1.0000 | 0.1410 | 0.0000 | 0.0000 | 0.0750 | 0.0000 | 0.2208 | 0.9442 |
+| next_12m_prepayment_flag | baseline_logistic | 68984 | 0.0758 | 0.6847 | 0.2413 | 3.1814 | 0.2834 | 0.2364 | 0.0937 | 0.2789 | 0.4170 | 0.2861 | 3.2609 |
+| next_12m_prepayment_flag | lgbm_raw | 68984 | 0.0758 | 0.6267 | 0.2237 | 2.9491 | 0.2168 | 0.1638 | 0.1164 | 0.0908 | 0.1036 | 0.1838 | 2.4849 |
+| next_12m_prepayment_flag | lgbm_calibrated | 68984 | 0.0758 | 0.6259 | 0.2009 | 2.6492 | 0.2156 | 0.0793 | 0.0793 | 0.1367 | 0.1348 | 0.1826 | 2.4868 |
 
 ### Improvement over baseline
 
 | target | baseline_roc_auc | lgbm_roc_auc | roc_auc_gain | baseline_pr_auc | lgbm_pr_auc | pr_auc_gain_pct | baseline_brier | lgbm_brier |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 0.9061 | 0.8995 | -0.0065 | 0.7868 | 0.7849 | -0.2426 | 0.0792 | 0.0209 |
-| next_6m_delinquency_flag | 0.8882 | 0.8784 | -0.0098 | 0.7358 | 0.7318 | -0.5516 | 0.1149 | 0.0393 |
-| next_12m_default_flag | 0.9022 | 0.8972 | -0.0050 | 0.6355 | 0.6255 | -1.5816 | 0.0843 | 0.0384 |
-| next_12m_prepayment_flag | 0.6512 | 0.6685 | 0.0173 | 0.3146 | 0.2552 | -18.8894 | 0.2563 | 0.1612 |
+| next_3m_delinquency_flag | 0.8829 | 0.9161 | 0.0332 | 0.5813 | 0.6497 | 11.7693 | 0.1112 | 0.0151 |
+| next_6m_delinquency_flag | 0.8376 | 0.8784 | 0.0408 | 0.5038 | 0.5780 | 14.7265 | 0.1339 | 0.0226 |
+| next_12m_default_flag | 0.9190 | 0.9207 | 0.0017 | 0.5737 | 0.5321 | -7.2605 | 0.1089 | 0.0091 |
+| next_12m_prepayment_flag | 0.6847 | 0.6259 | -0.0588 | 0.2413 | 0.2009 | -16.7294 | 0.2789 | 0.1367 |
 
 ## 3. Class imbalance and calibration
 
@@ -78,70 +78,61 @@ Brier score and expected calibration error below compare raw against calibrated 
 
 | target | model | brier | ece |
 | --- | --- | --- | --- |
-| next_3m_delinquency_flag | lgbm_raw | 0.0215 | 0.0177 |
-| next_3m_delinquency_flag | lgbm_calibrated | 0.0209 | 0.0136 |
-| next_6m_delinquency_flag | lgbm_raw | 0.0405 | 0.0274 |
-| next_6m_delinquency_flag | lgbm_calibrated | 0.0393 | 0.0225 |
-| next_12m_default_flag | lgbm_raw | 0.0386 | 0.0245 |
-| next_12m_default_flag | lgbm_calibrated | 0.0384 | 0.0214 |
-| next_12m_prepayment_flag | lgbm_raw | 0.1538 | 0.1131 |
-| next_12m_prepayment_flag | lgbm_calibrated | 0.1612 | 0.1149 |
+| next_3m_delinquency_flag | lgbm_raw | 0.0190 | 0.0263 |
+| next_3m_delinquency_flag | lgbm_calibrated | 0.0151 | 0.0025 |
+| next_6m_delinquency_flag | lgbm_raw | 0.0275 | 0.0325 |
+| next_6m_delinquency_flag | lgbm_calibrated | 0.0226 | 0.0023 |
+| next_12m_default_flag | lgbm_raw | 0.0091 | 0.0050 |
+| next_12m_default_flag | lgbm_calibrated | 0.0091 | 0.0040 |
+| next_12m_prepayment_flag | lgbm_raw | 0.0908 | 0.1036 |
+| next_12m_prepayment_flag | lgbm_calibrated | 0.1367 | 0.1348 |
 
 ### Calibration curve — `next_3m_delinquency_flag` (test window)
 
 | bucket | n | mean_predicted | observed_rate | calibration_gap |
 | --- | --- | --- | --- | --- |
-| (0.00046999999999999993, 0.00575] | 372 | 0.0041 | 0.0081 | 0.0039 |
-| (0.00575, 0.00826] | 372 | 0.0070 | 0.0108 | 0.0037 |
-| (0.00826, 0.0114] | 372 | 0.0097 | 0.0108 | 0.0011 |
-| (0.0114, 0.0156] | 372 | 0.0135 | 0.0242 | 0.0107 |
-| (0.0156, 0.0201] | 372 | 0.0177 | 0.0108 | -0.0069 |
-| (0.0201, 0.0269] | 371 | 0.0232 | 0.0135 | -0.0097 |
-| (0.0269, 0.037] | 372 | 0.0318 | 0.0188 | -0.0130 |
-| (0.037, 0.0537] | 372 | 0.0440 | 0.0215 | -0.0225 |
-| (0.0537, 0.0976] | 372 | 0.0712 | 0.0403 | -0.0309 |
-| (0.0976, 0.991] | 372 | 0.5387 | 0.5054 | -0.0334 |
+| (-0.000999, 0.00294] | 9981 | 0.0018 | 0.0027 | 0.0009 |
+| (0.00294, 0.0043] | 25670 | 0.0043 | 0.0043 | -0.0000 |
+| (0.0043, 0.00613] | 7399 | 0.0061 | 0.0078 | 0.0017 |
+| (0.00613, 0.00894] | 7877 | 0.0089 | 0.0123 | 0.0034 |
+| (0.00894, 0.0122] | 2198 | 0.0122 | 0.0209 | 0.0087 |
+| (0.0122, 0.0169] | 5721 | 0.0150 | 0.0135 | -0.0016 |
+| (0.0169, 0.875] | 6303 | 0.2448 | 0.2581 | 0.0133 |
 
 ### Calibration curve — `next_6m_delinquency_flag` (test window)
 
 | bucket | n | mean_predicted | observed_rate | calibration_gap |
 | --- | --- | --- | --- | --- |
-| (0.00013999999999999993, 0.00373] | 392 | 0.0028 | 0.0128 | 0.0099 |
-| (0.00373, 0.00512] | 391 | 0.0044 | 0.0077 | 0.0032 |
-| (0.00512, 0.0069] | 391 | 0.0060 | 0.0205 | 0.0145 |
-| (0.0069, 0.00902] | 391 | 0.0079 | 0.0332 | 0.0253 |
-| (0.00902, 0.0122] | 392 | 0.0105 | 0.0230 | 0.0125 |
-| (0.0122, 0.0177] | 391 | 0.0148 | 0.0230 | 0.0082 |
-| (0.0177, 0.0285] | 391 | 0.0228 | 0.0460 | 0.0233 |
-| (0.0285, 0.0516] | 391 | 0.0373 | 0.0614 | 0.0241 |
-| (0.0516, 0.185] | 391 | 0.0936 | 0.0818 | -0.0117 |
-| (0.185, 0.996] | 392 | 0.6991 | 0.6071 | -0.0920 |
+| (-0.000999, 0.0064] | 26068 | 0.0058 | 0.0066 | 0.0009 |
+| (0.0064, 0.0103] | 7764 | 0.0103 | 0.0121 | 0.0018 |
+| (0.0103, 0.0133] | 8463 | 0.0132 | 0.0141 | 0.0009 |
+| (0.0133, 0.0169] | 6047 | 0.0161 | 0.0155 | -0.0006 |
+| (0.0169, 0.0257] | 7170 | 0.0252 | 0.0248 | -0.0004 |
+| (0.0257, 0.0512] | 6847 | 0.0424 | 0.0418 | -0.0006 |
+| (0.0512, 0.929] | 4180 | 0.3939 | 0.4182 | 0.0243 |
 
 ### Calibration curve — `next_12m_default_flag` (test window)
 
 | bucket | n | mean_predicted | observed_rate | calibration_gap |
 | --- | --- | --- | --- | --- |
-| (-0.000849, 0.00084] | 404 | 0.0006 | 0.0124 | 0.0118 |
-| (0.00084, 0.00117] | 404 | 0.0010 | 0.0050 | 0.0040 |
-| (0.00117, 0.00165] | 404 | 0.0014 | 0.0050 | 0.0036 |
-| (0.00165, 0.00243] | 404 | 0.0020 | 0.0074 | 0.0054 |
-| (0.00243, 0.00394] | 404 | 0.0031 | 0.0198 | 0.0167 |
-| (0.00394, 0.00662] | 404 | 0.0051 | 0.0149 | 0.0098 |
-| (0.00662, 0.0127] | 404 | 0.0092 | 0.0421 | 0.0329 |
-| (0.0127, 0.0278] | 404 | 0.0185 | 0.0470 | 0.0285 |
-| (0.0278, 0.124] | 404 | 0.0542 | 0.0866 | 0.0324 |
-| (0.124, 0.993] | 404 | 0.5517 | 0.4827 | -0.0690 |
+| (-0.000999, 0.0011] | 52347 | 0.0009 | 0.0020 | 0.0011 |
+| (0.0011, 0.00514] | 12259 | 0.0049 | 0.0144 | 0.0096 |
+| (0.00514, 0.917] | 4378 | 0.1554 | 0.1779 | 0.0225 |
 
 ### Calibration curve — `next_12m_prepayment_flag` (test window)
 
 | bucket | n | mean_predicted | observed_rate | calibration_gap |
 | --- | --- | --- | --- | --- |
-| (-0.000999, 0.0159] | 677 | 0.0124 | 0.0606 | 0.0481 |
-| (0.0159, 0.0289] | 1574 | 0.0289 | 0.1175 | 0.0886 |
-| (0.0289, 0.0758] | 228 | 0.0568 | 0.1447 | 0.0879 |
-| (0.0758, 0.118] | 885 | 0.1128 | 0.2542 | 0.1414 |
-| (0.118, 0.364] | 376 | 0.3531 | 0.2979 | -0.0552 |
-| (0.364, 1.0] | 300 | 0.7366 | 0.3167 | -0.4200 |
+| (-0.000999, 0.014] | 7590 | 0.0134 | 0.0474 | 0.0340 |
+| (0.014, 0.0203] | 11385 | 0.0189 | 0.0509 | 0.0319 |
+| (0.0203, 0.0224] | 4759 | 0.0224 | 0.0601 | 0.0377 |
+| (0.0224, 0.0252] | 5285 | 0.0252 | 0.0579 | 0.0327 |
+| (0.0252, 0.0461] | 6325 | 0.0357 | 0.0588 | 0.0231 |
+| (0.0461, 0.0541] | 6329 | 0.0538 | 0.0667 | 0.0129 |
+| (0.0541, 0.12] | 7933 | 0.0780 | 0.0706 | -0.0074 |
+| (0.12, 0.225] | 5741 | 0.1796 | 0.0810 | -0.0986 |
+| (0.225, 0.679] | 6908 | 0.4609 | 0.0864 | -0.3745 |
+| (0.679, 1.0] | 6729 | 0.9165 | 0.1910 | -0.7255 |
 
 ## 4. Leakage controls
 
@@ -154,10 +145,10 @@ Four controls, each of which would catch a different failure:
 
 | target | purged_time_split | loan_disjoint_time_split | random_row_split_unsound | random_split_inflation |
 | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 0.8995 | 0.8957 | 0.9897 | 0.0902 |
-| next_6m_delinquency_flag | 0.8784 | 0.8705 | 0.9966 | 0.1182 |
-| next_12m_default_flag | 0.8972 | 0.8757 | 0.9966 | 0.0994 |
-| next_12m_prepayment_flag | 0.6685 | 0.5808 | 0.9964 | 0.3279 |
+| next_3m_delinquency_flag | 0.9161 | 0.9191 | 0.9064 | -0.0097 |
+| next_6m_delinquency_flag | 0.8784 | 0.8699 | 0.8920 | 0.0135 |
+| next_12m_default_flag | 0.9207 | 0.9352 | 0.9988 | 0.0781 |
+| next_12m_prepayment_flag | 0.6259 | 0.6041 | 0.9831 | 0.3572 |
 
 The loan-disjoint column additionally forces no `loan_id` to appear in both the fitting data and the test window. Performance holding up there means the model has learned loan *characteristics*, not loan *identities*.
 
@@ -167,18 +158,18 @@ Stability across successive origination cut-offs, each fold re-purged.
 
 | target | fold | train_window | test_window | roc_auc | pr_auc | brier |
 | --- | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 0 | 2019-01..2023-12 | 2025-10..2026-03 | 0.9075 | 0.7903 | 0.0208 |
-| next_3m_delinquency_flag | 1 | 2019-01..2024-06 | 2025-10..2026-03 | 0.9062 | 0.7722 | 0.0208 |
-| next_3m_delinquency_flag | 2 | 2019-01..2024-12 | 2025-10..2026-03 | 0.8995 | 0.7849 | 0.0209 |
-| next_6m_delinquency_flag | 0 | 2019-01..2023-06 | 2025-07..2025-12 | 0.8716 | 0.7322 | 0.0383 |
-| next_6m_delinquency_flag | 1 | 2019-01..2023-12 | 2025-07..2025-12 | 0.8882 | 0.7164 | 0.0391 |
-| next_6m_delinquency_flag | 2 | 2019-01..2024-06 | 2025-07..2025-12 | 0.8784 | 0.7318 | 0.0393 |
-| next_12m_default_flag | 0 | 2019-01..2022-06 | 2025-01..2025-06 | 0.9031 | 0.6204 | 0.0361 |
-| next_12m_default_flag | 1 | 2019-01..2022-12 | 2025-01..2025-06 | 0.8997 | 0.6301 | 0.0355 |
-| next_12m_default_flag | 2 | 2019-01..2023-06 | 2025-01..2025-06 | 0.8972 | 0.6255 | 0.0384 |
-| next_12m_prepayment_flag | 0 | 2019-01..2022-06 | 2025-01..2025-06 | 0.6717 | 0.2650 | 0.1643 |
-| next_12m_prepayment_flag | 1 | 2019-01..2022-12 | 2025-01..2025-06 | 0.6618 | 0.2566 | 0.1996 |
-| next_12m_prepayment_flag | 2 | 2019-01..2023-06 | 2025-01..2025-06 | 0.6685 | 0.2552 | 0.1612 |
+| next_3m_delinquency_flag | 0 | 2019-01..2023-09 | 2025-07..2025-12 | 0.9171 | 0.6439 | 0.0154 |
+| next_3m_delinquency_flag | 1 | 2019-01..2024-03 | 2025-07..2025-12 | 0.9129 | 0.6433 | 0.0153 |
+| next_3m_delinquency_flag | 2 | 2019-01..2024-09 | 2025-07..2025-12 | 0.9161 | 0.6497 | 0.0151 |
+| next_6m_delinquency_flag | 0 | 2019-01..2023-03 | 2025-04..2025-09 | 0.8770 | 0.5766 | 0.0230 |
+| next_6m_delinquency_flag | 1 | 2019-01..2023-09 | 2025-04..2025-09 | 0.8740 | 0.5734 | 0.0228 |
+| next_6m_delinquency_flag | 2 | 2019-01..2024-03 | 2025-04..2025-09 | 0.8784 | 0.5780 | 0.0226 |
+| next_12m_default_flag | 0 | 2019-01..2022-03 | 2024-10..2025-03 | 0.8989 | 0.5438 | 0.0089 |
+| next_12m_default_flag | 1 | 2019-01..2022-09 | 2024-10..2025-03 | 0.9191 | 0.5350 | 0.0089 |
+| next_12m_default_flag | 2 | 2019-01..2023-03 | 2024-10..2025-03 | 0.9207 | 0.5321 | 0.0091 |
+| next_12m_prepayment_flag | 0 | 2019-01..2022-03 | 2024-10..2025-03 | 0.5875 | 0.1813 | 0.0933 |
+| next_12m_prepayment_flag | 1 | 2019-01..2022-09 | 2024-10..2025-03 | 0.5923 | 0.1780 | 0.1073 |
+| next_12m_prepayment_flag | 2 | 2019-01..2023-03 | 2024-10..2025-03 | 0.6259 | 0.2009 | 0.1367 |
 
 ## 6. Next-state prediction (multiclass)
 
@@ -191,34 +182,36 @@ Persistence still edges the covariate model on raw accuracy, and that is reporte
 
 | n | accuracy | macro_f1 | weighted_f1 | log_loss | macro_roc_auc | split | model |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 3994 | 0.9437 | 0.4091 | 0.9320 | 0.2322 | 0.8824 | valid | lgbm_multiclass |
-| 3994 | 0.9492 | 0.3663 | 0.9317 | 0.1819 | 0.8474 | valid | markov_transition_baseline |
-| 3994 | 0.9487 | 0.4379 | 0.9375 |  |  | valid | persistence_baseline |
-| 3557 | 0.9497 | 0.4339 | 0.9407 | 0.2130 | 0.8823 | test | lgbm_multiclass |
-| 3557 | 0.9595 | 0.3747 | 0.9447 | 0.1613 | 0.8415 | test | markov_transition_baseline |
-| 3557 | 0.9587 | 0.4385 | 0.9476 |  |  | test | persistence_baseline |
+| 67403 | 0.9879 | 0.6138 | 0.9859 | 0.0420 | 0.9804 | valid | lgbm_multiclass |
+| 67403 | 0.9800 | 0.3656 | 0.9713 | 0.0892 | 0.8016 | valid | markov_transition_baseline |
+| 67403 | 0.9800 | 0.4668 | 0.9769 |  |  | valid | persistence_baseline |
+| 64160 | 0.9858 | 0.5864 | 0.9831 | 0.0476 | 0.9822 | test | lgbm_multiclass |
+| 64160 | 0.9769 | 0.3700 | 0.9667 | 0.1007 | 0.8321 | test | markov_transition_baseline |
+| 64160 | 0.9773 | 0.4732 | 0.9736 |  |  | test | persistence_baseline |
 
 ### Per-class performance — valid window
 
 | class | support | precision | recall | f1 |
 | --- | --- | --- | --- | --- |
-| Current | 3654 | 0.9735 | 0.9967 | 0.9850 |
-| DQ30 | 64 | 0.3182 | 0.1094 | 0.1628 |
-| DQ60 | 62 | 0.3816 | 0.4677 | 0.4203 |
-| DQ90plus | 119 | 0.6466 | 0.7227 | 0.6825 |
-| Default | 27 | 0.2273 | 0.1852 | 0.2041 |
-| Prepaid | 68 | 0.0000 | 0.0000 | 0.0000 |
+| Current | 65730 | 0.9925 | 0.9974 | 0.9949 |
+| DQ30 | 652 | 0.5458 | 0.2377 | 0.3312 |
+| DQ60 | 153 | 0.3980 | 0.2549 | 0.3108 |
+| DQ90plus | 197 | 0.6705 | 0.8782 | 0.7604 |
+| Default | 246 | 0.8481 | 0.9756 | 0.9074 |
+| PaidOff | 4 | 0.0000 | 0.0000 | 0.0000 |
+| Prepaid | 421 | 0.9859 | 0.9976 | 0.9917 |
 
 ### Per-class performance — test window
 
 | class | support | precision | recall | f1 |
 | --- | --- | --- | --- | --- |
-| Current | 3316 | 0.9751 | 0.9937 | 0.9843 |
-| DQ30 | 50 | 0.2500 | 0.0600 | 0.0968 |
-| DQ60 | 33 | 0.4048 | 0.5152 | 0.4533 |
-| DQ90plus | 81 | 0.6986 | 0.6296 | 0.6623 |
-| Default | 21 | 0.3158 | 0.5714 | 0.4068 |
-| Prepaid | 56 | 0.0000 | 0.0000 | 0.0000 |
+| Current | 62302 | 0.9907 | 0.9974 | 0.9940 |
+| DQ30 | 718 | 0.5753 | 0.2396 | 0.3382 |
+| DQ60 | 172 | 0.3065 | 0.1105 | 0.1624 |
+| DQ90plus | 219 | 0.6250 | 0.8219 | 0.7101 |
+| Default | 270 | 0.8529 | 0.9667 | 0.9062 |
+| PaidOff | 3 | 0.0000 | 0.0000 | 0.0000 |
+| Prepaid | 476 | 0.9896 | 0.9979 | 0.9937 |
 
 ## 7. Model configuration
 
@@ -243,10 +236,10 @@ Early stopping on validation average precision, patience 120 rounds. Selected it
 
 | target | chosen_num_leaves | chosen_learning_rate | chosen_min_child_samples | best_iteration | calibrator | train_prior |
 | --- | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 48 | 0.0450 | 80 | 167 | platt | 0.0581 |
-| next_6m_delinquency_flag | 64 | 0.0600 | 40 | 150 | platt | 0.0742 |
-| next_12m_default_flag | 48 | 0.0450 | 80 | 238 | platt | 0.0512 |
-| next_12m_prepayment_flag | 64 | 0.0600 | 40 | 489 | isotonic | 0.1521 |
+| next_3m_delinquency_flag | 24 | 0.0300 | 150 | 19 | isotonic | 0.0230 |
+| next_6m_delinquency_flag | 48 | 0.0450 | 80 | 11 | isotonic | 0.0326 |
+| next_12m_default_flag | 64 | 0.0600 | 40 | 356 | isotonic | 0.0187 |
+| next_12m_prepayment_flag | 64 | 0.0600 | 40 | 998 | isotonic | 0.1456 |
 
 Hyperparameters are selected per target on **validation** average precision from a five-point grid over capacity and learning rate; the test window is never consulted during selection. Selection traces are in `reports/hyperparameter_search.csv`.
 
@@ -254,7 +247,7 @@ The calibrator is likewise chosen per target, by 3-fold cross-validated log loss
 
 ## 8. Honest limitations
 
-- The 12-month targets lose 7,723 rows to the embargo and 1,075 to the observability cap. Training data for those targets is 26,257 rows against 37,491 for the 3-month target, and confidence intervals are correspondingly wider.
+- The 12-month targets lose 143,367 rows to the embargo and 8,889 to the observability cap. Training data for those targets is 263,320 rows against 471,347 for the 3-month target, and confidence intervals are correspondingly wider.
 - Train and test for the 12-month targets sit in different macro regimes. This is reported rather than corrected, because correcting it by reweighting would hide the single most useful fact about the model's operating conditions.
 - `PaidOff` never occurs in this panel window, so the next-state model has six reachable classes, not seven.
 - Metrics are single-run point estimates. No repeated-seed variance is reported.

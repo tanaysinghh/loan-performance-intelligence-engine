@@ -378,8 +378,32 @@ def main(loans_per_vintage: int = LOANS_PER_VINTAGE, seed: int = C.RANDOM_SEED) 
     out.to_csv(C.LOAN_PANEL, index=False)
     updates.to_csv(C.SERVICER_UPDATES, index=False)
     defect_log.to_csv(C.DATA_RAW / "ground_truth_defect_log.csv", index=False)
-    pd.DataFrame(DICTIONARY, columns=["field", "dtype", "description", "allowed_values",
-                                      "source_system"]).to_csv(C.DATA_DICTIONARY, index=False)
+
+    # The dictionary is the copilot's grounding source for field semantics, so its
+    # allowed-values must describe the data actually on disk. The shared DICTIONARY carries
+    # synthetic examples for loan_id, servicer_name and state; override those three, and
+    # restate the default target so an LLM asked "what is default here" gets the proxy.
+    dictionary = pd.DataFrame(DICTIONARY, columns=["field", "dtype", "description",
+                                                   "allowed_values", "source_system"])
+    real_values = {
+        "loan_id": ("Freddie Mac Loan Sequence Number, format PYYQnXXXXXXX "
+                    "(e.g. F19Q10000056).", "PYYQnXXXXXXX"),
+        "servicer_name": ("Servicer reported for the loan in this month. Changes on a real "
+                          "servicing transfer.",
+                          f"{out['servicer_name'].nunique()} distinct real servicer names"),
+        "state": ("US state or territory of the collateral property.",
+                  f"{out['state'].nunique()} USPS codes incl. DC/PR/GU/VI"),
+        "next_12m_default_flag": (
+            "1 if the loan reaches 90+ days past due, or a realised credit event, in months "
+            "t+1..t+12. NaN when right-censored. NOTE: this is a 90+ DPD PROXY, not a "
+            "realised-default rate - realised credit events occur on ~0.1% of loans.",
+            "0|1|NaN"),
+    }
+    for field, (desc, allowed) in real_values.items():
+        hit = dictionary["field"] == field
+        dictionary.loc[hit, "description"] = desc
+        dictionary.loc[hit, "allowed_values"] = allowed
+    dictionary.to_csv(C.DATA_DICTIONARY, index=False)
 
     out.head(500).to_csv(C.DATA_SAMPLES / "loan_panel_sample.csv", index=False)
     updates.head(300).to_csv(C.DATA_SAMPLES / "servicer_updates_sample.csv", index=False)
