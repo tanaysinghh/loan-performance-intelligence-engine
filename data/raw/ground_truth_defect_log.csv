@@ -1,0 +1,17 @@
+defect,rows_affected,rate
+missing_dti_band,41824,0.06237286517892828
+missing_ltv_band,21094,0.031457852383423704
+missing_property_type,27635,0.041212560472926624
+missing_credit_score_band,12691,0.018926311017257526
+missing_occupancy_type,14911,0.02223703597654456
+missing_interest_rate,9371,0.013975136753819265
+missing_days_past_due,17505,0.026105513699243008
+outlier_balance_inflated,2005,0.0029900916862029264
+outlier_balance_negative,810,0.0012079672148749977
+outlier_interest_rate,1172,0.0017478241676956757
+sentinel_days_past_due,1871,0.002790255134606322
+status_dpd_mismatch,5016,0.007480448826929616
+invalid_origination_after_reporting,2746,0.004095157990181166
+inconsistent_loan_age,3676,0.0054820833109635704
+invalid_last_updated_before_period,6098,0.009094054415194737
+duplicate_rows,2694,0.004017609477621289

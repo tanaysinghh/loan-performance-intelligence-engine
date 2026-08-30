@@ -1,0 +1,34 @@
+field,dtype,description,allowed_values,source_system
+loan_id,string,"Freddie Mac Loan Sequence Number, format PYYQnXXXXXXX (e.g. F19Q10000056).",PYYQnXXXXXXX,core_servicing
+month_index,int,Zero-based index of the reporting month within the panel window.,0..N-1 where N is the panel length in months,derived
+reporting_month,period[M],Calendar month the record describes.,YYYY-MM,core_servicing
+origination_month,period[M],Month the loan was originated.,YYYY-MM,core_servicing
+loan_age_months,int,Months elapsed since origination as reported by the servicer.,>=0,core_servicing
+remaining_term_months,int,Contractual months remaining to maturity.,>=0,core_servicing
+original_balance,float,Balance at origination in USD.,45000..1250000,core_servicing
+current_balance,float,Unpaid principal balance at month end in USD.,>=0,core_servicing
+interest_rate,float,"Note rate, annual percent.",2.25..11.5,core_servicing
+credit_score_band,category,Borrower FICO band at origination.,<580|580-619|620-659|660-699|700-739|740-779|780+,core_servicing
+ltv_band,category,Loan-to-value band at origination.,<=60|60-70|70-80|80-90|90-95|>95,core_servicing
+dti_band,category,Debt-to-income band at origination.,<=20|20-30|30-36|36-43|>43,core_servicing
+state,category,US state or territory of the collateral property.,53 USPS codes incl. DC/PR/GU/VI,core_servicing
+loan_purpose,category,Purpose at origination.,purchase|rate_term_refi|cash_out_refi,core_servicing
+occupancy_type,category,Occupancy classification.,primary|second_home|investment,core_servicing
+property_type,category,Collateral property type.,single_family|condo|pud|2-4_unit|manufactured,core_servicing
+servicer_name,category,Servicer reported for the loan in this month. Changes on a real servicing transfer.,42 distinct real servicer names,core_servicing
+current_status,category,Performance status at month end.,Current|DQ30|DQ60|DQ90plus|Default|Prepaid|PaidOff,core_servicing
+days_past_due,float,Days past due at month end. 9999 and -1 appear as sentinel values.,>=0 expected,core_servicing
+modification_flag,int,1 once a loss-mitigation modification has been applied.,0|1,core_servicing
+prepayment_flag,int,1 if the loan prepaid in full effective next month.,0|1,derived
+default_flag,int,1 if the loan entered default effective next month.,0|1,derived
+loss_severity_band,category,"Realised loss severity band, populated only on default.",0-10|10-25|25-40|40-60|60+,investor_feed
+last_updated_at,datetime,Timestamp the servicing record was last written.,ISO datetime,core_servicing
+source_system,category,System of record the row arrived from.,core_servicing|investor_feed|manual_upload,metadata
+document_status,category,Collateral/document file completeness.,complete|pending|missing|exception,doc_custody
+next_3m_delinquency_flag,float,1 if 30+ DPD occurs in months t+1..t+3. NaN when right-censored.,0|1|NaN,target
+next_6m_delinquency_flag,float,1 if 30+ DPD occurs in months t+1..t+6. NaN when right-censored.,0|1|NaN,target
+next_12m_default_flag,float,"1 if the loan reaches 90+ days past due, or a realised credit event, in months t+1..t+12. NaN when right-censored. NOTE: this is a 90+ DPD PROXY, not a realised-default rate - realised credit events occur on ~0.1% of loans.",0|1|NaN,target
+next_12m_prepayment_flag,float,1 if voluntary prepayment occurs in months t+1..t+12. NaN when right-censored.,0|1|NaN,target
+next_state,category,Performance status at month t+1.,Current|DQ30|DQ60|DQ90plus|Default|Prepaid|PaidOff,target
+exception_required,int,1 if a servicing-oversight exception should be raised on this record.,0|1,target
+exception_type,category,Category of the exception raised.,none|missing_documentation|balance_reconciliation_break|stale_servicer_reporting|invalid_date_relationship|status_dpd_mismatch|unexpected_balance_movement,target

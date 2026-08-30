@@ -14,6 +14,23 @@ data/processed/*
 !data/external/
 !data/external/*
 
+# Small metadata and scenario artefacts that MUST ship with the repo.
+# Three of these are named in section 6 of the problem statement, and a judge
+# cloning this repo needs them to reproduce anything. None contains loan-level
+# data: they are rule definitions, field metadata, FRED-derived macro series
+# (public domain) and aggregate defect counts.
+#
+# The loan-level panels stay excluded above and are NOT whitelisted here:
+#   data/raw/loan_panel.csv       149 MB, 673k loan-month rows, SFLLD-derived
+#   data/raw/servicer_updates.csv  24 MB, 245k loan-level rows, SFLLD-derived
+# Redistributing those would breach the Freddie Mac licence. Representative
+# samples of both are tracked under data/samples/ instead.
+!data/raw/validation_rules.json
+!data/raw/data_dictionary.csv
+!data/raw/macro_scenarios.csv
+!data/raw/macro_history.csv
+!data/raw/ground_truth_defect_log.csv
+
 artifacts/
 *.pkl
 *.joblib

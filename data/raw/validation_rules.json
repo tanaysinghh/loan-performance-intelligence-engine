@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0",
+  "generated_by": "src/data/validate.py::export_rules_json",
+  "note": "No organiser validation_rules.json was issued. These are the deterministic checks implemented in src/data/validate.py, exported declaratively. The rule engine executes the Python predicates in this module; this file is the declarative description of them, not the executable source.",
+  "dimensions": [
+    "completeness",
+    "consistency",
+    "plausibility",
+    "reconciliation",
+    "timeliness",
+    "validity"
+  ],
+  "severity_scale": "0-20, subtracted from a 100-point record score, higher is worse",
+  "rules": [
+    {
+      "name": "origination_after_reporting",
+      "dimension": "validity",
+      "severity": 14.0,
+      "description": "Origination month is later than the reporting month."
+    },
+    {
+      "name": "last_updated_before_period_end",
+      "dimension": "validity",
+      "severity": 8.0,
+      "description": "Servicing record was last written before the reporting period closed."
+    },
+    {
+      "name": "loan_age_inconsistent_with_dates",
+      "dimension": "consistency",
+      "severity": 9.0,
+      "description": "Reported loan age disagrees with reporting minus origination month by >2 months."
+    },
+    {
+      "name": "negative_balance",
+      "dimension": "validity",
+      "severity": 16.0,
+      "description": "Current balance is negative."
+    },
+    {
+      "name": "balance_exceeds_original",
+      "dimension": "plausibility",
+      "severity": 12.0,
+      "description": "Current balance exceeds original balance by more than 2%."
+    },
+    {
+      "name": "balance_increase_month_over_month",
+      "dimension": "consistency",
+      "severity": 7.0,
+      "description": "Unpaid principal balance rose month over month on a non-modified loan."
+    },
+    {
+      "name": "dpd_sentinel_value",
+      "dimension": "validity",
+      "severity": 10.0,
+      "description": "Days past due carries a sentinel value (9999, -1)."
+    },
+    {
+      "name": "status_dpd_mismatch",
+      "dimension": "consistency",
+      "severity": 11.0,
+      "description": "Days past due is inconsistent with the reported performance status."
+    },
+    {
+      "name": "interest_rate_out_of_range",
+      "dimension": "validity",
+      "severity": 10.0,
+      "description": "Note rate outside a plausible 0.5%-25% range."
+    },
+    {
+      "name": "remaining_term_inconsistent",
+      "dimension": "consistency",
+      "severity": 6.0,
+      "description": "Remaining term plus loan age is not a standard contractual term."
+    },
+    {
+      "name": "missing_critical_field",
+      "dimension": "completeness",
+      "severity": 9.0,
+      "description": "A field required for credit assessment is missing."
+    },
+    {
+      "name": "document_file_incomplete",
+      "dimension": "completeness",
+      "severity": 7.0,
+      "description": "Document custody status is missing or in exception."
+    },
+    {
+      "name": "stale_servicer_reporting",
+      "dimension": "timeliness",
+      "severity": 6.0,
+      "description": "Record last updated more than 75 days after the period closed."
+    },
+    {
+      "name": "servicer_balance_break",
+      "dimension": "reconciliation",
+      "severity": 13.0,
+      "description": "Servicer feed balance differs from the panel by >1% and >$500."
+    },
+    {
+      "name": "servicer_status_conflict",
+      "dimension": "reconciliation",
+      "severity": 11.0,
+      "description": "Servicer feed reports a different performance status than the panel."
+    },
+    {
+      "name": "servicer_record_absent",
+      "dimension": "reconciliation",
+      "severity": 3.0,
+      "description": "No servicer feed record exists for this loan month."
+    },
+    {
+      "name": "terminal_status_with_balance",
+      "dimension": "consistency",
+      "severity": 12.0,
+      "description": "Loan is in a terminal status but still carries a material balance."
+    }
+  ]
+}
