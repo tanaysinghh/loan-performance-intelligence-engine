@@ -70,3 +70,26 @@ RAW_COLUMNS = [
     "prepayment_flag", "default_flag", "loss_severity_band", "last_updated_at",
     "source_system", "document_status",
 ]
+
+
+def real_build_summary():
+    """Returns the SFLLD build summary when the current data pack came from real data.
+
+    Returns ``None`` for a synthetic pack, so every report describes whichever source
+    actually produced the files it is reading. The mtime check matters: a later synthetic
+    build overwrites ``loan_panel.csv`` without touching this artefact, and without the
+    check the reports would keep claiming real data.
+    """
+    import json
+    path = ARTIFACTS / "sflld_build_summary.json"
+    if not path.exists():
+        return None
+    try:
+        summary = json.loads(path.read_text(encoding="utf-8"))
+        if summary.get("source") != "freddie_mac_sflld_real":
+            return None
+        if LOAN_PANEL.stat().st_mtime > path.stat().st_mtime + 1:
+            return None
+    except (json.JSONDecodeError, OSError):
+        return None
+    return summary

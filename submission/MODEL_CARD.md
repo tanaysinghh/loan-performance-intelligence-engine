@@ -2,7 +2,8 @@
 
 **Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  
 **Author:** Tanay Singh  
-**Date:** 2026-08-28
+**Card generated:** 2026-08-30 15:50 UTC  
+**Data source:** Freddie Mac SFLLD (real)
 
 > Every figure in this card is generated from the pipeline's own report artefacts by `src/report_model_card.py`. Retraining regenerates the card; the numbers cannot drift away from the models.
 
@@ -31,20 +32,48 @@ For every loan-month record in a servicing panel, produce decision-support outpu
 
 ## 2. Data
 
-Organiser data was not available, so a synthetic panel is generated from an explicit data-generating process (`src/data/generate_synthetic.py`). It is built to be replaced: drop real CSVs matching the same schema into `data/raw/` and the pipeline runs unchanged.
+### Source: real Freddie Mac loan-level data
+
+The panel is built from the **Freddie Mac Single-Family Loan-Level Dataset (SFLLD)** sample files for vintages 2019-2023 — a population of 250,000 loans and 10,482,492 monthly performance records — loaded by `src/data/build_from_sflld.py`. The organiser data pack described in section 6 of the problem statement was never issued, so the data was sourced directly rather than simulated.
+
+The raw files are **not committed**: SFLLD is licence-gated and redistributing it would breach the source terms that section 13 of the problem statement lists as a disqualification condition. `dataset/download_sflld.md` documents how to re-obtain them; everything under `data/` regenerates from them.
+
+> **Layout note.** These sample files carry **31 origination and 35 performance columns**, not the 32/32 in Freddie Mac's published `file_layout.xlsx` and January 2026 User Guide. `Servicer Name` is absent from the origination file, and the performance file appends `MI Cancellation Indicator`, `Servicer Name` and a filler column. The mapping was verified empirically against value distributions in all five vintages rather than assumed, and `sflld.verify_layout()` fails loudly if a re-download deviates. Evidence is documented in `src/data/sflld.py`.
+
+### This pack is a hybrid, by necessity
+
+SFLLD supplies no second data source, no ingestion timestamps, no document-custody data and no exception taxonomy. Those are required by sections 6 and 7 of the problem statement, so they are **fabricated on top of the real panel**. This is a documented methodological choice, not an oversight:
+
+| layer | provenance |
+| --- | --- |
+| Loan / month panel, all origination and performance attributes | **Real** — Freddie Mac SFLLD |
+| Delinquency, prepayment, credit-event and servicing-transfer outcomes | **Real** — derived from SFLLD status and zero-balance codes |
+| Macro history (mortgage rate, unemployment, HPI) | **Real** — FRED `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA` |
+| Forward scenario paths | Constructed assumptions at supervisory severity; disclosed in the scenario report |
+| `last_updated_at`, `source_system`, `document_status` | **Fabricated** — no equivalent exists in SFLLD |
+| `servicer_updates.csv` second source, reconciliation conflicts | **Fabricated**, but anchored on real servicing transfers (6,903 of the sampled loans genuinely change servicer) |
+| `exception_required`, `exception_type`, injected data-quality defects | **Fabricated** at logged rates, for Task 1 and Task 4 |
+
+Every model figure for delinquency, default, prepayment and next-state is therefore trained and evaluated on real outcomes. Every figure for exceptions and data quality is trained on a fabricated label and must be read as a demonstration of method, not as validated real-world performance.
+
+### Default target is a 90+ DPD proxy — read this before any default figure
+
+Realised credit events — third-party sale, short sale, REO disposition, note sale (zero-balance codes 02/03/09/15) — occur on **14 of 16,000 sampled loans**, about one in a thousand, and roughly one row in 200,000. That is not a modellable target at this sample size. These are post-2019 agency vintages that benefited from strong house-price appreciation and pandemic-era forbearance, so the scarcity is a property of the cohort, not of the sample.
+
+**`next_12m_default_flag` is therefore defined as: the loan reaches 90+ days past due, or a realised credit event, within the next 12 months.** Every 'default' figure in this card, in `reports/`, and in `submission.csv` refers to that proxy. It is a serious-delinquency model, not a loss model, and it must not be read as a probability of foreclosure or of loss. The realised-event count above is reported rather than hidden precisely so the gap between the two is visible.
 
 | property | value |
 | --- | --- |
-| Records (after de-duplication) | 48,924 |
-| Loans | 1,500 |
-| Reporting window | 2019-01 to 2026-06 (90 months) |
-| Servicers / states | 5 / 15 |
-| Secondary servicer feed | 17,651 records with balance and status conflicts, duplicates and orphan rows |
+| Records (after de-duplication) | 670,548 |
+| Loans | 16,000 |
+| Reporting window | 2019-01 to 2026-03 (87 months) |
+| Servicers / states | 42 / 53 |
+| Secondary servicer feed | 244,763 records with balance and status conflicts, duplicates and orphan rows |
 | Engineered features | 81 |
 
-**Pool characterisation.** Observed rates over the panel are 6.2% for 12-month default and 15.5% for 12-month prepayment. That is a **seasoned non-QM / alt-A profile**, not an agency prime pool, and these figures should not be read as agency benchmarks.
+**Pool characterisation.** Observed rates over the panel are 1.8% for the 12-month 90+ DPD proxy and 11.3% for 12-month prepayment. This is an **agency prime pool** — Freddie Mac acquisition criteria, mean origination FICO in the 740s across all five vintages — so credit performance is strong and prepayment dominates the outcome mix. Figures should not be extrapolated to non-QM, alt-A or seasoned distressed collateral.
 
-**Macro path.** A full rate cycle with a pandemic-shaped unemployment spike. The panel was deliberately lengthened from 54 to 90 months during development, because a 12-month horizon with an embargo left the original window with only one rate regime in training — prepayment ROC-AUC came out at 0.51. See the AI Development Log.
+**Macro path.** Real, and it spans a full rate cycle: mean origination rate falls from 4.24% (2019) to 2.97% (2021) and then rises to 6.74% (2023), a 377bp trough-to-peak move. Prepayment tracks it — 71% of the 2019 vintage prepaid versus 19% of the 2021 vintage. That gives genuine, non-simulated regime shift for the drift analysis in Task 1 and the scenarios in Task 5, and it is also the reason the prepayment model degrades out of time (section 8).
 
 **Injected defects.** Missingness (missing-at-random conditional on servicer), sentinel values, invalid date relationships, balance outliers, inconsistent loan ages, duplicate rows and conflicting servicer records — all at logged rates in `data/raw/ground_truth_defect_log.csv`. That log validates detection and is never a model input.
 
@@ -83,19 +112,19 @@ Train and validation are contiguous with no internal embargo: validation drives 
 
 | target | horizon_months | train_window | valid_window | embargo_window | test_window |
 | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 3 | 2019-01..2024-12 | 2025-01..2025-06 | 2025-07..2025-09 | 2025-10..2026-03 |
-| next_6m_delinquency_flag | 6 | 2019-01..2024-06 | 2024-07..2024-12 | 2025-01..2025-06 | 2025-07..2025-12 |
-| next_12m_default_flag | 12 | 2019-01..2023-06 | 2023-07..2023-12 | 2024-01..2024-12 | 2025-01..2025-06 |
-| next_12m_prepayment_flag | 12 | 2019-01..2023-06 | 2023-07..2023-12 | 2024-01..2024-12 | 2025-01..2025-06 |
-| exception_required | 0 | 2019-01..2025-06 | 2025-07..2025-12 | none | 2026-01..2026-06 |
+| next_3m_delinquency_flag | 3 | 2019-01..2024-09 | 2024-10..2025-03 | 2025-04..2025-06 | 2025-07..2025-12 |
+| next_6m_delinquency_flag | 6 | 2019-01..2024-03 | 2024-04..2024-09 | 2024-10..2025-03 | 2025-04..2025-09 |
+| next_12m_default_flag | 12 | 2019-01..2023-03 | 2023-04..2023-09 | 2023-10..2024-09 | 2024-10..2025-03 |
+| next_12m_prepayment_flag | 12 | 2019-01..2023-03 | 2023-04..2023-09 | 2023-10..2024-09 | 2024-10..2025-03 |
+| exception_required | 0 | 2019-01..2025-03 | 2025-04..2025-09 | none | 2025-10..2026-03 |
 
 | target | train_rows | valid_rows | test_rows | rows_dropped_embargo | rows_dropped_unobservable_label | train_positive_rate | test_positive_rate |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 37491 | 4040 | 3719 | 1987 | 185 | 0.0581 | 0.0664 |
-| next_6m_delinquency_flag | 33521 | 3970 | 3913 | 4040 | 484 | 0.0742 | 0.0917 |
-| next_12m_default_flag | 26257 | 3511 | 4040 | 7723 | 1075 | 0.0512 | 0.0723 |
-| next_12m_prepayment_flag | 26257 | 3511 | 4040 | 7723 | 1075 | 0.1521 | 0.1710 |
-| exception_required | 41531 | 3913 | 3480 | 0 | 0 | 0.1251 | 0.1305 |
+| next_3m_delinquency_flag | 471347 | 68984 | 65149 | 33599 | 1348 | 0.0230 | 0.0313 |
+| next_6m_delinquency_flag | 399768 | 71579 | 66539 | 68984 | 3946 | 0.0326 | 0.0405 |
+| next_12m_default_flag | 263320 | 64660 | 68984 | 143367 | 8889 | 0.0187 | 0.0154 |
+| next_12m_prepayment_flag | 263320 | 64660 | 68984 | 143367 | 8333 | 0.1456 | 0.0758 |
+| exception_required | 540331 | 66539 | 63678 | 0 | 0 | 0.1398 | 0.1430 |
 
 Hyperparameters are selected per target on **validation** average precision from a five-point grid. The calibrator (Platt vs isotonic) is chosen by 3-fold cross-validation *inside* the validation window — selecting on the full validation window systematically favours isotonic, which bends to noise that does not repeat out of time.
 
@@ -105,36 +134,36 @@ Hyperparameters are selected per target on **validation** average precision from
 
 | target | model | roc_auc | pr_auc | pr_auc_lift_over_base | best_f1 | recall_at_precision_30 | brier | ece |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | baseline_logistic | 0.9060 | 0.7870 | 11.8470 | 0.8140 | 0.8180 | 0.0790 | 0.1930 |
-| next_3m_delinquency_flag | lgbm_calibrated | 0.8940 | 0.7850 | 11.8200 | 0.8140 | 0.8020 | 0.0210 | 0.0140 |
-| next_6m_delinquency_flag | baseline_logistic | 0.8880 | 0.7360 | 8.0200 | 0.7390 | 0.7990 | 0.1150 | 0.2300 |
-| next_6m_delinquency_flag | lgbm_calibrated | 0.8820 | 0.7380 | 8.0430 | 0.7310 | 0.7630 | 0.0390 | 0.0240 |
-| next_12m_default_flag | baseline_logistic | 0.9020 | 0.6360 | 8.7930 | 0.6860 | 0.7600 | 0.0840 | 0.1610 |
-| next_12m_default_flag | lgbm_calibrated | 0.8970 | 0.5860 | 8.1130 | 0.6240 | 0.7770 | 0.0400 | 0.0230 |
-| next_12m_prepayment_flag | baseline_logistic | 0.6510 | 0.3150 | 1.8390 | 0.3700 | 0.4020 | 0.2560 | 0.2740 |
-| next_12m_prepayment_flag | lgbm_calibrated | 0.6700 | 0.2610 | 1.5270 | 0.3790 | 0.2170 | 0.1640 | 0.1170 |
-| exception_required | baseline_logistic | 0.5330 | 0.1700 | 1.3050 | 0.2400 |  | 0.2440 | 0.3630 |
-| exception_required | lgbm_calibrated | 0.9650 | 0.8330 | 6.3850 | 0.8600 |  | 0.0320 | 0.0070 |
+| next_3m_delinquency_flag | baseline_logistic | 0.8830 | 0.5810 | 18.5460 | 0.6520 | 0.6430 | 0.1110 | 0.2720 |
+| next_3m_delinquency_flag | lgbm_calibrated | 0.9160 | 0.6500 | 20.7290 | 0.6720 | 0.7660 | 0.0150 | 0.0020 |
+| next_6m_delinquency_flag | baseline_logistic | 0.8380 | 0.5040 | 12.4530 | 0.5580 | 0.5370 | 0.1340 | 0.2960 |
+| next_6m_delinquency_flag | lgbm_calibrated | 0.8780 | 0.5780 | 14.2870 | 0.6030 | 0.6490 | 0.0230 | 0.0020 |
+| next_12m_default_flag | baseline_logistic | 0.9190 | 0.5740 | 37.3020 | 0.6150 | 0.6600 | 0.1090 | 0.2230 |
+| next_12m_default_flag | lgbm_calibrated | 0.9210 | 0.5320 | 34.5940 | 0.5930 | 0.6750 | 0.0090 | 0.0040 |
+| next_12m_prepayment_flag | baseline_logistic | 0.6850 | 0.2410 | 3.1810 | 0.2830 | 0.2360 | 0.2790 | 0.4170 |
+| next_12m_prepayment_flag | lgbm_calibrated | 0.6260 | 0.2010 | 2.6490 | 0.2160 | 0.0790 | 0.1370 | 0.1350 |
+| exception_required | baseline_logistic | 0.5400 | 0.2300 | 1.6080 | 0.2510 |  | 0.2470 | 0.3590 |
+| exception_required | lgbm_calibrated | 0.9690 | 0.8290 | 5.7980 | 0.8540 |  | 0.0350 | 0.0020 |
 
-**Read the baseline comparison honestly.** LightGBM does *not* dominate the nine-feature logistic baseline on ranking. The largest ROC-AUC gap on the four performance targets is 0.018, and the baseline wins outright on some of them. The dominant delinquency signals are near-monotone in the log-odds, which is exactly where a linear model is hard to beat on ranking.
+**Read the baseline comparison honestly.** LightGBM does *not* dominate the nine-feature logistic baseline on ranking. The largest ROC-AUC gap on the four performance targets is 0.059, and the baseline wins outright on some of them. The dominant delinquency signals are near-monotone in the log-odds, which is exactly where a linear model is hard to beat on ranking.
 
-Where they separate decisively is **calibration**: the baseline's Brier score is 2.6x worse on average and its expected calibration error runs 0.16-0.27, because `class_weight=balanced` inflates every probability. It can rank a queue; it cannot answer "what is the probability", which is what the submission format asks for.
+Where they separate decisively is **calibration**: the baseline's Brier score is 6.8x worse on average and its expected calibration error runs 0.22-0.42, because `class_weight=balanced` inflates every probability. It can rank a queue; it cannot answer "what is the probability", which is what the submission format asks for.
 
-The exception model is the one case where the gap is total — 0.965 against 0.533. That gap is itself the finding: the baseline is deliberately the same nine *credit* fields, and operational exceptions are not a credit phenomenon.
+The exception model is the one case where the gap is total — 0.969 against 0.540. That gap is itself the finding: the baseline is deliberately the same nine *credit* fields, and operational exceptions are not a credit phenomenon.
 
 **Multiclass and time-to-event:**
 
 | model | metric | value | baseline |
 | --- | --- | --- | --- |
-| Next state (1 month) | macro-F1 | 0.4220 | 0.375 (Markov), 0.439 (persistence) |
-| Next state (1 month) | macro-ROC-AUC | 0.8900 | 0.841 (Markov) |
-| Exception type (6-class) | macro-F1 | 0.8690 | 0.096 (majority class) |
+| Next state (1 month) | macro-F1 | 0.5860 | 0.370 (Markov), 0.473 (persistence) |
+| Next state (1 month) | macro-ROC-AUC | 0.9820 | 0.832 (Markov) |
+| Exception type (6-class) | macro-F1 | 0.9170 | 0.104 (majority class) |
 | Exception type (6-class) | macro-ROC-AUC | 0.9970 | - |
-| Markov 12-month projection | MAE vs realised default rate | 0.0504 | - |
+| Markov 12-month projection | MAE vs realised default rate | 0.1264 | - |
 
 Cox proportional-hazards discrimination and the full survival results are in `reports/survival_report.md`. Kaplan-Meier assigns every loan the same curve, so its concordance is 0.50 by construction — that is the baseline Cox is beating.
 
-Persistence ("next state = current state") edges the covariate model on raw accuracy (0.959 against 0.956) and ties it on macro-F1. Reported rather than buried: when 95%+ of transitions are Current-to-Current, a rule that never predicts a transition is hard to beat on accuracy and useless in practice, because it assigns zero probability to every event a servicer cares about. Macro-AUC and log loss are where the difference lives.
+Persistence ("next state = current state") edges the covariate model on raw accuracy (0.977 against 0.986) and ties it on macro-F1. Reported rather than buried: when 95%+ of transitions are Current-to-Current, a rule that never predicts a transition is hard to beat on accuracy and useless in practice, because it assigns zero probability to every event a servicer cares about. Macro-AUC and log loss are where the difference lives.
 
 ---
 
@@ -161,10 +190,10 @@ Positive rates run 5-17%. Two mechanisms, kept deliberately separate:
 
 | target | purged_time_split | loan_disjoint_time_split | random_row_split_unsound | random_split_inflation |
 | --- | --- | --- | --- | --- |
-| next_3m_delinquency_flag | 0.8940 | 0.8930 | 0.9910 | 0.0960 |
-| next_6m_delinquency_flag | 0.8820 | 0.8660 | 0.9970 | 0.1140 |
-| next_12m_default_flag | 0.8970 | 0.8910 | 0.9970 | 0.0990 |
-| next_12m_prepayment_flag | 0.6700 | 0.5830 | 0.9970 | 0.3270 |
+| next_3m_delinquency_flag | 0.9160 | 0.9190 | 0.9060 | -0.0100 |
+| next_6m_delinquency_flag | 0.8780 | 0.8700 | 0.8920 | 0.0140 |
+| next_12m_default_flag | 0.9210 | 0.9350 | 0.9990 | 0.0780 |
+| next_12m_prepayment_flag | 0.6260 | 0.6040 | 0.9830 | 0.3570 |
 
 The loan-disjoint column additionally forces no `loan_id` into both the fitting data and the test window. Performance holding there means the model learned loan *characteristics*, not loan *identities*.
 
@@ -174,11 +203,11 @@ The loan-disjoint column additionally forces no `loan_id` into both the fitting 
 
 **Model limitations**
 
-- **Prepayment is the weakest model** (test ROC-AUC 0.670). It depends on refinance incentive, which depends on a rate path the panel contains exactly one realisation of.
-- **Regime change on the 12-month targets.** Train and test sit in different macro regimes; the default rate moves from 5.1% to 7.2% between them. Reported, not corrected — correcting it by reweighting would hide the most useful fact about the model's operating conditions.
-- **Data volume on long horizons.** The 12-month targets lose 7,723 rows to the embargo and 1,075 to the observability cap: 26,257 training rows against 37,491 for the 3-month target. Confidence intervals are correspondingly wider.
-- **The scenario engine's credit channel is not identified.** Macro levels are constant across loans within a month, so with one realised macro path a loan-level model cannot separate unemployment from calendar time. The symptom is diagnostic: a 2.3pp unemployment shock moves projected 12-month default by 0.51% in relative terms, and the high-prepayment scenario *raises* projected default. **Use Engine B (macro-conditioned Markov) to size credit stress; use Engine A only for which-loans segment detail.** Engine B moves cumulative 12-month default from 0.174 to 0.227 under adverse conditions.
-- **The Markov first-order assumption is wrong**, usefully. A loan five months into DQ30 differs from one that entered last month. The covariate model beats the chain on macro-AUC (0.890 against 0.841); the chain is kept for transparency and multi-period projection.
+- **Prepayment is the weakest model** (test ROC-AUC 0.626 for the calibrated GBM against 0.685 for the logistic baseline — the baseline ranks better here, and that is reported rather than hidden; PR-AUC 0.201 against 0.241). It depends on refinance incentive, which depends on a rate path the panel contains exactly one realisation of. The GBM is still the shipped model because its calibration is usable and the baseline's is not (ECE 0.135 against 0.417), but on ranking alone the simpler model is the better choice, and anything scenario-shaped should use the macro-conditioned transition engine instead of either.
+- **Regime change on the 12-month targets.** Train and test sit in different macro regimes; the default rate moves from 1.9% to 1.5% between them. Reported, not corrected — correcting it by reweighting would hide the most useful fact about the model's operating conditions.
+- **Data volume on long horizons.** The 12-month targets lose 143,367 rows to the embargo and 8,889 to the observability cap: 263,320 training rows against 471,347 for the 3-month target. Confidence intervals are correspondingly wider.
+- **The scenario engine's credit channel is not identified.** Macro levels are constant across loans within a month, so with one realised macro path a loan-level model cannot separate unemployment from calendar time. The symptom is diagnostic: a 2.3pp unemployment shock moves projected 12-month default by -0.13% in relative terms, and the high-prepayment scenario *raises* projected default. **Use Engine B (macro-conditioned Markov) to size credit stress; use Engine A only for which-loans segment detail.** Engine B moves cumulative 12-month default from 0.012 to 0.019 under adverse conditions.
+- **The Markov first-order assumption is wrong**, usefully. A loan five months into DQ30 differs from one that entered last month. The covariate model beats the chain on macro-AUC (0.982 against 0.832); the chain is kept for transparency and multi-period projection.
 - **Proportional hazards is assumed, not tested.** No Schoenfeld residual test is run.
 - **No loss-given-default model.** Nothing here converts default probability into an expected dollar loss.
 - **Single-seed point estimates.** No repeated-run variance is reported.
@@ -187,7 +216,7 @@ The loan-disjoint column additionally forces no `loan_id` into both the fitting 
 
 - **Servicer is a confound.** The two servicers with the worst reporting hygiene also have elevated delinquency, and SHAP cannot separate credit risk from reporting behaviour. A servicer-driven score is a prompt to investigate the servicer, not a statement about the borrower.
 - **False negatives concentrate in specific segments**, quantified per segment in `reports/explainability_report.md`. That is a coverage issue, not just an accuracy one.
-- **Synthetic-label optimism.** The exception label comes from rule breaches plus a materiality threshold and ~1.2% reviewer noise. Real reviewers are less consistent, so the 0.965 ROC-AUC is an upper bound.
+- **Synthetic-label optimism.** The exception label comes from rule breaches plus a materiality threshold and ~1.2% reviewer noise. Real reviewers are less consistent, so the 0.969 ROC-AUC is an upper bound.
 - **Confidence bands are a boosting-stability proxy**, not statistical confidence intervals, and do not capture regime-change risk — the dominant risk on the 12-month targets.
 
 ---
@@ -196,12 +225,17 @@ The loan-disjoint column additionally forces no `loan_id` into both the fitting 
 
 The LLM never predicts. This is enforced, not promised:
 
-1. `tests/test_no_llm_prediction.py::test_no_modelling_module_can_reach_a_language_model` parses the AST of every module under `src/data`, `src/features`, `src/models`, `src/scenarios` and `src/explain` and fails if any imports `anthropic`, `openai`, or `src.copilot`. The modelling code path *cannot* reach a language model.
-2. The **grounding validator** extracts every number from generated text and matches it against the grounding pack, including values scaled by 100 or rounded — the forms a helpful model reaches for. Unmatched numbers block the output. Its six-case self-test confirms it catches fabricated probabilities, rescaled figures, causal assertions, overconfident decisions, and missing reviewer framing.
+1. `tests/test_no_llm_prediction.py::test_no_modelling_module_can_reach_a_language_model` parses the AST of every module under `src/data`, `src/features`, `src/models`, `src/scenarios` and `src/explain` and fails if any imports `anthropic`, `openai`, `google`, `cohere`, `mistralai`, `ollama` or `src.copilot`. The modelling code path *cannot* reach a language model. The guard is written against the capability, not against one vendor, so switching provider does not weaken it — adding a provider costs one line.
+2. The **grounding validator** extracts every number from generated text and matches it against the grounding pack, including values scaled by 100 or rounded — the forms a helpful model reaches for. Unmatched numbers block the output. Its 12-case self-test confirms it catches fabricated probabilities, rescaled figures, causal assertions, overconfident decisions, missing reviewer framing and LaTeX markup, and that it does *not* fire on correct output (scientific notation, hyphenated field names, ordered-list markers, a legitimate refusal). Six of those cases were added after live Gemini runs exposed defects in the validator itself, and the suite runs against a fixed pack so its verdicts do not move with the data.
+3. A **usefulness check** on per-record reviewer notes. The grounding validator is a truthfulness control and says nothing about output that is true and useless; a live run produced a note telling a reviewer to verify a document status the same pack reported as `complete`. That is now blocked and sent back for correction.
 
-Every prompt, model id, timestamp, response, token count and validator verdict is written to `submission/llm_prompt_log.jsonl`. All LLM output carries *"RECOMMENDATION, NOT DECISION."*
+Every prompt, provider, model id, SDK, timestamp, response, token count, finish reason, latency and validator verdict is written to `submission/llm_prompt_log.jsonl`, with prior runs rotated into `submission/llm_prompt_log_archive.jsonl` so captured failures are not overwritten by the next run. All LLM output carries *"RECOMMENDATION, NOT DECISION."*
 
-**Known gap.** No Anthropic credential was available in the build environment, so the copilot ran in labelled `offline_template` mode and the live LLM failure transcripts the task calls for are **not yet captured**. The offline template cannot hallucinate, so the adversarial probes have nothing real to catch. Presenting invented transcripts as captured API output would be fabricating evidence, so they are absent rather than filled in. Setting `ANTHROPIC_API_KEY` and re-running `python -m src.copilot.run_copilot` executes the five probes against `claude-opus-5` and regenerates that section.
+**Provider.** The copilot calls **Google Gemini** (`gemini-3.5-flash-lite`) through the `google-generativeai` SDK. This was a deliberate choice on cost and availability, not a fallback after a failure: the model is free-tier eligible, so the copilot reproduces end to end for anyone holding a free Google AI Studio key rather than only for someone with a paid credential. The model was picked by measurement — `gemini-3.6-flash` writes better prose but its free allowance is 20 requests per *day*, and one Task 7 run issues 15-20 calls, so it cannot be re-run.
+
+The copilot design is vendor-neutral. Grounding packs, the system prompt, the validators and the adversarial probes are unchanged from the earlier Anthropic wiring; only the client, auth and response-parsing layer differs.
+
+**Status: complete, with real failures captured.** The copilot ran live. Genuine Gemini errors were caught by the validators and corrected on a logged round-trip — most notably a 10x transcription error (`exception_required` reported as `0.046` where the pack says `0.0046`), a reviewer note that directed the reviewer at a field the pack already reported clean, and a portfolio summary rendered in LaTeX for a plain-text queue. `reports/copilot_report.md` section 5 separates genuine model failures from validator false positives rather than reporting all blocks as model error, and records one ablation that came out **negative** — the plain-text prompt rule could not be shown to be what suppressed the LaTeX.
 
 ---
 

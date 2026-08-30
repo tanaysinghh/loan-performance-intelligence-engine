@@ -1,119 +1,86 @@
 {
-  "run_started_utc": "2026-08-28T12:08:12.474006+00:00",
-  "run_finished_utc": "2026-08-28T12:11:59.172566+00:00",
-  "total_seconds": 226.7,
+  "run_started_utc": "2026-08-30T09:43:50.859013+00:00",
+  "run_finished_utc": "2026-08-30T09:54:20.296128+00:00",
+  "total_seconds": 629.4,
   "stages": [
     {
       "stage": "data",
       "status": "ok",
-      "seconds": 1.84,
+      "seconds": 0.0,
       "error": null
     },
     {
       "stage": "prepare",
       "status": "ok",
-      "seconds": 3.29,
+      "seconds": 6.85,
       "error": null
     },
     {
       "stage": "profile",
       "status": "ok",
-      "seconds": 2.44,
+      "seconds": 25.84,
       "error": null
     },
     {
       "stage": "models",
       "status": "ok",
-      "seconds": 184.28,
+      "seconds": 391.34,
       "error": null
     },
     {
       "stage": "survival",
       "status": "ok",
-      "seconds": 0.57,
+      "seconds": 2.86,
       "error": null
     },
     {
       "stage": "anomaly",
       "status": "ok",
-      "seconds": 11.01,
+      "seconds": 74.87,
       "error": null
     },
     {
       "stage": "scenarios",
       "status": "ok",
-      "seconds": 1.42,
+      "seconds": 10.76,
       "error": null
     },
     {
       "stage": "explain",
       "status": "ok",
-      "seconds": 8.31,
+      "seconds": 35.86,
       "error": null
     },
     {
       "stage": "copilot",
       "status": "ok",
-      "seconds": 1.93,
+      "seconds": 11.48,
       "error": null
     },
     {
       "stage": "submission",
       "status": "ok",
-      "seconds": 10.84,
+      "seconds": 61.2,
       "error": null
     },
     {
       "stage": "model_card",
       "status": "ok",
-      "seconds": 0.76,
+      "seconds": 8.38,
       "error": null
     }
   ],
   "results": {
-    "data": {
-      "loans": 1500,
-      "rows": 49116,
-      "months": 90,
-      "servicer_update_rows": 17651,
-      "status_mix": {
-        "Current": 0.9562,
-        "DQ90plus": 0.0199,
-        "DQ30": 0.0135,
-        "DQ60": 0.0104
-      },
-      "target_rates": {
-        "next_3m_delinquency_flag": 0.06397412471383866,
-        "next_6m_delinquency_flag": 0.08526879621798625,
-        "next_12m_default_flag": 0.0617416715371128,
-        "next_12m_prepayment_flag": 0.15520748100526008
-      },
-      "censored_rows": {
-        "next_3m_delinquency_flag": 1503,
-        "next_6m_delinquency_flag": 3003,
-        "next_12m_default_flag": 6341,
-        "next_12m_prepayment_flag": 6341
-      },
-      "exception_rate": 0.126801856828732,
-      "exception_mix": {
-        "none": 0.8732,
-        "missing_documentation": 0.054,
-        "balance_reconciliation_break": 0.0316,
-        "invalid_date_relationship": 0.0179,
-        "stale_servicer_reporting": 0.0134,
-        "unexpected_balance_movement": 0.0057,
-        "status_dpd_mismatch": 0.0043
-      }
-    },
+    "data": null,
     "prepare": {
-      "rows": 48924,
+      "rows": 670548,
       "columns": 133
     },
     "profile": {
-      "records": 48924,
-      "mean_dq_score": 95.27685798381162,
+      "records": 670548,
+      "mean_dq_score": 94.88390092879257,
       "rules": 17,
-      "batches": 450
+      "batches": 1974
     },
     "models": {
       "targets": [
@@ -125,17 +92,17 @@
       ]
     },
     "survival": {
-      "defaults": 227,
-      "cox_c_index_test": 0.8236
+      "defaults": 505,
+      "cox_c_index_test": 0.7169
     },
     "anomaly": {
-      "score_cutoff": 0.653432232085985,
-      "flagged_share": 0.060057471264367814,
-      "precision_vs_exception_label": 0.2631578947368421,
-      "recall_vs_exception_label": 0.1211453744493392,
-      "base_exception_rate": 0.13045977011494253,
-      "lift_over_base": 2.01715743102249,
-      "roc_auc_vs_exception_label": 0.8452814229686332
+      "score_cutoff": 0.4467335791073279,
+      "flagged_share": 0.06000502528345739,
+      "precision_vs_exception_label": 0.5896362208845852,
+      "recall_vs_exception_label": 0.24736495388669302,
+      "base_exception_rate": 0.1430321304061057,
+      "lift_over_base": 4.122403960637749,
+      "roc_auc_vs_exception_label": 0.8933714802171552
     },
     "scenarios": {
       "scenarios": [
@@ -146,24 +113,24 @@
     },
     "explain": {
       "next_3m_delinquency_flag": [
-        "current performance status",
         "credit score band",
-        "consecutive clean months"
+        "has ever been delinquent",
+        "months delinquent in last 12 months"
       ],
       "next_12m_default_flag": [
-        "credit score band",
-        "note rate",
-        "state"
+        "state",
+        "servicer",
+        "balance against expected amortisation"
       ],
       "next_12m_prepayment_flag": [
-        "note rate",
+        "state",
         "market rate delta 12m",
-        "consecutive clean months"
+        "positive refinance incentive"
       ],
       "exception_required": [
         "record data-quality score",
-        "dq violation count",
-        "missing field count"
+        "doc incomplete",
+        "dq violation count"
       ]
     },
     "copilot": {
@@ -175,18 +142,18 @@
       "pass_rate": 1.0
     },
     "submission": {
-      "rows": 1500,
+      "rows": 16000,
       "actions": {
-        "monitor_no_action": 507,
-        "retention_review": 497,
-        "raise_exception_for_review": 255,
-        "escalate_loss_mitigation": 215,
-        "watchlist_monitor": 18,
-        "early_stage_collections_outreach": 8
+        "retention_review": 7131,
+        "monitor_no_action": 5953,
+        "raise_exception_for_review": 2651,
+        "early_stage_collections_outreach": 152,
+        "escalate_loss_mitigation": 79,
+        "watchlist_monitor": 34
       }
     },
     "model_card": {
-      "lines": 218
+      "lines": 247
     }
   },
   "outputs": [
@@ -195,12 +162,15 @@
     "anomaly_review_queue.csv",
     "backtest_folds.csv",
     "batch_quality_scores.csv",
+    "compliance_audit.md",
     "copilot_report.md",
     "copilot_validator_self_test.csv",
     "cox_default_coefficients.csv",
     "cox_prepay_coefficients.csv",
     "cumulative_incidence.csv",
     "data_intelligence_report.md",
+    "demo_video_script.md",
+    "drift_by_target.csv",
     "drift_report.csv",
     "exception_binary_metrics.csv",
     "exception_type_metrics.csv",
@@ -248,7 +218,9 @@
     "validation_rule_summary.csv",
     "submission/AI_DEVELOPMENT_LOG.md",
     "submission/MODEL_CARD.md",
+    "submission/SUBMISSION_FORMAT.md",
     "submission/llm_prompt_log.jsonl",
+    "submission/run_manifest.json",
     "submission/submission.csv"
   ]
 }

@@ -15,7 +15,28 @@ CACHE = C.DATA_PROCESSED / "model_frame.parquet"
 CACHE_CSV = C.DATA_PROCESSED / "model_frame.csv"
 
 
+def _cache_is_stale() -> bool:
+    """True when the raw pack is newer than the cached feature frame.
+
+    Without this, ``--skip-data`` silently reuses a feature frame built from a previous
+    data pack. Switching the panel from the synthetic generator to the real SFLLD loader
+    changes ``loan_panel.csv`` but not the cache, so every downstream report would be
+    regenerated from the *old* data while looking perfectly fresh.
+    """
+    caches = [c for c in (CACHE, CACHE_CSV) if c.exists()]
+    if not caches:
+        return False
+    newest_cache = max(c.stat().st_mtime for c in caches)
+    sources = [C.LOAN_PANEL, C.SERVICER_UPDATES, C.MACRO_HISTORY]
+    newest_source = max((s.stat().st_mtime for s in sources if s.exists()), default=0.0)
+    return newest_source > newest_cache
+
+
 def prepare(use_cache: bool = True) -> pd.DataFrame:
+    if use_cache and _cache_is_stale():
+        print("  [prepare] raw data pack is newer than the cached feature frame; rebuilding",
+              flush=True)
+        use_cache = False
     if use_cache:
         cached = _read_cache()
         if cached is not None:
@@ -45,7 +66,8 @@ def _read_cache():
     except (ImportError, ValueError, OSError):
         pass
     if CACHE_CSV.exists():
-        df = pd.read_csv(CACHE_CSV)
+        from src.data.loaders import _PANEL_STRING_COLS
+        df = pd.read_csv(CACHE_CSV, dtype=_PANEL_STRING_COLS)
         return _restore_types(df)
     return None
 

@@ -162,9 +162,12 @@ def _write_report(df, results, models):
       "economically sensible ordering and it was not imposed: both models saw the same 81 "
       "features.")
     A("- **Prepayment is dominated by rate economics** — note rate and the 12-month move in "
-      "market rates — which is the correct mechanism and independently corroborates Task 5, "
-      "where the prepayment response concentrated in positive-incentive buckets (+0.23 for "
-      "loans 0.5-1.0pp above market against -0.01 for loans more than 1pp below it).")
+      "market rates — which is the correct mechanism and independently corroborates the "
+      "rate-incentive bucket table in Task 5 "
+      "(`reports/scenario_segment_prepay_by_rate_incentive.csv`). The response there is not "
+      "monotone in incentive, and that is the economically right shape: loans already far "
+      "in the money are near-saturated and have little headroom left, so a further rate cut "
+      "moves them least, while loans sitting just below the refinance threshold move most.")
     A("- **Exceptions are dominated by operational fields** — data-quality score, rule "
       "violation count, missing field count — with essentially no contribution from credit "
       "attributes. This is the same conclusion the ROC-AUC 0.53 credit baseline reached in "
@@ -177,6 +180,39 @@ def _write_report(df, results, models):
     A("")
     A("## Limitations")
     A("")
+    A("## Anomaly-score drivers")
+    A("")
+    A("Task 6 asks for drivers of the anomaly score alongside the three predictive scores. "
+      "The anomaly score is unsupervised, so it has no SHAP decomposition: an isolation "
+      "forest gives no native per-feature attribution and inventing one would be exactly the "
+      "kind of plausible-but-unfounded explanation this layer exists to prevent.")
+    A("")
+    A("Instead each flagged record is attributed by **robust deviation** — every anomaly "
+      "feature is scored by its distance from the training-window median in MAD units, and "
+      "the largest deviations are named. That is a quantity a reviewer can check against the "
+      "record in front of them, which a SHAP value for an unsupervised model would not be.")
+    A("")
+    try:
+        from src.models import anomaly as ANOM
+        from src.models.splits import purged_time_split
+        _split = purged_time_split(df, "exception_required")
+        _iso, _cols = ANOM.fit_isolation_forest(df, _split.train)
+        _test = df.loc[_split.test]
+        _drv = ANOM.anomaly_drivers(_test, _cols, reference=df.loc[_split.train])
+        _counts = (_drv["anomaly_driver_1"].value_counts(normalize=True)
+                   .head(10).rename("share_of_flagged_records").reset_index())
+        _counts.columns = ["top_anomaly_driver", "share_of_records"]
+        A(_md(_counts.round(4)))
+        A("")
+        A(f"Across {len(_test):,} held-out records, the leading driver is "
+          f"**{_counts.iloc[0]['top_anomaly_driver']}** "
+          f"({_counts.iloc[0]['share_of_records']:.1%} of records). Per-record attributions "
+          "for the reviewer queue are in `reports/anomaly_review_queue.csv`, and the "
+          "distributional detail is in `reports/anomaly_report.md`.")
+        A("")
+    except Exception as exc:  # never let a reporting extra break the stage
+        A(f"_Anomaly driver attribution unavailable in this run: {type(exc).__name__}._")
+        A("")
     A("- SHAP attributes to *features*, not to causes. A high contribution from days past due "
       "does not mean delinquency causes default in any actionable sense; it means the model "
       "reads it as the strongest available signal.")

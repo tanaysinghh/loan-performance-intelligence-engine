@@ -41,6 +41,7 @@ def build(df: pd.DataFrame = None) -> dict:
     miss = profiling.missingness_structure(scored)
     deps = profiling.dependency_analysis(scored)
     drift = profiling.drift_report(scored)
+    drift_tgt = profiling.drift_report_by_target(scored)
     tgt = profiling.target_stability(scored)
 
     num.to_csv(C.REPORTS / "profile_numeric.csv", index=False)
@@ -48,6 +49,7 @@ def build(df: pd.DataFrame = None) -> dict:
     rule_summary.to_csv(C.REPORTS / "validation_rule_summary.csv", index=False)
     batches.to_csv(C.REPORTS / "batch_quality_scores.csv", index=False)
     drift.to_csv(C.REPORTS / "drift_report.csv", index=False)
+    drift_tgt.to_csv(C.REPORTS / "drift_by_target.csv", index=False)
     miss["mechanism_tests"].to_csv(C.REPORTS / "missingness_mechanism_tests.csv", index=False)
     scored[["loan_id", "reporting_month", "servicer_name", "dq_score", "dq_band",
             "dq_violation_count"]].to_csv(C.REPORTS / "record_quality_scores.csv", index=False)
@@ -79,6 +81,38 @@ def build(df: pd.DataFrame = None) -> dict:
       f"resolved latest-wins, **{feed_stats['orphans']:,}** orphan records referencing loan-months "
       f"absent from the panel.")
     A("")
+
+    real = C.real_build_summary()
+    if real:
+        diag = real.get("real_data_diagnostics", {})
+        A("### Source and provenance")
+        A("")
+        A("Built from the **Freddie Mac Single-Family Loan-Level Dataset** sample files, "
+          "vintages 2019-2023 (250,000 loans, 10,482,492 monthly records), sampled at loan "
+          "level. The macro series are real (FRED `MORTGAGE30US`, `UNRATE`, `CSUSHPINSA`).")
+        A("")
+        A("The **exception, reconciliation and document-status layer is fabricated** on top of "
+          "the real panel, because SFLLD has no second source, no ingestion timestamps and no "
+          "document data. The fabricated servicer feed is anchored on real servicing "
+          f"transfers — **{diag.get('servicer_transfer_loans', 0):,}** of "
+          f"**{real.get('loans', 0):,}** sampled loans genuinely change servicer at least "
+          "once. Section 2 of the model card sets out exactly which columns are which.")
+        A("")
+        A("> ### The 12-month default target is a 90+ DPD proxy")
+        A("> ")
+        A(f"> Realised credit events — third-party sale, short sale, REO disposition, note "
+          f"sale (zero-balance codes 02/03/09/15) — occur on **"
+          f"{diag.get('true_credit_event_loans', 0)} of {real.get('loans', 0):,} sampled "
+          f"loans**, roughly one row in 200,000. That cannot be modelled. These are post-2019 "
+          f"agency vintages carried by strong house-price appreciation and pandemic-era "
+          f"forbearance, so the scarcity is a property of the cohort rather than of the "
+          f"sample.")
+        A("> ")
+        A("> **`next_12m_default_flag` is therefore 1 when the loan reaches 90+ days past due, "
+          "or a realised credit event, within the next 12 months.** Every profiling figure, "
+          "metric and submission column labelled 'default' refers to that proxy. It is a "
+          "serious-delinquency model, not a loss model.")
+        A("")
     A("## 2. Column distribution profiling")
     A("")
     A("### Numeric fields")
@@ -96,13 +130,17 @@ def build(df: pd.DataFrame = None) -> dict:
     A(f"- Rows with at least one missing profiled field: **{miss['rows_with_any_missing']:.1%}**")
     A(f"- Mean missing fields per row: **{miss['mean_missing_fields_per_row']:.3f}**")
     A("")
+    _by_srv = miss["by_servicer"]
+    _worst = (_by_srv.mean(axis=1).sort_values(ascending=False).head(2).index.tolist()
+              if len(_by_srv) else [])
+    _worst_txt = (" and ".join(f"{s}" for s in _worst) if _worst else "a small number of servicers")
     A("Missingness is not random. A chi-square test of each field's missingness indicator "
       "against `servicer_name` rejects independence for the fields below, so the mechanism is "
-      "**missing-at-random conditional on servicer**, not MCAR. Two servicers "
-      "(Kestrel Financial, Pioneer Mortgage Ops) account for most of the gap. The practical "
-      "consequence: dropping incomplete rows would silently drop those servicers' books and "
-      "bias every downstream rate. Models therefore consume missingness natively and carry "
-      "explicit missing-indicator features.")
+      f"**missing-at-random conditional on servicer**, not MCAR. The two servicers with the "
+      f"highest mean missingness ({_worst_txt}) account for a disproportionate share of the "
+      "gap. The practical consequence: dropping incomplete rows would silently drop those "
+      "servicers' books and bias every downstream rate. Models therefore consume missingness "
+      "natively and carry explicit missing-indicator features.")
     A("")
     A(_md(miss["mechanism_tests"]))
     A("")
@@ -172,11 +210,33 @@ def build(df: pd.DataFrame = None) -> dict:
     A("")
     A("## 7. Train / test drift")
     A("")
-    A(f"Split at `{C.TRAIN_END}`, matching the time-aware modelling split used in Task 2. "
-      "PSI below 0.10 is stable, 0.10-0.25 moderate, above 0.25 severe.")
+    A(f"Reference split at `{C.TRAIN_END}`. PSI below 0.10 is stable, 0.10-0.25 moderate, "
+      "above 0.25 severe.")
     A("")
     A(_md(drift))
     A("")
+    A("### Drift at each target's own split boundary")
+    A("")
+    A("A single global boundary describes a split no model is actually trained on: the purged "
+      "splits do not share a frontier, because a 12-month horizon must stop training far "
+      "earlier than a 3-month one. The table below re-measures drift across the **real** "
+      "train/test boundary used for each target.")
+    A("")
+    if len(drift_tgt):
+        A(_md(drift_tgt.groupby("target").head(5).reset_index(drop=True)[
+            ["target", "train_window", "test_window", "column", "psi", "ks_statistic",
+             "severity"]], max_rows=60))
+        A("")
+        A("Seasoning is the dominant signal: `loan_age_months` and `remaining_term_months` "
+          "drift severely on every target, which is structural rather than a data fault — a "
+          "later window necessarily contains older loans. `servicer_name` drift is also real, "
+          "and reflects genuine servicing transfers rather than a reporting change. The "
+          "practical consequence is that absolute age features carry regime information; the "
+          "models therefore also receive age-relative and rate-incentive features that are "
+          "stable across the boundary.")
+        A("")
+        A("Full table: `reports/drift_by_target.csv`.")
+        A("")
     A("### Target stability across months")
     A("")
     A(_md(tgt))
@@ -211,10 +271,12 @@ def build(df: pd.DataFrame = None) -> dict:
     A("")
     A("## 9. What this means for modelling")
     A("")
-    A("1. **Servicer is a confound, not just a feature.** Kestrel Financial and Pioneer "
-      "Mortgage Ops have both the worst data quality *and* elevated delinquency. A model "
-      "given raw servicer identity will partly learn reporting behaviour rather than credit "
-      "risk. Servicer is retained but its SHAP contribution is inspected separately in the "
+    _srv_dq = scored.groupby("servicer_name")["dq_score"].mean().sort_values()
+    _dq_worst = ", ".join(_srv_dq.head(2).index.astype(str)) or "the weakest-reporting servicers"
+    A(f"1. **Servicer is a confound, not just a feature.** The servicers with the lowest mean "
+      f"data-quality score ({_dq_worst}) also carry elevated delinquency. A model given raw "
+      "servicer identity will partly learn reporting behaviour rather than credit risk. "
+      "Servicer is retained but its SHAP contribution is inspected separately in the "
       "explainability report.")
     A("2. **Censoring is real and material.** Forward-looking targets are undefined for rows "
       "whose horizon runs past the panel end. These are `NaN`, not `0`, and are excluded from "

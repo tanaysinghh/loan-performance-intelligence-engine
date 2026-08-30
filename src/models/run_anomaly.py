@@ -103,9 +103,12 @@ def _write_report(df, out, split):
     A_("")
     A_(A.ANOMALY_FEATURE_RATIONALE)
     A_("")
-    A_("Rebuilt on defect-shaped features, the same model moved from 0.92x lift to "
-      f"{ag['lift_over_base']:.2f}x and from ROC-AUC 0.615 to "
-      f"{ag['roc_auc_vs_exception_label']:.3f} against the exception label.")
+    A_("Rebuilt on defect-shaped features, the same model now reaches "
+      f"{ag['lift_over_base']:.2f}x lift and ROC-AUC "
+      f"{ag['roc_auc_vs_exception_label']:.3f} against the exception label. For reference, "
+      "the size-shaped feature set this replaced scored 0.92x lift and ROC-AUC 0.615 — those "
+      "two figures are from the development iteration that motivated the change and are "
+      "quoted as history, not as a measurement on the current data.")
     A_("")
     A_("### Does the unsupervised score agree with the reviewer label?")
     A_("")

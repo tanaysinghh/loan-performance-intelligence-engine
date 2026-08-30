@@ -12,14 +12,14 @@ Three distinct reasons an outcome is unobserved, each handled differently rather
 
 | mechanism | loans | share | treatment |
 | --- | --- | --- | --- |
-| Administrative right-censoring | 534 | 0.3560 | Still performing at panel end. Duration = final observed age, event = 0. Contributes exposure to the risk set up to that age and nothing after. |
-| Competing risk (prepayment before default) | 739 | 0.4927 | Censored in the default model, giving the cause-specific hazard. Cumulative incidence is computed separately by Aalen-Johansen; see section 4. |
-| Left truncation (loan originated before the panel opens) | 540 | 0.3600 | Entry age passed as truncation time, so ages before panel entry are excluded from the risk set instead of counted as event-free exposure. |
-| Observed default | 227 | 0.1513 | Event = 1 at the loan age of the transition into Default. |
+| Administrative right-censoring | 10008 | 0.6255 | Still performing at panel end. Duration = final observed age, event = 0. Contributes exposure to the risk set up to that age and nothing after. |
+| Competing risk (prepayment before default) | 5437 | 0.3398 | Censored in the default model, giving the cause-specific hazard. Cumulative incidence is computed separately by Aalen-Johansen; see section 4. |
+| Left truncation (loan originated before the panel opens) | 795 | 0.0497 | Entry age passed as truncation time, so ages before panel entry are excluded from the risk set instead of counted as event-free exposure. |
+| Observed default | 505 | 0.0316 | Event = 1 at the loan age of the transition into Default. |
 
-Loan-level survival frame: **1,500** loans, **227** defaults, **739** prepayments, **534** censored. Median observed duration: **22** months.
+Loan-level survival frame: **16,000** loans, **505** defaults, **5437** prepayments, **10058** censored. Median observed duration: **40** months.
 
-Ignoring left truncation would be the expensive mistake here: **36%** of loans enter the panel already seasoned. Crediting them with event-free exposure at ages they were never observed at would flatten the early hazard and understate the seasoning ramp.
+**5%** of loans enter the panel already seasoned, and their entry age is passed as the truncation time so the months they were never observed at are excluded from the risk set rather than credited as event-free exposure. Crediting them would flatten the early hazard and understate the seasoning ramp. On this panel the share is small, because the vintage files begin at origination for all but a minority of seasoned acquisitions — so the correction is materially smaller here than it would be on a panel assembled from a fixed calendar window. It is applied regardless, since it costs nothing and its absence would bias the early hazard.
 
 ## 3. Event curves
 
@@ -29,46 +29,51 @@ Cumulative event probability by loan age, Kaplan-Meier, left-truncation aware.
 
 | group | 12 | 24 | 36 | 60 | 84 |
 | --- | --- | --- | --- | --- | --- |
-| all | 0.0227 | 0.0766 | 0.1387 | 0.2772 | 0.3706 |
+| all | 0.0113 | 0.0249 | 0.0334 | 0.0395 | 0.0523 |
 
 ### Prepayment
 
 | group | 12 | 24 | 36 | 60 | 84 |
 | --- | --- | --- | --- | --- | --- |
-| all | 0.2032 | 0.3691 | 0.5002 | 0.6448 | 0.7099 |
+| all | 0.1018 | 0.2294 | 0.3002 | 0.3701 | 0.4447 |
 
 ### Default by credit band
 
 | group | 12 | 24 | 36 | 60 | 84 |
 | --- | --- | --- | --- | --- | --- |
-| 580-619 | 0.0585 | 0.2650 | 0.4506 | 0.6925 | 0.7804 |
-| 620-659 | 0.0458 | 0.1314 | 0.2193 | 0.4575 | 0.5950 |
-| 660-699 | 0.0295 | 0.0981 | 0.0981 | 0.2751 | 0.4066 |
-| 700-739 | 0.0055 | 0.0184 | 0.0562 | 0.1635 | 0.2254 |
-| 740-779 | 0.0057 | 0.0125 | 0.0278 | 0.0624 | 0.1233 |
-| 780+ | 0.0068 | 0.0068 | 0.0168 | 0.0285 | 0.0741 |
-| <580 | 0.0835 | 0.2928 | 0.6129 | 0.8434 | 0.9720 |
+| 620-659 | 0.0274 | 0.0758 | 0.1026 | 0.1286 | 0.1578 |
+| 660-699 | 0.0209 | 0.0505 | 0.0710 | 0.0804 | 0.1366 |
+| 700-739 | 0.0128 | 0.0350 | 0.0486 | 0.0593 | 0.0718 |
+| 740-779 | 0.0120 | 0.0207 | 0.0262 | 0.0311 | 0.0346 |
+| 780+ | 0.0043 | 0.0071 | 0.0089 | 0.0105 | 0.0122 |
 
 ### Default by LTV band
 
 | group | 12 | 24 | 36 | 60 | 84 |
 | --- | --- | --- | --- | --- | --- |
-| 60-70 | 0.0092 | 0.0248 | 0.0439 | 0.1564 | 0.2231 |
-| 70-80 | 0.0172 | 0.0442 | 0.0819 | 0.2564 | 0.3869 |
-| 80-90 | 0.0602 | 0.1390 | 0.2126 | 0.3722 | 0.4621 |
-| 90-95 | 0.0282 | 0.1255 | 0.2746 | 0.4560 | 0.5134 |
-| <=60 | 0.0000 | 0.0000 | 0.0189 | 0.0654 | 0.1909 |
-| >95 | 0.0315 | 0.2518 | 0.4380 | 0.6132 | 0.7242 |
+| 60-70 | 0.0110 | 0.0232 | 0.0330 | 0.0403 | 0.0466 |
+| 70-80 | 0.0113 | 0.0253 | 0.0320 | 0.0399 | 0.0598 |
+| 80-90 | 0.0120 | 0.0236 | 0.0344 | 0.0428 | 0.0428 |
+| 90-95 | 0.0155 | 0.0376 | 0.0493 | 0.0590 | 0.0749 |
+| <=60 | 0.0080 | 0.0157 | 0.0213 | 0.0233 | 0.0344 |
+| >95 | 0.0143 | 0.0395 | 0.0607 | 0.0607 | 0.0702 |
 
 ### Default by servicer
 
 | group | 12 | 24 | 36 | 60 | 84 |
 | --- | --- | --- | --- | --- | --- |
-| Arcadia Capital Servicing | 0.0384 | 0.0739 | 0.1261 | 0.2458 | 0.3407 |
-| Belmont Loan Services | 0.0226 | 0.0769 | 0.1467 | 0.3147 | 0.4024 |
-| Kestrel Financial | 0.0103 | 0.0922 | 0.1684 | 0.3538 | 0.4025 |
-| Northgate Servicing | 0.0078 | 0.0681 | 0.1339 | 0.2452 | 0.3293 |
-| Pioneer Mortgage Ops | 0.0424 | 0.0872 | 0.1348 | 0.2746 | 0.4105 |
+| AMERIHOME MORTGAGE COMPANY, LLC | 0.0041 | 0.0201 | 0.0307 | 0.0477 | 0.0477 |
+| BANK OF AMERICA, N.A. | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.1111 |
+| BRANCH BANKING AND TRUST COMPANY | 0.0000 | 0.0597 | 0.0597 | 0.0597 | 0.0597 |
+| CALIBER HOME LOANS, INC. | 0.0300 | 0.0410 | 0.0451 | 0.0547 | 0.2910 |
+| CITIZENS BANK, NA | 0.0034 | 0.0071 | 0.0114 | 0.0172 | 0.0341 |
+| FIFTH THIRD BANK, NATIONAL ASSOCIATION | 0.0000 | 0.0000 | 0.0097 | 0.0097 | 0.0097 |
+| FREEDOM MORTGAGE CORPORATION | 0.0258 | 0.0584 | 0.1015 | 0.1245 | 0.1245 |
+| HOME POINT FINANCIAL CORPORATION | 0.0065 | 0.0139 | 0.0214 | 0.0312 | 0.0312 |
+| JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | 0.0185 | 0.0426 | 0.0484 | 0.0565 | 0.0650 |
+| LAKEVIEW LOAN SERVICING, LLC | 0.0126 | 0.0274 | 0.0333 | 0.0432 | 0.0432 |
+| LOANDEPOT.COM, LLC | 0.0073 | 0.0192 | 0.0323 | 0.0392 | 0.0392 |
+| MATRIX FINANCIAL SERVICES CORPORATION | 0.0226 | 0.0327 | 0.0386 | 0.0451 | 0.0451 |
 
 ## 4. Competing risks: why 1 - KM is the wrong number
 
@@ -76,15 +81,13 @@ The naive complement of a cause-specific Kaplan-Meier curve treats prepaid loans
 
 | loan_age_months | at_risk | cif_default | cif_prepay | naive_1_minus_km_default | km_overstatement | event_free_survival |
 | --- | --- | --- | --- | --- | --- | --- |
-| 12.0000 | 823 | 0.0195 | 0.2021 | 0.0227 | 0.0032 | 0.7784 |
-| 24.0000 | 675 | 0.0577 | 0.3606 | 0.0766 | 0.0189 | 0.5817 |
-| 36.0000 | 570 | 0.0919 | 0.4788 | 0.1387 | 0.0467 | 0.4293 |
-| 48.0000 | 485 | 0.1182 | 0.5500 | 0.1967 | 0.0785 | 0.3318 |
-| 60.0000 | 335 | 0.1489 | 0.5957 | 0.2772 | 0.1283 | 0.2554 |
-| 84.0000 | 158 | 0.1784 | 0.6401 | 0.3706 | 0.1921 | 0.1815 |
-| 108.0000 | 71 | 0.1919 | 0.6521 | 0.4183 | 0.2265 | 0.1560 |
+| 12.0000 | 14384 | 0.0108 | 0.1013 | 0.0113 | 0.0005 | 0.8880 |
+| 24.0000 | 12124 | 0.0222 | 0.2265 | 0.0249 | 0.0026 | 0.7513 |
+| 36.0000 | 8963 | 0.0285 | 0.2954 | 0.0334 | 0.0049 | 0.6762 |
+| 48.0000 | 6088 | 0.0312 | 0.3304 | 0.0374 | 0.0061 | 0.6384 |
+| 60.0000 | 3297 | 0.0326 | 0.3626 | 0.0395 | 0.0069 | 0.6048 |
 
-Maximum overstatement across the observed age range: **0.2497** in absolute probability. On a book of 10,000 loans that is the difference between provisioning for 2497 extra defaults that will not happen.
+Maximum overstatement across the observed age range: **0.0121** in absolute probability. On a book of 10,000 loans that is the difference between provisioning for 121 extra defaults that will not happen.
 
 ## 5. Cox proportional hazards
 
@@ -94,29 +97,29 @@ Penalised Cox (ridge, 0.08) with robust standard errors, fitted on the training-
 
 | feature | coef | hazard_ratio | se(coef) | p |
 | --- | --- | --- | --- | --- |
-| rate_incentive_at_entry | 0.5321 | 1.7025 | 0.1675 | 0.0015 |
-| is_investment | 0.2658 | 1.3045 | 0.2142 | 0.2146 |
-| dti_ord | 0.1976 | 1.2185 | 0.0495 | 0.0001 |
-| ltv_ord | 0.1658 | 1.1804 | 0.0427 | 0.0001 |
-| is_high_ops_servicer | 0.1582 | 1.1714 | 0.1327 | 0.2335 |
-| log_original_balance | 0.0290 | 1.0295 | 0.1281 | 0.8206 |
-| interest_rate_clean | 0.0257 | 1.0260 | 0.1463 | 0.8605 |
-| credit_ord | -0.1824 | 0.8333 | 0.0335 | 0.0000 |
-| is_cash_out | -0.2428 | 0.7844 | 0.1683 | 0.1491 |
+| rate_incentive_at_entry | 0.1057 | 1.1115 | 0.0381 | 0.0056 |
+| dti_ord | 0.1036 | 1.1092 | 0.0179 | 0.0000 |
+| is_cash_out | 0.0990 | 1.1041 | 0.0617 | 0.1086 |
+| log_original_balance | 0.0825 | 1.0860 | 0.0460 | 0.0729 |
+| interest_rate_clean | 0.0646 | 1.0668 | 0.0246 | 0.0085 |
+| ltv_ord | 0.0625 | 1.0645 | 0.0184 | 0.0007 |
+| is_investment | 0.0420 | 1.0429 | 0.1130 | 0.7100 |
+| is_high_ops_servicer | 0.0391 | 1.0399 | 0.0620 | 0.5283 |
+| credit_ord | -0.0911 | 0.9129 | 0.0215 | 0.0000 |
 
 ### Prepayment hazard
 
 | feature | coef | hazard_ratio | se(coef) | p |
 | --- | --- | --- | --- | --- |
-| credit_ord | 0.2099 | 1.2336 | 0.0284 | 0.0000 |
-| interest_rate_clean | 0.1494 | 1.1611 | 0.0802 | 0.0624 |
-| rate_incentive_at_entry | 0.1446 | 1.1555 | 0.1569 | 0.3569 |
-| is_cash_out | 0.1321 | 1.1412 | 0.1045 | 0.2065 |
-| is_investment | 0.1257 | 1.1339 | 0.1273 | 0.3233 |
-| log_original_balance | 0.0397 | 1.0405 | 0.0819 | 0.6282 |
-| is_high_ops_servicer | 0.0057 | 1.0057 | 0.0903 | 0.9495 |
-| dti_ord | -0.0008 | 0.9992 | 0.0320 | 0.9799 |
-| ltv_ord | -0.0637 | 0.9382 | 0.0351 | 0.0697 |
+| log_original_balance | 0.4139 | 1.5126 | 0.0313 | 0.0000 |
+| interest_rate_clean | 0.1309 | 1.1398 | 0.0241 | 0.0000 |
+| is_high_ops_servicer | 0.0582 | 1.0599 | 0.0355 | 0.1010 |
+| credit_ord | 0.0308 | 1.0313 | 0.0140 | 0.0281 |
+| is_cash_out | 0.0295 | 1.0299 | 0.0390 | 0.4489 |
+| dti_ord | -0.0120 | 0.9881 | 0.0127 | 0.3441 |
+| ltv_ord | -0.0704 | 0.9320 | 0.0119 | 0.0000 |
+| is_investment | -0.0962 | 0.9083 | 0.0592 | 0.1044 |
+| rate_incentive_at_entry | -0.1556 | 0.8559 | 0.0369 | 0.0000 |
 
 ### Discrimination against the covariate-free baseline
 
@@ -124,8 +127,8 @@ Kaplan-Meier assigns every loan the same survival curve, so its concordance is 0
 
 | model | n_train | events_train | n_test | events_test | concordance_train | concordance_test |
 | --- | --- | --- | --- | --- | --- | --- |
-| Cox — default | 634 | 135 | 857 | 92 | 0.8043 | 0.8236 |
-| Cox — prepayment | 634 | 499 | 857 | 231 | 0.5800 | 0.6967 |
+| Cox — default | 3845 | 123 | 12149 | 382 | 0.6940 | 0.7169 |
+| Cox — prepayment | 3845 | 3679 | 12149 | 1755 | 0.6036 | 0.6811 |
 
 ## 6. Multi-state Markov transition model
 
@@ -133,10 +136,10 @@ Monthly one-step transition matrix estimated on the training window with Laplace
 
 | from_state | Current | DQ30 | DQ60 | DQ90plus | Default | Prepaid |
 | --- | --- | --- | --- | --- | --- | --- |
-| Current | 0.9751 | 0.0063 | 0.0000 | 0.0000 | 0.0000 | 0.0186 |
-| DQ30 | 0.0904 | 0.4910 | 0.4163 | 0.0008 | 0.0008 | 0.0008 |
-| DQ60 | 0.0010 | 0.0569 | 0.4202 | 0.5200 | 0.0010 | 0.0010 |
-| DQ90plus | 0.0005 | 0.0005 | 0.0189 | 0.7559 | 0.2175 | 0.0066 |
+| Current | 0.9824 | 0.0048 | 0.0000 | 0.0000 | 0.0000 | 0.0128 |
+| DQ30 | 0.5040 | 0.2456 | 0.2487 | 0.0014 | 0.0002 | 0.0002 |
+| DQ60 | 0.1772 | 0.0464 | 0.1118 | 0.6636 | 0.0006 | 0.0006 |
+| DQ90plus | 0.1206 | 0.0051 | 0.0170 | 0.6435 | 0.2135 | 0.0003 |
 | Default | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 | 0.0000 |
 | Prepaid | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 |
 
@@ -146,10 +149,10 @@ Raising the matrix to the 12th power gives the state distribution a year out. Th
 
 | start_state | horizon_month | p_Current | p_DQ30 | p_DQ60 | p_DQ90plus | p_Default | p_Prepaid |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Current | 12 | 0.7484 | 0.0106 | 0.0084 | 0.0165 | 0.0194 | 0.1965 |
-| DQ30 | 12 | 0.1560 | 0.0052 | 0.0123 | 0.1248 | 0.6471 | 0.0547 |
-| DQ60 | 12 | 0.0201 | 0.0019 | 0.0069 | 0.0911 | 0.8487 | 0.0313 |
-| DQ90plus | 12 | 0.0034 | 0.0008 | 0.0035 | 0.0521 | 0.9118 | 0.0285 |
+| Current | 12 | 0.8425 | 0.0055 | 0.0016 | 0.0032 | 0.0049 | 0.1422 |
+| DQ30 | 12 | 0.7257 | 0.0049 | 0.0016 | 0.0082 | 0.1574 | 0.1023 |
+| DQ60 | 12 | 0.4555 | 0.0031 | 0.0012 | 0.0110 | 0.4704 | 0.0587 |
+| DQ90plus | 12 | 0.3267 | 0.0022 | 0.0009 | 0.0086 | 0.6201 | 0.0414 |
 | Default | 12 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 | 0.0000 |
 | Prepaid | 12 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 1.0000 |
 
@@ -157,18 +160,18 @@ Raising the matrix to the 12th power gives the state distribution a year out. Th
 
 | horizon_month | Current | DQ30 | DQ60 | DQ90plus |
 | --- | --- | --- | --- | --- |
-| 1 | 0.0000 | 0.0008 | 0.0010 | 0.2175 |
-| 2 | 0.0000 | 0.0017 | 0.1145 | 0.3819 |
-| 3 | 0.0001 | 0.0495 | 0.2478 | 0.5084 |
-| 4 | 0.0004 | 0.1286 | 0.3723 | 0.6065 |
-| 5 | 0.0012 | 0.2194 | 0.4801 | 0.6831 |
-| 6 | 0.0026 | 0.3089 | 0.5704 | 0.7430 |
-| 7 | 0.0045 | 0.3907 | 0.6445 | 0.7901 |
-| 8 | 0.0068 | 0.4619 | 0.7049 | 0.8271 |
-| 9 | 0.0096 | 0.5222 | 0.7535 | 0.8563 |
-| 10 | 0.0127 | 0.5724 | 0.7925 | 0.8793 |
-| 11 | 0.0160 | 0.6135 | 0.8238 | 0.8975 |
-| 12 | 0.0194 | 0.6471 | 0.8487 | 0.9118 |
+| 1 | 0.0000 | 0.0002 | 0.0006 | 0.2135 |
+| 2 | 0.0000 | 0.0006 | 0.1423 | 0.3509 |
+| 3 | 0.0000 | 0.0362 | 0.2494 | 0.4418 |
+| 4 | 0.0002 | 0.0717 | 0.3233 | 0.5022 |
+| 5 | 0.0006 | 0.0990 | 0.3733 | 0.5426 |
+| 6 | 0.0010 | 0.1183 | 0.4070 | 0.5696 |
+| 7 | 0.0016 | 0.1318 | 0.4297 | 0.5877 |
+| 8 | 0.0022 | 0.1410 | 0.4450 | 0.5999 |
+| 9 | 0.0029 | 0.1474 | 0.4553 | 0.6081 |
+| 10 | 0.0036 | 0.1519 | 0.4623 | 0.6137 |
+| 11 | 0.0042 | 0.1551 | 0.4671 | 0.6175 |
+| 12 | 0.0049 | 0.1574 | 0.4704 | 0.6201 |
 
 ## 7. Validation against realised outcomes
 
@@ -176,12 +179,13 @@ The projection is compared against what actually happened to test-window rows ov
 
 | start_state | n_test_rows | markov_predicted_default_12m | observed_default_12m | markov_predicted_prepay_12m | observed_prepay_12m | default_abs_error | prepay_abs_error |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Current | 3814 | 0.0194 | 0.0294 | 0.1965 | 0.1778 | 0.0099 | 0.0188 |
-| DQ30 | 64 | 0.6471 | 0.6719 | 0.0547 | 0.0000 | 0.0248 | 0.0547 |
-| DQ60 | 65 | 0.8487 | 0.9077 | 0.0313 | 0.0154 | 0.0590 | 0.0159 |
-| DQ90plus | 97 | 0.9118 | 0.8041 | 0.0285 | 0.1237 | 0.1077 | 0.0952 |
+| Current | 67736 | 0.0049 | 0.0060 | 0.1422 | 0.0757 | 0.0011 | 0.0665 |
+| DQ30 | 654 | 0.1574 | 0.2370 | 0.1023 | 0.0734 | 0.0796 | 0.0289 |
+| DQ60 | 188 | 0.4705 | 0.6968 | 0.0587 | 0.0904 | 0.2264 | 0.0317 |
+| DQ90plus | 202 | 0.6201 | 0.8762 | 0.0414 | 0.0941 | 0.2561 | 0.0526 |
+| Default | 204 | 1.0000 | 0.9314 | 0.0000 | 0.0833 | 0.0686 | 0.0833 |
 
-Mean absolute error on 12-month default probability: **0.0504**; on prepayment: **0.0461**.
+Mean absolute error on 12-month default probability: **0.1264**; on prepayment: **0.0526**.
 
 ## 8. Limitations
 

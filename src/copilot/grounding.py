@@ -99,7 +99,7 @@ def extract_numbers(pack: dict) -> set[float]:
         elif isinstance(obj, str):
             for token in _NUM_RE.findall(obj):
                 try:
-                    found.add(float(token))
+                    found.add(float(token.rstrip("%").replace(",", "")))
                 except ValueError:
                     pass
 
@@ -116,4 +116,47 @@ def extract_numbers(pack: dict) -> set[float]:
 
 
 import re
-_NUM_RE = re.compile(r"-?\d+\.?\d*")
+
+# The single number tokenizer, shared with the validator.
+#
+# These two once carried separate patterns and silently disagreed. A live Gemini run wrote
+# the credit band `580-619`; this side tokenized it as [580, -619] while the validator read
+# [580, 619], so a figure copied verbatim out of the pack was reported as ungrounded. Any
+# divergence between "what counts as a number in the pack" and "what counts as a number in
+# the text" shows up as a false accusation against correct output, so there is now one
+# pattern and both sides import it.
+#
+#   (?<![\w.])  a minus inside a word is a hyphen, and digits inside an id are not a number
+#   (?:[eE]..)  scientific notation is one token, not a number and an exponent
+NUMBER_TOKEN_RE = re.compile(r"(?<![\w.])-?\d[\d,]*\.?\d*(?:[eE][+-]?\d+)?%?")
+_NUM_RE = NUMBER_TOKEN_RE
+
+
+def rule_pack(rule_summary: pd.DataFrame, rules_json: dict,
+              worst_batches: pd.DataFrame | None = None) -> dict:
+    """Grounding pack for rule-suggestion questions.
+
+    Carries the existing rule definitions and their observed firing rates, so the model can
+    only reason about coverage gaps in terms of rules that exist and violations that were
+    actually measured. It is deliberately given no access to the panel: proposing a rule is a
+    drafting task for a human to accept or reject, not a data-mining task.
+    """
+    cols = [c for c in ("rule", "dimension", "severity", "rows_flagged", "flag_rate")
+            if c in rule_summary.columns]
+    pack = {
+        "existing_rules": rules_json.get("rules", []),
+        "dimensions_covered": rules_json.get("dimensions", []),
+        "observed_violation_rates": json.loads(rule_summary[cols].to_json(orient="records")),
+        "provenance": {
+            "rules": "data/raw/validation_rules.json",
+            "rates": "reports/validation_rule_summary.csv",
+            "llm_role": ("draft candidate rules for human review; the LLM does not add rules "
+                         "to the engine and cannot execute one"),
+        },
+    }
+    if worst_batches is not None and len(worst_batches):
+        keep = [c for c in ("reporting_month", "servicer_name", "mean_dq_score",
+                            "batch_grade") if c in worst_batches.columns]
+        pack["worst_scoring_batches"] = json.loads(
+            worst_batches[keep].head(5).to_json(orient="records"))
+    return pack

@@ -20,7 +20,7 @@ Isolation forest over 18 numeric record attributes, 400 trees, fitted on the tra
 
 The first feature set for this model used raw record levels — balance, loan age, remaining term, original balance. It scored *below* the base exception rate on its own top decile (lift 0.92x), because a genuinely large, genuinely seasoned jumbo loan is a statistical outlier and an entirely correct record. The feature set was rebuilt around quantities where deviation means a *defect* rather than a large loan: residuals against what the record should say given its own other fields (amortisation against term elapsed, days past due against reported status), disagreements with the second servicer feed, reporting timeliness, and repair indicators.
 
-Rebuilt on defect-shaped features, the same model moved from 0.92x lift to 2.02x and from ROC-AUC 0.615 to 0.845 against the exception label.
+Rebuilt on defect-shaped features, the same model now reaches 4.12x lift and ROC-AUC 0.893 against the exception label. For reference, the size-shaped feature set this replaced scored 0.92x lift and ROC-AUC 0.615 — those two figures are from the development iteration that motivated the change and are quoted as history, not as a measurement on the current data.
 
 ### Does the unsupervised score agree with the reviewer label?
 
@@ -28,19 +28,54 @@ This is the check that tells you whether an unsupervised score is worth anything
 
 | score_cutoff | flagged_share | precision_vs_exception_label | recall_vs_exception_label | base_exception_rate | lift_over_base | roc_auc_vs_exception_label |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0.6534 | 0.0601 | 0.2632 | 0.1211 | 0.1305 | 2.0172 | 0.8453 |
+| 0.4467 | 0.0600 | 0.5896 | 0.2474 | 0.1430 | 4.1224 | 0.8934 |
 
-Flagging the top 6.0% of records by anomaly score alone gives **26.3%** precision against the exception label, a lift of **2.02x** over the 13.0% base rate, with ROC-AUC **0.845**. Useful, and clearly weaker than the supervised model below — which is the expected ordering, and the reason the supervised score drives the queue while the anomaly score is kept as a second opinion for defect shapes the label does not cover.
+Flagging the top 6.0% of records by anomaly score alone gives **59.0%** precision against the exception label, a lift of **4.12x** over the 14.3% base rate, with ROC-AUC **0.893**. Useful, and clearly weaker than the supervised model below — which is the expected ordering, and the reason the supervised score drives the queue while the anomaly score is kept as a second opinion for defect shapes the label does not cover.
 
 ### Anomaly concentration by servicer
 
 | servicer_name | records | mean_anomaly_score | pct_top_decile | mean_exception_probability | actual_exception_rate |
 | --- | --- | --- | --- | --- | --- |
-| Pioneer Mortgage Ops | 7595 | 0.2094 | 0.1548 | 0.1640 | 0.1637 |
-| Kestrel Financial | 4980 | 0.2002 | 0.1386 | 0.2048 | 0.2056 |
-| Arcadia Capital Servicing | 10493 | 0.1578 | 0.0954 | 0.1074 | 0.1071 |
-| Belmont Loan Services | 11346 | 0.1487 | 0.0804 | 0.1138 | 0.1150 |
-| Northgate Servicing | 14510 | 0.1447 | 0.0768 | 0.1018 | 0.1006 |
+| PINGORA LOAN SERVICING, LLC | 2266 | 0.1563 | 0.1465 | 0.1653 | 0.1646 |
+| BRANCH BANKING AND TRUST COMPANY | 219 | 0.1528 | 0.1461 | 0.1320 | 0.1370 |
+| UNITED WHOLESALE MORTGAGE, LLC | 23897 | 0.1518 | 0.1354 | 0.1826 | 0.1850 |
+| TH MSR HOLDINGS LLC | 6606 | 0.1493 | 0.1367 | 0.1742 | 0.1720 |
+| PENNYMAC CORP. | 21569 | 0.1473 | 0.1313 | 0.1812 | 0.1811 |
+| FIFTH THIRD BANK, NATIONAL ASSOCIATION | 9112 | 0.1457 | 0.1332 | 0.1582 | 0.1610 |
+| LOANDEPOT.COM, LLC | 10657 | 0.1432 | 0.1219 | 0.1684 | 0.1702 |
+| UNITED SHORE FINANCIAL SERVICES, LLC | 3135 | 0.1431 | 0.1254 | 0.1685 | 0.1684 |
+| CALIBER HOME LOANS, INC. | 9159 | 0.1408 | 0.1174 | 0.1778 | 0.1781 |
+| PROVIDENT FUNDING ASSOCIATES, L.P. | 686 | 0.1401 | 0.1254 | 0.1460 | 0.1472 |
+| CITIZENS BANK, NA | 13577 | 0.1387 | 0.1156 | 0.1567 | 0.1588 |
+| AMERIHOME MORTGAGE COMPANY, LLC | 15063 | 0.1359 | 0.1139 | 0.1603 | 0.1595 |
+| CROSSCOUNTRY MORTGAGE, LLC | 1519 | 0.1352 | 0.1178 | 0.1413 | 0.1527 |
+| MATRIX FINANCIAL SERVICES CORPORATION | 12060 | 0.1343 | 0.1114 | 0.1670 | 0.1686 |
+| SPECIALIZED LOAN SERVICING LLC | 374 | 0.1302 | 0.1257 | 0.1266 | 0.1390 |
+| NEW RESIDENTIAL MORTGAGE LLC | 28354 | 0.1298 | 0.1056 | 0.1449 | 0.1457 |
+| JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | 60672 | 0.1291 | 0.1043 | 0.1512 | 0.1515 |
+| FREEDOM MORTGAGE CORPORATION | 17652 | 0.1282 | 0.1041 | 0.1487 | 0.1496 |
+| PHH ASSET SERVICES LLC | 1514 | 0.1266 | 0.1057 | 0.1296 | 0.1334 |
+| ONSLOW BAY FINANCIAL LLC | 8642 | 0.1246 | 0.0992 | 0.1527 | 0.1504 |
+| ROCKET MORTGAGE, LLC | 37632 | 0.1241 | 0.0976 | 0.1415 | 0.1443 |
+| SUNTRUST BANK | 289 | 0.1240 | 0.0934 | 0.1234 | 0.1246 |
+| PENNYMAC LOAN SERVICES, LLC | 9803 | 0.1239 | 0.0952 | 0.1457 | 0.1468 |
+| GUARANTEED RATE, INC. | 331 | 0.1227 | 0.0876 | 0.1384 | 0.1420 |
+| LAKEVIEW LOAN SERVICING, LLC | 30384 | 0.1223 | 0.0969 | 0.1369 | 0.1382 |
+| PNC BANK, NA | 12829 | 0.1211 | 0.0932 | 0.1295 | 0.1280 |
+| GUILD MORTGAGE COMPANY LLC | 1515 | 0.1209 | 0.0865 | 0.1278 | 0.1287 |
+| NATIONSTAR MORTGAGE LLC DBA MR. COOPER | 42385 | 0.1189 | 0.0921 | 0.1345 | 0.1347 |
+| OTHER | 185467 | 0.1187 | 0.0927 | 0.1275 | 0.1282 |
+| QUICKEN LOANS, LLC | 5387 | 0.1184 | 0.0956 | 0.1198 | 0.1192 |
+| CMG MORTGAGE, INC. | 2022 | 0.1168 | 0.0841 | 0.1333 | 0.1360 |
+| PHH MORTGAGE CORPORATION | 8890 | 0.1161 | 0.0883 | 0.1313 | 0.1295 |
+| HOME POINT FINANCIAL CORPORATION | 3488 | 0.1146 | 0.0834 | 0.1443 | 0.1448 |
+| BANK OF AMERICA, N.A. | 3531 | 0.1144 | 0.0869 | 0.1298 | 0.1306 |
+| TRUIST BANK | 19350 | 0.1143 | 0.0904 | 0.1151 | 0.1150 |
+| QUICKEN LOANS INC. | 2169 | 0.1127 | 0.0793 | 0.1215 | 0.1213 |
+| MARLIN MORTGAGE CAPITAL, LLC | 512 | 0.1095 | 0.0801 | 0.1168 | 0.1191 |
+| FIFTH THIRD BANK | 105 | 0.1091 | 0.0762 | 0.0897 | 0.0952 |
+| U.S. BANK N.A. | 20156 | 0.1077 | 0.0821 | 0.1129 | 0.1137 |
+| WELLS FARGO BANK, N.A. | 34862 | 0.1074 | 0.0779 | 0.1058 | 0.1055 |
 
 Ranking by mean anomaly score independently recovers the two servicers the data intelligence report identified as having the worst reporting hygiene. The unsupervised model was given no servicer identity at all — it only sees the numeric record profile — so this is corroboration, not circularity.
 
@@ -50,10 +85,10 @@ The logistic baseline here is deliberately the *same* nine credit fields used in
 
 | model | n | positive_rate | roc_auc | pr_auc | best_f1 | recall_at_precision_30 | recall_at_precision_50 | brier | ece |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| prior | 3480 | 0.1305 | 0.5000 | 0.1305 | 0.2308 | 0.0000 | 0.0000 | 0.1135 | 0.0000 |
-| baseline_logistic | 3480 | 0.1305 | 0.5326 | 0.1702 | 0.2396 | 0.0463 | 0.0220 | 0.2442 | 0.3631 |
-| lgbm_raw | 3480 | 0.1305 | 0.9649 | 0.8329 | 0.8600 | 0.9736 | 0.9626 | 0.0329 | 0.0234 |
-| lgbm_calibrated | 3480 | 0.1305 | 0.9649 | 0.8329 | 0.8600 | 0.9736 | 0.9626 | 0.0319 | 0.0071 |
+| prior | 63678 | 0.1430 | 0.5000 | 0.1430 | 0.2503 | 0.0000 | 0.0000 | 0.1226 | 0.0000 |
+| baseline_logistic | 63678 | 0.1430 | 0.5400 | 0.2301 | 0.2508 | 0.1133 | 0.0825 | 0.2467 | 0.3591 |
+| lgbm_raw | 63678 | 0.1430 | 0.9691 | 0.8462 | 0.8539 | 0.9819 | 0.9754 | 0.0369 | 0.0272 |
+| lgbm_calibrated | 63678 | 0.1430 | 0.9693 | 0.8293 | 0.8538 | 0.9735 | 0.9735 | 0.0349 | 0.0019 |
 
 ## 4. Exception type
 
@@ -61,32 +96,32 @@ Six-way classification over records where an exception is required, benchmarked 
 
 | n | accuracy | macro_f1 | weighted_f1 | log_loss | macro_roc_auc | split | model |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 507 | 0.9645 | 0.9107 | 0.9693 | 0.1285 | 0.9979 | valid | lgbm_exception_type |
-| 507 | 0.4043 | 0.0960 | 0.2328 |  |  | valid | majority_class_baseline |
-| 454 | 0.9515 | 0.8691 | 0.9540 | 0.1441 | 0.9971 | test | lgbm_exception_type |
-| 454 | 0.4031 | 0.0958 | 0.2316 |  |  | test | majority_class_baseline |
+| 9446 | 0.9681 | 0.9247 | 0.9692 | 0.1043 | 0.9967 | valid | lgbm_exception_type |
+| 9446 | 0.4542 | 0.1041 | 0.2837 |  |  | valid | majority_class_baseline |
+| 9108 | 0.9661 | 0.9174 | 0.9676 | 0.1080 | 0.9970 | test | lgbm_exception_type |
+| 9108 | 0.4533 | 0.1040 | 0.2828 |  |  | test | majority_class_baseline |
 
 ### Per-type performance — valid window
 
 | class | support | precision | recall | f1 |
 | --- | --- | --- | --- | --- |
-| missing_documentation | 205 | 0.9950 | 0.9659 | 0.9802 |
-| balance_reconciliation_break | 141 | 0.9926 | 0.9574 | 0.9747 |
-| stale_servicer_reporting | 59 | 0.9825 | 0.9492 | 0.9655 |
-| invalid_date_relationship | 81 | 0.9875 | 0.9753 | 0.9814 |
-| status_dpd_mismatch | 11 | 0.9167 | 1.0000 | 0.9565 |
-| unexpected_balance_movement | 10 | 0.4348 | 1.0000 | 0.6061 |
+| missing_documentation | 4290 | 0.9917 | 0.9765 | 0.9840 |
+| balance_reconciliation_break | 2133 | 0.9864 | 0.9841 | 0.9852 |
+| stale_servicer_reporting | 905 | 0.9744 | 0.9260 | 0.9496 |
+| invalid_date_relationship | 1498 | 0.9759 | 0.9746 | 0.9753 |
+| status_dpd_mismatch | 298 | 0.8435 | 0.8859 | 0.8642 |
+| unexpected_balance_movement | 322 | 0.6941 | 0.9161 | 0.7898 |
 
 ### Per-type performance — test window
 
 | class | support | precision | recall | f1 |
 | --- | --- | --- | --- | --- |
-| missing_documentation | 183 | 0.9836 | 0.9836 | 0.9836 |
-| balance_reconciliation_break | 117 | 0.9829 | 0.9829 | 0.9829 |
-| stale_servicer_reporting | 56 | 0.9464 | 0.9464 | 0.9464 |
-| invalid_date_relationship | 66 | 1.0000 | 0.9242 | 0.9606 |
-| status_dpd_mismatch | 19 | 0.9167 | 0.5789 | 0.7097 |
-| unexpected_balance_movement | 13 | 0.4800 | 0.9231 | 0.6316 |
+| missing_documentation | 4129 | 0.9924 | 0.9763 | 0.9843 |
+| balance_reconciliation_break | 2008 | 0.9860 | 0.9801 | 0.9830 |
+| stale_servicer_reporting | 868 | 0.9769 | 0.9274 | 0.9515 |
+| invalid_date_relationship | 1504 | 0.9787 | 0.9761 | 0.9774 |
+| status_dpd_mismatch | 265 | 0.8538 | 0.8377 | 0.8457 |
+| unexpected_balance_movement | 334 | 0.6545 | 0.9132 | 0.7625 |
 
 ## 5. Anomaly driver explanation
 
@@ -94,59 +129,63 @@ Isolation forest gives no native per-feature attribution. Rather than invent one
 
 | top_driver | share_of_records |
 | --- | --- |
-| scheduled payment relative to balance | 0.1853 |
-| balance against expected amortisation for term elapsed | 0.1695 |
-| three-month balance movement | 0.1563 |
-| servicer feed record present | 0.1115 |
-| servicer reporting lag | 0.0931 |
-| count of missing credit fields | 0.0862 |
-| record arrived by manual upload | 0.0506 |
-| document file incomplete | 0.0477 |
-| month-over-month balance movement | 0.0425 |
-| servicer feed balance gap | 0.0221 |
+| balance against expected amortisation for term elapsed | 0.2122 |
+| three-month balance movement | 0.1318 |
+| servicer feed record present | 0.1230 |
+| servicer reporting lag | 0.1189 |
+| scheduled payment relative to balance | 0.1060 |
+| count of missing credit fields | 0.0878 |
+| document file incomplete | 0.0588 |
+| record arrived by manual upload | 0.0563 |
+| month-over-month balance movement | 0.0472 |
+| servicer feed balance gap | 0.0190 |
 
 ## 6. Reviewer queue
 
-36 reviewer-ready examples from the test window, ranked by a priority score of 0.6 x exception probability + 0.4 x anomaly score, with coverage forced across every predicted exception type so the queue is not monopolised by the single most common defect. Actual labels are shown for assessment only — they are not available at scoring time.
+40 reviewer-ready examples from the test window, ranked by a priority score of 0.6 x exception probability + 0.4 x anomaly score, with coverage forced across every predicted exception type so the queue is not monopolised by the single most common defect. Actual labels are shown for assessment only — they are not available at scoring time.
 
 | loan_id | reporting_month | servicer_name | review_priority | exception_probability | anomaly_score | predicted_exception_type | predicted_type_confidence | anomaly_driver_1 | anomaly_driver_1_zscore | anomaly_driver_2 | rules_violated | actual_exception_type |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| LN100308 | 2026-06 | Pioneer Mortgage Ops | 0.9215 | 0.8691 | 1.0000 | invalid_date_relationship | 0.9940 | month-over-month balance movement | 19.2700 | three-month balance movement | loan_age_inconsistent_with_dates; remaining_term_inconsistent | none |
-| LN100627 | 2026-04 | Kestrel Financial | 0.9155 | 0.8592 | 1.0000 | balance_reconciliation_break | 0.5860 | days past due against reported status | 17.1800 | month-over-month change in days past due | status_dpd_mismatch; document_file_incomplete; servicer_balance_break | balance_reconciliation_break |
-| LN100814 | 2026-01 | Arcadia Capital Servicing | 0.9097 | 0.8495 | 1.0000 | balance_reconciliation_break | 0.9780 | three-month balance movement | 17.5000 | month-over-month balance movement | servicer_balance_break | balance_reconciliation_break |
-| LN100308 | 2026-05 | Pioneer Mortgage Ops | 0.9059 | 0.8431 | 1.0000 | invalid_date_relationship | 0.9760 | three-month balance movement | 18.9700 | month-over-month balance movement | last_updated_before_period_end; missing_critical_field; document_file_incomplete; servicer_record_absent | invalid_date_relationship |
-| LN101299 | 2026-04 | Kestrel Financial | 0.8741 | 0.8427 | 0.9212 | invalid_date_relationship | 0.9740 | servicer reporting lag | 25.6300 | loan age required repair | loan_age_inconsistent_with_dates; remaining_term_inconsistent; missing_critical_field; stale_servicer_reporting; servicer_record_absent | invalid_date_relationship |
-| LN100884 | 2026-03 | Pioneer Mortgage Ops | 0.8636 | 0.7726 | 1.0000 | status_dpd_mismatch | 0.9930 | days past due against reported status | 17.1800 | three-month balance movement | status_dpd_mismatch; servicer_record_absent | status_dpd_mismatch |
-| LN101444 | 2026-04 | Kestrel Financial | 0.8628 | 0.8274 | 0.9158 | balance_reconciliation_break | 0.8500 | servicer feed balance gap | 5.7300 | document file incomplete | missing_critical_field; document_file_incomplete; servicer_balance_break | balance_reconciliation_break |
-| LN100853 | 2026-03 | Pioneer Mortgage Ops | 0.8558 | 0.7596 | 1.0000 | missing_documentation | 0.9860 | three-month balance movement | 18.0300 | month-over-month balance movement | document_file_incomplete; servicer_record_absent | missing_documentation |
-| LN100918 | 2026-06 | Pioneer Mortgage Ops | 0.8556 | 0.7594 | 1.0000 | missing_documentation | 0.9890 | three-month balance movement | 16.5000 | month-over-month balance movement | document_file_incomplete; servicer_record_absent | missing_documentation |
-| LN100785 | 2026-04 | Arcadia Capital Servicing | 0.8556 | 0.7594 | 1.0000 | missing_documentation | 0.9800 | three-month balance movement | 19.4100 | month-over-month balance movement | document_file_incomplete; servicer_record_absent | missing_documentation |
-| LN100273 | 2026-04 | Belmont Loan Services | 0.8546 | 0.7576 | 1.0000 | missing_documentation | 0.9860 | three-month balance movement | 18.7900 | month-over-month balance movement | document_file_incomplete; servicer_record_absent | missing_documentation |
-| LN100719 | 2026-03 | Arcadia Capital Servicing | 0.8531 | 0.7551 | 1.0000 | missing_documentation | 0.9900 | three-month balance movement | 14.3500 | month-over-month balance movement | document_file_incomplete; servicer_record_absent | missing_documentation |
-| LN101468 | 2026-01 | Pioneer Mortgage Ops | 0.8529 | 0.7549 | 1.0000 | missing_documentation | 0.9940 | three-month balance movement | 17.6500 | month-over-month balance movement | document_file_incomplete; servicer_record_absent | missing_documentation |
-| LN101279 | 2026-03 | Belmont Loan Services | 0.8503 | 0.8867 | 0.7958 | invalid_date_relationship | 0.9600 | loan age required repair | 10.7000 | servicer feed balance gap | loan_age_inconsistent_with_dates; remaining_term_inconsistent; servicer_balance_break | invalid_date_relationship |
-| LN100918 | 2026-05 | Pioneer Mortgage Ops | 0.8491 | 0.7485 | 1.0000 | missing_documentation | 0.9850 | three-month balance movement | 16.2700 | month-over-month balance movement | document_file_incomplete | none |
-| LN100786 | 2026-03 | Northgate Servicing | 0.8489 | 0.7593 | 0.9834 | missing_documentation | 0.9980 | three-month balance movement | 10.0500 | month-over-month balance movement | document_file_incomplete | missing_documentation |
-| LN101038 | 2026-03 | Pioneer Mortgage Ops | 0.8420 | 0.8384 | 0.8475 | invalid_date_relationship | 0.9990 | loan age required repair | 10.7000 | record arrived by manual upload | loan_age_inconsistent_with_dates; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
-| LN100432 | 2026-02 | Northgate Servicing | 0.8398 | 0.8655 | 0.8013 | invalid_date_relationship | 0.9980 | loan age required repair | 10.7000 | record arrived by manual upload | loan_age_inconsistent_with_dates; remaining_term_inconsistent | invalid_date_relationship |
-| LN100633 | 2026-05 | Belmont Loan Services | 0.8276 | 0.8453 | 0.8011 | balance_reconciliation_break | 0.9980 | record arrived by manual upload | 3.7300 | days past due against reported status | servicer_balance_break | balance_reconciliation_break |
-| LN101222 | 2026-06 | Northgate Servicing | 0.8243 | 0.8532 | 0.7810 | balance_reconciliation_break | 0.9940 | three-month balance movement | 15.2600 | month-over-month balance movement | servicer_balance_break | balance_reconciliation_break |
-| LN101473 | 2026-06 | Pioneer Mortgage Ops | 0.8226 | 0.7678 | 0.9048 | missing_documentation | 0.9990 | count of missing credit fields | 7.1800 | document file incomplete | missing_critical_field; document_file_incomplete | missing_documentation |
-| LN101194 | 2026-03 | Arcadia Capital Servicing | 0.8224 | 0.8644 | 0.7595 | invalid_date_relationship | 0.9990 | loan age required repair | 10.7000 | record arrived by manual upload | loan_age_inconsistent_with_dates; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
-| LN101410 | 2026-04 | Kestrel Financial | 0.8208 | 0.8192 | 0.8231 | invalid_date_relationship | 0.9940 | three-month balance movement | 15.1500 | month-over-month balance movement | last_updated_before_period_end; missing_critical_field; servicer_record_absent | invalid_date_relationship |
-| LN100910 | 2026-02 | Northgate Servicing | 0.8200 | 0.8161 | 0.8258 | balance_reconciliation_break | 0.9930 | three-month balance movement | 12.1700 | month-over-month balance movement | missing_critical_field; servicer_balance_break | balance_reconciliation_break |
-| LN100013 | 2026-06 | Arcadia Capital Servicing | 0.8198 | 0.8817 | 0.7269 | invalid_date_relationship | 1.0000 | loan age required repair | 10.7000 | servicer feed days-past-due gap | origination_after_reporting; loan_age_inconsistent_with_dates | invalid_date_relationship |
-| LN100250 | 2026-02 | Kestrel Financial | 0.8023 | 0.7162 | 0.9314 | status_dpd_mismatch | 0.9880 | days past due against reported status | 17.1800 | month-over-month change in days past due | status_dpd_mismatch; missing_critical_field; servicer_record_absent | status_dpd_mismatch |
-| LN101000 | 2026-03 | Arcadia Capital Servicing | 0.7883 | 0.6816 | 0.9484 | status_dpd_mismatch | 0.9940 | days past due required repair | 19.9100 | scheduled payment relative to balance | dpd_sentinel_value; servicer_record_absent | status_dpd_mismatch |
-| LN100968 | 2026-04 | Northgate Servicing | 0.7838 | 0.7202 | 0.8791 | unexpected_balance_movement | 0.9930 | balance required repair | 15.7500 | count of missing credit fields | balance_exceeds_original; balance_increase_month_over_month; missing_critical_field | none |
-| LN100342 | 2026-06 | Northgate Servicing | 0.7810 | 0.7038 | 0.8967 | unexpected_balance_movement | 0.9980 | balance required repair | 15.7500 | record arrived by manual upload | balance_exceeds_original; balance_increase_month_over_month | unexpected_balance_movement |
-| LN100585 | 2026-01 | Belmont Loan Services | 0.7557 | 0.7980 | 0.6922 | stale_servicer_reporting | 0.6600 | servicer reporting lag | 21.4200 | balance against expected amortisation for term elapsed | document_file_incomplete; stale_servicer_reporting | missing_documentation |
-| LN100059 | 2026-06 | Belmont Loan Services | 0.7237 | 0.6166 | 0.8843 | stale_servicer_reporting | 0.8250 | servicer reporting lag | 12.1400 | three-month balance movement | stale_servicer_reporting; servicer_record_absent | none |
-| LN100604 | 2026-06 | Belmont Loan Services | 0.7010 | 0.7504 | 0.6270 | unexpected_balance_movement | 0.9870 | balance required repair | 15.7500 | count of missing credit fields | balance_exceeds_original; balance_increase_month_over_month; servicer_record_absent | none |
-| LN100719 | 2026-02 | Arcadia Capital Servicing | 0.6736 | 0.5699 | 0.8291 | stale_servicer_reporting | 0.9930 | servicer reporting lag | 20.0700 | three-month balance movement | stale_servicer_reporting; servicer_record_absent | none |
-| LN100093 | 2026-01 | Northgate Servicing | 0.5505 | 0.4181 | 0.7492 | none | 0.2250 | note rate required repair | 22.0000 | three-month balance movement | interest_rate_out_of_range; servicer_record_absent | none |
-| LN100458 | 2026-05 | Northgate Servicing | 0.5327 | 0.4086 | 0.7189 | none | 0.2990 | note rate required repair | 22.0000 | balance against expected amortisation for term elapsed | interest_rate_out_of_range; servicer_record_absent | none |
-| LN100620 | 2026-06 | Belmont Loan Services | 0.5183 | 0.1971 | 1.0000 | none | 0.3500 | note rate required repair | 22.0000 | three-month balance movement | interest_rate_out_of_range | none |
+| F22Q10116077 | 2025-12 | PHH ASSET SERVICES LLC | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 0.9820 | loan age required repair | 9.4300 | document file incomplete | loan_age_inconsistent_with_dates; remaining_term_inconsistent; document_file_incomplete; servicer_balance_break | invalid_date_relationship |
+| F23Q10043713 | 2025-11 | CROSSCOUNTRY MORTGAGE, LLC | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 0.9560 | servicer reporting lag | 12.8200 | loan age required repair | last_updated_before_period_end; loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
+| F22Q30086383 | 2025-12 | NATIONSTAR MORTGAGE LLC DBA MR. COOPER | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 0.9490 | loan age required repair | 9.4300 | servicer feed balance gap | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; document_file_incomplete; servicer_balance_break | invalid_date_relationship |
+| F21Q30496805 | 2026-02 | OTHER | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 0.9990 | servicer reporting lag | 12.3100 | loan age required repair | last_updated_before_period_end; loan_age_inconsistent_with_dates; remaining_term_inconsistent | invalid_date_relationship |
+| F21Q40205989 | 2026-01 | ONSLOW BAY FINANCIAL LLC | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 0.9780 | loan age required repair | 9.4300 | servicer feed balance gap | loan_age_inconsistent_with_dates; remaining_term_inconsistent; missing_critical_field; document_file_incomplete; servicer_balance_break | balance_reconciliation_break |
+| F22Q40220422 | 2026-03 | PENNYMAC CORP. | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 0.9170 | loan age required repair | 9.4300 | servicer feed balance gap | loan_age_inconsistent_with_dates; remaining_term_inconsistent; document_file_incomplete; servicer_balance_break | invalid_date_relationship |
+| F22Q40011482 | 2026-02 | OTHER | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 0.9880 | loan age required repair | 9.4300 | servicer reporting lag | last_updated_before_period_end; loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; document_file_incomplete; servicer_balance_break | invalid_date_relationship |
+| F21Q30408815 | 2025-10 | OTHER | 1.0000 | 1.0000 | 1.0000 | balance_reconciliation_break | 0.8940 | servicer reporting lag | 21.2500 | month-over-month balance movement | document_file_incomplete; stale_servicer_reporting; servicer_balance_break | none |
+| F23Q10025225 | 2025-12 | JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | 1.0000 | 1.0000 | 1.0000 | balance_reconciliation_break | 0.9100 | balance against expected amortisation for term elapsed | 20.6800 | servicer reporting lag | document_file_incomplete; stale_servicer_reporting; servicer_balance_break | balance_reconciliation_break |
+| F21Q31025491 | 2026-01 | PENNYMAC CORP. | 1.0000 | 1.0000 | 1.0000 | invalid_date_relationship | 1.0000 | month-over-month change in days past due | 11.6100 | loan age required repair | origination_after_reporting; last_updated_before_period_end; loan_age_inconsistent_with_dates; servicer_record_absent | invalid_date_relationship |
+| F22Q20106959 | 2025-12 | TH MSR HOLDINGS LLC | 0.9942 | 1.0000 | 0.9854 | invalid_date_relationship | 0.9980 | servicer reporting lag | 11.4700 | loan age required repair | last_updated_before_period_end; loan_age_inconsistent_with_dates; remaining_term_inconsistent | none |
+| F23Q20132783 | 2026-03 | OTHER | 0.9788 | 0.9646 | 1.0000 | balance_reconciliation_break | 0.9660 | servicer feed balance gap | 3.8800 | record arrived by manual upload | document_file_incomplete; servicer_balance_break | balance_reconciliation_break |
+| F21Q11909738 | 2025-10 | FIFTH THIRD BANK, NATIONAL ASSOCIATION | 0.9707 | 0.9512 | 1.0000 | balance_reconciliation_break | 0.9210 | servicer reporting lag | 26.8100 | servicer feed balance gap | document_file_incomplete; stale_servicer_reporting; servicer_balance_break | balance_reconciliation_break |
+| F22Q40046716 | 2026-01 | U.S. BANK N.A. | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9750 | loan age required repair | 9.4300 | balance against expected amortisation for term elapsed | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; document_file_incomplete | invalid_date_relationship |
+| F20Q40521831 | 2026-01 | OTHER | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9840 | month-over-month balance movement | 56.8400 | three-month balance movement | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
+| F21Q30652383 | 2025-12 | OTHER | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9950 | three-month balance movement | 51.3200 | loan age required repair | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent | invalid_date_relationship |
+| F23Q30165448 | 2025-10 | ROCKET MORTGAGE, LLC | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9530 | month-over-month balance movement | 65.4100 | three-month balance movement | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
+| F23Q20104230 | 2025-11 | LAKEVIEW LOAN SERVICING, LLC | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.8560 | month-over-month balance movement | 38.2600 | three-month balance movement | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
+| F19Q20031612 | 2026-01 | UNITED WHOLESALE MORTGAGE, LLC | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9570 | loan age required repair | 9.4300 | month-over-month change in days past due | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent | invalid_date_relationship |
+| F23Q30087828 | 2025-11 | NEW RESIDENTIAL MORTGAGE LLC | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9600 | month-over-month balance movement | 41.8700 | three-month balance movement | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
+| F23Q10091281 | 2026-03 | PENNYMAC CORP. | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.8900 | month-over-month balance movement | 57.6000 | three-month balance movement | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
+| F21Q30652383 | 2025-11 | OTHER | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9510 | month-over-month balance movement | 109.2200 | three-month balance movement | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent | invalid_date_relationship |
+| F19Q20031612 | 2025-12 | UNITED WHOLESALE MORTGAGE, LLC | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9410 | days past due against reported status | 14.6000 | loan age required repair | loan_age_inconsistent_with_dates; balance_exceeds_original; status_dpd_mismatch; remaining_term_inconsistent; servicer_record_absent | invalid_date_relationship |
+| F22Q40046716 | 2026-02 | U.S. BANK N.A. | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.9610 | loan age required repair | 9.4300 | balance against expected amortisation for term elapsed | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent; document_file_incomplete; servicer_record_absent | invalid_date_relationship |
+| F23Q10146368 | 2026-02 | OTHER | 0.9684 | 0.9474 | 1.0000 | invalid_date_relationship | 0.8760 | month-over-month balance movement | 18.2900 | three-month balance movement | loan_age_inconsistent_with_dates; balance_exceeds_original; remaining_term_inconsistent | invalid_date_relationship |
+| F21Q20764587 | 2025-12 | OTHER | 0.9480 | 0.9133 | 1.0000 | status_dpd_mismatch | 0.8190 | days past due against reported status | 19.4600 | month-over-month change in days past due | status_dpd_mismatch; missing_critical_field; servicer_balance_break | balance_reconciliation_break |
+| F22Q20324083 | 2025-10 | FIFTH THIRD BANK, NATIONAL ASSOCIATION | 0.9480 | 0.9133 | 1.0000 | status_dpd_mismatch | 0.5180 | days past due against reported status | 19.4600 | month-over-month balance movement | status_dpd_mismatch; missing_critical_field; servicer_balance_break | balance_reconciliation_break |
+| F21Q40814560 | 2026-02 | FREEDOM MORTGAGE CORPORATION | 0.9480 | 0.9133 | 1.0000 | missing_documentation | 0.5350 | servicer reporting lag | 19.9000 | balance required repair | balance_exceeds_original; balance_increase_month_over_month; document_file_incomplete; stale_servicer_reporting | unexpected_balance_movement |
+| F21Q12305815 | 2025-10 | JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | 0.9305 | 0.9133 | 0.9564 | status_dpd_mismatch | 0.6010 | days past due required repair | 19.1300 | servicer feed record present | dpd_sentinel_value; servicer_balance_break | balance_reconciliation_break |
+| F21Q40194658 | 2026-01 | LOANDEPOT.COM, LLC | 0.9183 | 0.8639 | 1.0000 | missing_documentation | 0.5850 | servicer reporting lag | 26.4700 | servicer feed days-past-due gap | missing_critical_field; document_file_incomplete; stale_servicer_reporting | missing_documentation |
+| F21Q20618024 | 2026-01 | FIFTH THIRD BANK, NATIONAL ASSOCIATION | 0.9183 | 0.8639 | 1.0000 | missing_documentation | 0.6810 | servicer reporting lag | 14.1600 | count of missing credit fields | missing_critical_field; document_file_incomplete; stale_servicer_reporting | missing_documentation |
+| F22Q20324083 | 2026-03 | FIFTH THIRD BANK, NATIONAL ASSOCIATION | 0.9183 | 0.8639 | 1.0000 | unexpected_balance_movement | 0.6530 | balance required repair | 15.4700 | document file incomplete | balance_exceeds_original; balance_increase_month_over_month; document_file_incomplete | missing_documentation |
+| F21Q40596719 | 2025-12 | JPMORGAN CHASE BANK, NATIONAL ASSOCIATION | 0.9183 | 0.8639 | 1.0000 | stale_servicer_reporting | 0.7470 | servicer reporting lag | 23.4400 | count of missing credit fields | missing_critical_field; document_file_incomplete; stale_servicer_reporting; servicer_record_absent | stale_servicer_reporting |
+| F20Q20020138 | 2025-12 | OTHER | 0.9148 | 0.8580 | 1.0000 | stale_servicer_reporting | 0.5610 | three-month balance movement | 26.9000 | servicer reporting lag | document_file_incomplete; stale_servicer_reporting; servicer_record_absent | missing_documentation |
+| F21Q12074097 | 2025-11 | OTHER | 0.9056 | 0.8427 | 1.0000 | unexpected_balance_movement | 0.5110 | balance required repair | 15.4700 | document file incomplete | negative_balance; document_file_incomplete; servicer_record_absent | missing_documentation |
+| F20Q20530771 | 2025-11 | PNC BANK, NA | 0.8892 | 0.9133 | 0.8531 | unexpected_balance_movement | 0.5830 | balance required repair | 15.4700 | servicer feed balance gap | negative_balance; servicer_balance_break | balance_reconciliation_break |
+| F19Q10011770 | 2026-02 | OTHER | 0.8388 | 0.8580 | 0.8100 | stale_servicer_reporting | 0.5870 | servicer reporting lag | 23.9400 | record arrived by manual upload | document_file_incomplete; stale_servicer_reporting; servicer_record_absent | missing_documentation |
+| F19Q10073071 | 2025-12 | OTHER | 0.6194 | 0.4444 | 0.8819 | none | 0.8230 | days past due against reported status | 14.6000 | month-over-month change in days past due | status_dpd_mismatch | status_dpd_mismatch |
+| F20Q10465735 | 2026-01 | OTHER | 0.5912 | 0.4595 | 0.7887 | none | 0.9940 | three-month balance movement | 19.6400 | servicer reporting lag | stale_servicer_reporting | stale_servicer_reporting |
+| F20Q20807189 | 2025-12 | TH MSR HOLDINGS LLC | 0.5813 | 0.4595 | 0.7640 | none | 0.9970 | three-month balance movement | 6.4000 | month-over-month balance movement | missing_critical_field; document_file_incomplete | none |
 
 Full queue with all evidence columns: `reports/anomaly_review_queue.csv`.
 

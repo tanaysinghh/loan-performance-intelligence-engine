@@ -198,3 +198,50 @@ def target_stability(df: pd.DataFrame) -> pd.DataFrame:
                      "std_across_months": float(g.std()),
                      "censored_rows": int(df[t].isna().sum())})
     return pd.DataFrame(rows)
+
+
+def drift_report_by_target(df: pd.DataFrame, cols=None) -> pd.DataFrame:
+    """Train-vs-test drift measured at each target's *own* split boundary.
+
+    ``drift_report`` uses one global ``TRAIN_END`` for all targets, but the purged splits do
+    not share a boundary: a 12-month horizon needs its training window to end far earlier
+    than a 3-month one. Measuring every target's drift at a single date describes a split
+    that no model was actually trained on. This computes PSI and KS across the real
+    train/test frontier used for each target.
+    """
+    from src.models.splits import purged_time_split
+
+    cols = cols or [c for c in NUMERIC_PROFILE_COLS + CATEGORICAL_PROFILE_COLS
+                    if c in df.columns]
+    rows = []
+    for target in C.BINARY_TARGETS + ["exception_required"]:
+        if target not in df.columns:
+            continue
+        try:
+            split = purged_time_split(df, target)
+        except (KeyError, ValueError):
+            continue
+        train, test = df.loc[split.train], df.loc[split.test]
+        if not len(train) or not len(test):
+            continue
+        for c in cols:
+            val = psi(train[c], test[c])
+            ks = np.nan
+            if pd.api.types.is_numeric_dtype(df[c]):
+                a, b = train[c].dropna(), test[c].dropna()
+                if len(a) > 50 and len(b) > 50:
+                    ks = float(stats.ks_2samp(a, b).statistic)
+            rows.append({
+                "target": target,
+                "train_window": split.windows.get("train_window"),
+                "test_window": split.windows.get("test_window"),
+                "column": c,
+                "psi": val,
+                "ks_statistic": ks,
+                "severity": ("severe" if (val or 0) >= 0.25 else
+                             "moderate" if (val or 0) >= 0.10 else "stable"),
+            })
+    out = pd.DataFrame(rows)
+    if len(out):
+        out = out.sort_values(["target", "psi"], ascending=[True, False]).reset_index(drop=True)
+    return out

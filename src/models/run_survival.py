@@ -115,10 +115,17 @@ def _write_report(surv, km_default, km_prepay, km_by_credit, km_by_ltv, km_by_se
       f"**{int((surv['event_type'] == 'censored').sum())}** censored. "
       f"Median observed duration: **{surv['duration'].median():.0f}** months.")
     A("")
-    A("Ignoring left truncation would be the expensive mistake here: "
-      f"**{surv['left_truncated'].mean():.0%}** of loans enter the panel already seasoned. "
-      "Crediting them with event-free exposure at ages they were never observed at would "
-      "flatten the early hazard and understate the seasoning ramp.")
+    _lt = float(surv["left_truncated"].mean())
+    A(f"**{_lt:.0%}** of loans enter the panel already seasoned, and their entry age is passed "
+      "as the truncation time so the months they were never observed at are excluded from the "
+      "risk set rather than credited as event-free exposure. Crediting them would flatten the "
+      "early hazard and understate the seasoning ramp."
+      + ("" if _lt >= 0.25 else
+         " On this panel the share is small, because the vintage files begin at origination "
+         "for all but a minority of seasoned acquisitions — so the correction is materially "
+         "smaller here than it would be on a panel assembled from a fixed calendar window. "
+         "It is applied regardless, since it costs nothing and its absence would bias the "
+         "early hazard."))
     A("")
     A("## 3. Event curves")
     A("")

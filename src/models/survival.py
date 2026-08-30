@@ -25,10 +25,21 @@ Three distinct reasons a loan's outcome is unobserved, handled differently:
    cumulative incidence of default, which would need the competing hazard folded in;
    `cumulative_incidence` computes that separately via Aalen-Johansen, and the two are
    reported side by side because confusing them overstates default probability.
-3. **Left truncation.** The panel opens in 2019-01 but loans originate from 2015. A loan
-   entering at age 40 was never at risk in this dataset at ages 0-39. Entry age is passed as
-   the truncation time so those months are excluded from the risk set rather than being
-   silently treated as event-free exposure.
+3. **Left truncation.** Most loans in the SFLLD vintage files are observed from origination,
+   but a minority are seasoned acquisitions that enter the panel at a non-zero age. Such a
+   loan was never at risk in this dataset at the ages before it appears. Entry age is passed
+   as the truncation time so those months are excluded from the risk set rather than being
+   silently treated as event-free exposure. The observed share is reported in
+   `reports/survival_report.md` rather than assumed here.
+
+## Event definition
+
+The `default` event is **first entry into 90+ DPD**, not arrival in an absorbing terminal
+state. This matches `next_12m_default_flag` in the rest of the engine, where realised credit
+events are too rare to model (see `build_from_sflld`), and it is what makes the Cox model
+estimable at all: terminal-state defaults leave single-digit event counts in the training
+window. Prepayment remains a terminal event. The two compete, and whichever occurs first is
+the observation.
 """
 from __future__ import annotations
 
@@ -43,7 +54,22 @@ SURVIVAL_COVARIATES = ["credit_ord", "ltv_ord", "dti_ord", "log_original_balance
                        "interest_rate_clean", "rate_incentive_at_entry", "is_investment",
                        "is_cash_out", "is_high_ops_servicer"]
 
-HIGH_OPS_SERVICERS = {"Pioneer Mortgage Ops", "Kestrel Financial"}
+#: Share of servicers treated as "high operational noise" — the worst quartile by mean
+#: record data-quality score. This was previously a hardcoded pair of synthetic servicer
+#: names, which silently became a constant-zero column on real data and took the Cox fit
+#: down with it. Deriving it from the panel's own DQ scores works for either data source.
+HIGH_OPS_SERVICER_QUANTILE = 0.25
+
+
+def high_ops_servicers(df: pd.DataFrame) -> set:
+    """Servicers in the worst quartile by mean record data-quality score."""
+    if "dq_score" not in df.columns or "servicer_name" not in df.columns:
+        return set()
+    by_servicer = df.groupby("servicer_name")["dq_score"].mean()
+    if by_servicer.nunique() < 2:
+        return set()
+    cutoff = by_servicer.quantile(HIGH_OPS_SERVICER_QUANTILE)
+    return set(by_servicer[by_servicer <= cutoff].index)
 
 
 def build_survival_frame(df: pd.DataFrame) -> pd.DataFrame:
@@ -56,15 +82,44 @@ def build_survival_frame(df: pd.DataFrame) -> pd.DataFrame:
     out = pd.DataFrame(index=first.index)
 
     out["entry_age"] = g["loan_age_months_clean"].min().clip(lower=0)
-    out["exit_age"] = g["loan_age_months_clean"].max().clip(lower=0)
+    last_age = g["loan_age_months_clean"].max().clip(lower=0)
     out["last_month_index"] = last["month_index"]
 
-    next_state = last["next_state"]
-    out["event_default"] = (next_state == "Default").astype(int)
-    out["event_prepay"] = (next_state == "Prepaid").astype(int)
+    # Event definitions match the rest of the engine.
+    #
+    # `default` is **first entry into 90+ DPD**, not the terminal absorbing state. Two
+    # reasons. First, consistency: `next_12m_default_flag` is a 90+ DPD proxy throughout this
+    # project (realised credit events occur on ~0.1% of loans), and a survival curve labelled
+    # "default" that measured something else would contradict the model card. Second,
+    # estimability: terminal-state defaults give 59 events across 16,000 loans, of which 3
+    # fall in the Cox training window — a c-index of 0.53, which is no result at all. First
+    # entry into serious delinquency gives an order of magnitude more events and is the
+    # quantity a servicer actually acts on.
+    #
+    # Time to event is therefore the age at which the loan *first* becomes seriously
+    # delinquent, not the age at which it left the panel.
+    serious = d["current_status"].isin(["DQ90plus", "Default"])
+    serious_age = d["loan_age_months_clean"].where(serious)
+    t_serious = serious_age.groupby(d["loan_id"], sort=False).min()
+
+    prepaid_loan = (last["next_state"] == "Prepaid")
+    t_prepay = last_age.where(prepaid_loan)
+
+    t_serious = t_serious.reindex(out.index)
+    t_prepay = t_prepay.reindex(out.index)
+
+    # Competing risks: whichever event happens first is the one observed. A loan that goes
+    # seriously delinquent and later prepays is a default observation at the delinquency age.
+    default_first = t_serious.notna() & (t_prepay.isna() | (t_serious <= t_prepay))
+    prepay_first = t_prepay.notna() & ~default_first
+
+    out["event_default"] = default_first.astype(int)
+    out["event_prepay"] = prepay_first.astype(int)
     out["event_any"] = out["event_default"] | out["event_prepay"]
     out["event_type"] = np.where(out["event_default"] == 1, "default",
                                  np.where(out["event_prepay"] == 1, "prepay", "censored"))
+    out["exit_age"] = np.where(default_first, t_serious,
+                               np.where(prepay_first, t_prepay, last_age))
 
     panel_end = int(df["month_index"].max())
     out["administratively_censored"] = ((out["event_any"] == 0)
@@ -79,7 +134,8 @@ def build_survival_frame(df: pd.DataFrame) -> pd.DataFrame:
     out["rate_incentive_at_entry"] = first["rate_incentive"]
     out["is_investment"] = (first["occupancy_type"] == "investment").astype(float)
     out["is_cash_out"] = (first["loan_purpose"] == "cash_out_refi").astype(float)
-    out["is_high_ops_servicer"] = first["servicer_name"].isin(HIGH_OPS_SERVICERS).astype(float)
+    out["is_high_ops_servicer"] = first["servicer_name"].isin(
+        high_ops_servicers(df)).astype(float)
     out["credit_score_band"] = first["credit_score_band"]
     out["ltv_band"] = first["ltv_band"]
     out["servicer_name"] = first["servicer_name"]
@@ -161,6 +217,17 @@ def fit_cox(surv: pd.DataFrame, event_col: str, train_mask: np.ndarray,
     train = surv.loc[train_mask, cols].dropna()
     test = surv.loc[~train_mask, cols].dropna()
 
+    # A covariate with no variance in the training rows makes the partial-likelihood
+    # Hessian singular, and lifelines fails with "delta contains nan value(s)" rather than
+    # naming the offending column. Drop such columns explicitly and report them, so the
+    # stage degrades with a stated reason instead of taking the pipeline down.
+    dropped = [c for c in covariates if float(train[c].std()) == 0.0 or train[c].nunique() < 2]
+    if dropped:
+        covariates = [c for c in covariates if c not in dropped]
+        cols = covariates + ["entry_age", "exit_age", event_col]
+        train, test = train[cols], test[cols]
+        print(f"  [cox] dropped zero-variance covariate(s): {', '.join(dropped)}", flush=True)
+
     cph = CoxPHFitter(penalizer=0.08)
     cph.fit(train, duration_col="exit_age", event_col=event_col,
             entry_col="entry_age", robust=True)
@@ -179,6 +246,7 @@ def fit_cox(surv: pd.DataFrame, event_col: str, train_mask: np.ndarray,
     return {"model": cph, "summary": summary,
             "concordance_train": _ci(train), "concordance_test": _ci(test),
             "n_train": len(train), "n_test": len(test),
+            "covariates_used": covariates, "covariates_dropped": dropped,
             "events_train": int(train[event_col].sum()),
             "events_test": int(test[event_col].sum()),
             "baseline_event_rate": baseline_rate}

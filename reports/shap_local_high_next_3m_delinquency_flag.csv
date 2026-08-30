@@ -1,11 +1,11 @@
 loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
-LN100059,2025-10,DQ90plus,0.9915,-3.8404,10.173,current performance status,3.0,5.4434,current status,DQ90plus,1.5731,months delinquent in last 6 months,6.0,0.5538,months dq last 3m,3.0,0.4324
-LN100059,2025-12,DQ90plus,0.9911,-3.8404,10.12,current performance status,3.0,5.4444,current status,DQ90plus,1.5546,months delinquent in last 6 months,6.0,0.5664,months dq last 3m,3.0,0.4439
-LN100059,2025-11,DQ90plus,0.9907,-3.8404,10.072,current performance status,3.0,5.4556,current status,DQ90plus,1.5654,months delinquent in last 6 months,6.0,0.5692,months dq last 3m,3.0,0.4484
-LN100510,2025-10,DQ90plus,0.9905,-3.8404,10.0421,current performance status,3.0,5.5682,current status,DQ90plus,1.6092,months delinquent in last 6 months,6.0,0.5749,months dq last 3m,3.0,0.4504
-LN100059,2026-01,DQ90plus,0.9903,-3.8404,10.0238,current performance status,3.0,5.3934,current status,DQ90plus,1.5684,months delinquent in last 6 months,6.0,0.5476,months dq last 3m,3.0,0.4252
-LN101204,2025-11,DQ90plus,0.9902,-3.8404,10.0081,current performance status,3.0,4.8245,current status,DQ90plus,1.3602,credit score band,1.0,0.6629,months delinquent in last 6 months,5.0,0.4472
-LN100373,2025-10,DQ90plus,0.9902,-3.8404,10.0078,current performance status,3.0,5.0382,current status,DQ90plus,1.3342,credit score band,0.0,0.7543,months delinquent in last 6 months,6.0,0.4962
-LN101249,2025-11,DQ90plus,0.9902,-3.8404,10.002,current performance status,3.0,5.8784,current status,DQ90plus,1.6962,months delinquent in last 6 months,6.0,0.5757,months dq last 3m,3.0,0.4757
-LN101249,2025-12,DQ90plus,0.9901,-3.8404,9.9965,current performance status,3.0,5.887,current status,DQ90plus,1.6894,months delinquent in last 6 months,6.0,0.5764,months dq last 3m,3.0,0.4753
-LN100706,2025-11,DQ90plus,0.99,-3.8404,9.9893,current performance status,3.0,5.4634,current status,DQ90plus,1.5662,months delinquent in last 6 months,4.0,0.5379,months dq last 3m,3.0,0.3829
+F21Q20183479,2025-07,Default,0.875,-3.2533,3.1043,months dq last 3m,3.0,0.9274,months delinquent in last 12 months,8.0,0.8492,has ever been delinquent,1.0,0.7673,credit score band,4.0,0.1168
+F22Q10387904,2025-07,DQ30,0.875,-3.2533,3.1043,months delinquent in last 12 months,6.0,0.9999,months dq last 3m,2.0,0.9321,has ever been delinquent,1.0,0.7503,consecutive clean months,0,0.1293
+F22Q20430998,2025-12,DQ30,0.875,-3.2533,3.1043,months dq last 3m,3.0,1.0562,months delinquent in last 12 months,5.0,0.9004,has ever been delinquent,1.0,0.7906,consecutive clean months,0,0.1289
+F21Q20100299,2025-09,DQ30,0.875,-3.2533,3.0758,months dq last 3m,3.0,0.9305,months delinquent in last 12 months,8.0,0.8881,has ever been delinquent,1.0,0.7142,months delinquent in last 6 months,6.0,0.1456
+F23Q20265187,2025-10,Default,0.875,-3.2533,3.1043,months dq last 3m,3.0,0.9058,months delinquent in last 12 months,11.0,0.7447,has ever been delinquent,1.0,0.5267,credit score band,2.0,0.3156
+F23Q20265187,2025-11,Default,0.875,-3.2533,3.1043,months dq last 3m,3.0,0.9058,months delinquent in last 12 months,12.0,0.7447,has ever been delinquent,1.0,0.5267,credit score band,2.0,0.3156
+F22Q20289359,2025-11,Default,0.875,-3.2533,3.1043,months dq last 3m,3.0,1.0559,months delinquent in last 12 months,12.0,0.902,has ever been delinquent,1.0,0.6961,consecutive clean months,0,0.1272
+F23Q20151926,2025-11,Default,0.875,-3.2533,3.1043,months dq last 3m,3.0,0.9259,months delinquent in last 12 months,7.0,0.8184,has ever been delinquent,1.0,0.654,consecutive clean months,0,0.1194
+F19Q20082593,2025-12,DQ60,0.875,-3.2533,3.1043,months dq last 3m,3.0,1.0733,months delinquent in last 12 months,11.0,0.821,has ever been delinquent,1.0,0.6576,credit score band,2.0,0.2727
+F22Q30104351,2025-12,Default,0.875,-3.2533,3.1043,months dq last 3m,3.0,1.0554,months delinquent in last 12 months,12.0,0.914,has ever been delinquent,1.0,0.7068,consecutive clean months,0,0.143

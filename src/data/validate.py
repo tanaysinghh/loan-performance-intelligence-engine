@@ -146,3 +146,37 @@ def score_batches(df: pd.DataFrame) -> pd.DataFrame:
     batch["batch_grade"] = pd.cut(batch["mean_dq_score"], [-0.1, 70, 82, 91, 100],
                                   labels=["D", "C", "B", "A"])
     return batch.sort_values(["reporting_month", "servicer_name"]).reset_index(drop=True)
+
+
+def export_rules_json(path=None) -> dict:
+    """Writes the deterministic rule set to `data/raw/validation_rules.json`.
+
+    Section 6 of the problem statement lists `validation_rules.json` among the files the
+    organiser was to supply. None was issued, so the rules were written in code instead; this
+    exports them in the declarative form the problem statement describes, which also gives the
+    copilot a grounding artefact for rule questions rather than having it read Python.
+    """
+    import json
+
+    payload = {
+        "schema_version": "1.0",
+        "generated_by": "src/data/validate.py::export_rules_json",
+        "note": ("No organiser validation_rules.json was issued. These are the deterministic "
+                 "checks implemented in src/data/validate.py, exported declaratively. The "
+                 "rule engine executes the Python predicates in this module; this file is the "
+                 "declarative description of them, not the executable source."),
+        "dimensions": sorted({r.dimension for r in RULES}),
+        "severity_scale": "0-20, subtracted from a 100-point record score, higher is worse",
+        "rules": [
+            {
+                "name": r.name,
+                "dimension": r.dimension,
+                "severity": r.severity,
+                "description": r.description,
+            }
+            for r in RULES
+        ],
+    }
+    path = path or (C.DATA_RAW / "validation_rules.json")
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return payload

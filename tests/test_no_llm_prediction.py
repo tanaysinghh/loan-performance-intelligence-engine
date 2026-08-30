@@ -13,7 +13,9 @@ from src.copilot.grounding import loan_pack
 from src.copilot.validators import SELF_TEST_CASES, grounding_validator, run_self_test
 
 MODELLING_PACKAGES = ["src/data", "src/features", "src/models", "src/scenarios", "src/explain"]
-FORBIDDEN_IMPORTS = {"anthropic", "openai", "src.copilot"}
+# Vendor-neutral by design: the constraint is "no LLM in the modelling path", not
+# "no Anthropic in the modelling path". Adding a provider here costs one line.
+LLM_CLIENT_ROOTS = {"anthropic", "openai", "google", "cohere", "mistralai", "ollama"}
 
 
 def _imported_modules(path: Path) -> set[str]:
@@ -34,7 +36,7 @@ def test_no_modelling_module_can_reach_a_language_model():
         for path in (C.ROOT / pkg).rglob("*.py"):
             for mod in _imported_modules(path):
                 root = mod.split(".")[0]
-                if root in {"anthropic", "openai"} or mod.startswith("src.copilot"):
+                if root in LLM_CLIENT_ROOTS or mod.startswith("src.copilot"):
                     offenders.append(f"{path.relative_to(C.ROOT)} imports {mod}")
     assert not offenders, "Modelling code must not import an LLM client: " + "; ".join(offenders)
 

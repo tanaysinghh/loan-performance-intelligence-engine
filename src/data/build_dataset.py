@@ -104,6 +104,8 @@ def main(n_loans: int = N_LOANS, seed: int = C.RANDOM_SEED) -> dict:
     pd.DataFrame(DICTIONARY, columns=["field", "dtype", "description", "allowed_values",
                                       "source_system"]).to_csv(C.DATA_DICTIONARY, index=False)
     defect_log.to_csv(C.DATA_RAW / "ground_truth_defect_log.csv", index=False)
+    from src.data.validate import export_rules_json
+    export_rules_json()
 
     out.head(500).to_csv(C.DATA_SAMPLES / "loan_panel_sample.csv", index=False)
     updates.head(300).to_csv(C.DATA_SAMPLES / "servicer_updates_sample.csv", index=False)
