@@ -253,4 +253,13 @@ go/no-go decision is outstanding from you.*
 | **Lost prompt-log history** | ~87 calls from six early runs are unrecoverable. No current claim depends on them; the 10× fabrication recurred and is quoted from a live log, and the LaTeX case is described rather than reconstructed |
 | **Exception/DQ layer is fabricated** | Long-standing and disclosed per-layer in model card §2. SFLLD provides no second source, no ingestion timestamps and no operational exception feed |
 
-*Branch `real-data-switch` pushed to origin. Not merged — that is yours.*
+*Branch `real-data-switch`: **6 commits, all local — not pushed.** This repository has **no
+git remote configured** (`git remote -v` is empty), so there is nothing to push to. Add one and
+push with:*
+
+```bash
+git remote add origin <your-repo-url>
+git push -u origin real-data-switch
+```
+
+*Not merged into `master` — that is yours. `master` @ `91fe18d` untouched as a fallback.*
