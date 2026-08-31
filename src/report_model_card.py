@@ -549,19 +549,44 @@ def build() -> str:
       "queue, sizing a stress scenario, and surfacing records whose data does not hold "
       "together.")
     A("")
-    A("**Out of scope:** automated adverse action, credit pricing, underwriting, or any use "
-      "where output reaches a borrower without human review. The models are fitted on "
-      "synthetic data and have no validated real-world performance. Fair-lending testing has "
-      "not been performed; `state` and `servicer_name` are model inputs and would require "
-      "disparate-impact analysis before production use.")
+    # The provenance half of this caveat must track the data source. It once read
+    # "fitted on synthetic data" unconditionally, which contradicted section 2 after the
+    # real-data switch. The *limitation* being expressed — never validated in production —
+    # is legitimate under either source and is preserved in both branches.
+    if real:
+        A("**Out of scope:** automated adverse action, credit pricing, underwriting, or any "
+          "use where output reaches a borrower without human review. The delinquency, "
+          "default-proxy, prepayment and next-state models are fitted on **real** SFLLD "
+          "outcomes, but on a single agency prime cohort across one realised macro path, and "
+          "they have never been validated in production or against an external hold-out — "
+          "section 8 lists the regime-change and identification limits that follow. The "
+          "exception and data-quality models are fitted on a **fabricated** label (section 2) "
+          "and have no validated real-world performance at all. Fair-lending testing has not "
+          "been performed; `state` and `servicer_name` are model inputs and would require "
+          "disparate-impact analysis before production use.")
+    else:
+        A("**Out of scope:** automated adverse action, credit pricing, underwriting, or any "
+          "use where output reaches a borrower without human review. The models are fitted on "
+          "synthetic data and have no validated real-world performance. Fair-lending testing "
+          "has not been performed; `state` and `servicer_name` are model inputs and would "
+          "require disparate-impact analysis before production use.")
     A("")
     A("---")
     A("")
     A("## 11. Reproducibility")
     A("")
-    A(f"Fixed seed `{C.RANDOM_SEED}` throughout. `python -m src.pipeline` runs data generation "
-      "through submission and writes `submission/run_manifest.json` recording every stage, "
-      "its status, duration, and the artefacts produced.")
+    if real:
+        A(f"Fixed seed `{C.RANDOM_SEED}` throughout. The panel is rebuilt from the licence-gated "
+          "SFLLD files with `python -m src.data.build_from_sflld` and "
+          "`python -m src.data.macro_real`, after which `python -m src.pipeline --skip-data` "
+          "runs profiling through submission and writes `submission/run_manifest.json` "
+          "recording every stage, its status, duration, and the artefacts produced. Without "
+          "those files `python -m src.pipeline` generates the synthetic pack against the same "
+          "33-column contract and runs the identical downstream stages.")
+    else:
+        A(f"Fixed seed `{C.RANDOM_SEED}` throughout. `python -m src.pipeline` runs data "
+          "generation through submission and writes `submission/run_manifest.json` recording "
+          "every stage, its status, duration, and the artefacts produced.")
     A("")
 
     return "\n".join(L)

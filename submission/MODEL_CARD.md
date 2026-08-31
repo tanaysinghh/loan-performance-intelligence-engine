@@ -2,7 +2,7 @@
 
 **Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  
 **Author:** Tanay Singh  
-**Card generated:** 2026-08-30 16:55 UTC  
+**Card generated:** 2026-08-31 04:40 UTC  
 **Data source:** Freddie Mac SFLLD (real)
 
 > Every figure in this card is generated from the pipeline's own report artefacts by `src/report_model_card.py`. Retraining regenerates the card; the numbers cannot drift away from the models.
@@ -247,10 +247,10 @@ The copilot design is vendor-neutral. Grounding packs, the system prompt, the va
 
 **Intended:** decision *support* for a servicing-oversight team — prioritising a review queue, sizing a stress scenario, and surfacing records whose data does not hold together.
 
-**Out of scope:** automated adverse action, credit pricing, underwriting, or any use where output reaches a borrower without human review. The models are fitted on synthetic data and have no validated real-world performance. Fair-lending testing has not been performed; `state` and `servicer_name` are model inputs and would require disparate-impact analysis before production use.
+**Out of scope:** automated adverse action, credit pricing, underwriting, or any use where output reaches a borrower without human review. The delinquency, default-proxy, prepayment and next-state models are fitted on **real** SFLLD outcomes, but on a single agency prime cohort across one realised macro path, and they have never been validated in production or against an external hold-out — section 8 lists the regime-change and identification limits that follow. The exception and data-quality models are fitted on a **fabricated** label (section 2) and have no validated real-world performance at all. Fair-lending testing has not been performed; `state` and `servicer_name` are model inputs and would require disparate-impact analysis before production use.
 
 ---
 
 ## 11. Reproducibility
 
-Fixed seed `20260828` throughout. `python -m src.pipeline` runs data generation through submission and writes `submission/run_manifest.json` recording every stage, its status, duration, and the artefacts produced.
+Fixed seed `20260828` throughout. The panel is rebuilt from the licence-gated SFLLD files with `python -m src.data.build_from_sflld` and `python -m src.data.macro_real`, after which `python -m src.pipeline --skip-data` runs profiling through submission and writes `submission/run_manifest.json` recording every stage, its status, duration, and the artefacts produced. Without those files `python -m src.pipeline` generates the synthetic pack against the same 33-column contract and runs the identical downstream stages.
