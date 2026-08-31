@@ -1,6 +1,10 @@
 # PROGRESS — Loan Performance Intelligence Engine
 
-**Branch:** `real-data-switch` (9 commits) · **Fallback:** `master` @ `91fe18d` · **Tests:** 40/40 · **Copilot:** live on Gemini
+**Submission branch:** `master` (merged, pushed, in sync with `origin/master`) · **Pre-switch fallback:** `91fe18d`, reachable as the merge's first parent · **Tests:** 40/40 · **Copilot:** live on Gemini · **Dashboard:** `dashboard.py`, local only
+
+> **Header corrected.** It described `real-data-switch` as the working branch long after
+> that branch was merged, contradicting this document's own tail. `master` is the state
+> to submit. See *FINAL — `master` is the submission state* below.
 
 ---
 
@@ -332,6 +336,14 @@ deliberately skipped as cosmetic.
 3. **Optional, only if the portal asks for a runnable notebook.** `notebooks/` is empty. It is
    not a named §11 deliverable and the reports carry the narrative a notebook would, so this
    is a gap only if the portal specifically requires one.
+
+4. **Deploy the dashboard.** `dashboard.py` (Streamlit, ten sections over the committed
+   artefacts, loan ids hashed for display) is committed and runs locally with
+   `streamlit run dashboard.py`. **It is not deployed to a public URL as of this commit** —
+   Streamlit Community Cloud is browser-only via GitHub OAuth at `share.streamlit.io`, with no
+   CLI or API path, so this needs you. It is a demo/visualisation layer over pre-computed
+   reports, so advanced feature 3 (*drift monitoring dashboard*) correctly stays **Partial** —
+   it does not monitor drift against incoming data.
 
 Nothing else is outstanding. Every other deliverable is committed, pushed and verified against
 the git index rather than the working directory.
