@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from src import config as C
+from src import ids
 from src.data.report_data_intelligence import _md
 from src.features import build_features as F
 from src.features.dataset import prepare
@@ -45,6 +46,9 @@ def run(df: pd.DataFrame | None = None, write_report: bool = True) -> dict:
                 actual_exception_rate=("exception_required", "mean"))
            .sort_values("mean_anomaly_score", ascending=False).reset_index())
 
+    # Masked once, here, so the CSV and the markdown table rendered from the same frame
+    # cannot disagree. Reporting artefacts carry the hash; submission.csv keeps the real id.
+    queue = ids.mask_loan_ids(queue)
     queue.to_csv(C.REPORTS / "anomaly_review_queue.csv", index=False)
     models["binary_metrics"].to_csv(C.REPORTS / "exception_binary_metrics.csv", index=False)
     models["type_metrics"].to_csv(C.REPORTS / "exception_type_metrics.csv", index=False)

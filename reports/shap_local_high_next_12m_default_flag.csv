@@ -1,11 +1,11 @@
 loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
-F21Q11301452,2024-10,Default,0.9167,-7.7715,10.0406,current status,Default,3.1411,current performance status,4.0,2.5498,servicer,"PNC BANK, NA",-0.9542,state,PA,0.3955
-F21Q11830711,2024-12,Default,0.9167,-7.7715,10.1873,current status,Default,2.6321,current performance status,4.0,2.6086,months delinquent in last 12 months,12.0,0.6166,months delinquent in last 6 months,6.0,0.4539
-F21Q12142553,2024-11,Default,0.9167,-7.7715,11.1058,current status,Default,3.0742,current performance status,4.0,2.5259,state,IN,0.9701,months delinquent in last 12 months,12.0,0.6563
-F23Q30165448,2025-01,Default,0.9167,-7.7715,10.6717,current status,Default,2.9892,current performance status,4.0,2.6399,months delinquent in last 12 months,8.0,0.523,months delinquent in last 6 months,6.0,0.4331
-F21Q20814664,2024-10,DQ90plus,0.9167,-7.7715,10.795,current status,DQ90plus,2.9352,current performance status,3.0,2.486,state,CA,0.8864,servicer,"PENNYMAC LOAN SERVICES, LLC",0.8788
-F19Q20031612,2025-03,DQ30,0.9167,-7.7715,9.252,current status,DQ30,2.2896,state,CA,0.8803,months delinquent in last 12 months,10.0,0.829,note rate,4.5,0.8011
-F21Q20237707,2025-03,DQ60,0.9167,-7.7715,10.107,current status,DQ60,2.6277,current performance status,2.0,1.499,months delinquent in last 12 months,2.0,0.9191,servicer,OTHER,0.6415
-F19Q30083113,2025-02,Default,0.9167,-7.7715,10.4261,current status,Default,2.5614,current performance status,4.0,2.4291,state,NJ,1.1289,months delinquent in last 12 months,11.0,0.7178
-F23Q10144499,2024-12,DQ90plus,0.9167,-7.7715,9.8194,current status,DQ90plus,2.9758,current performance status,3.0,2.5759,months delinquent in last 12 months,5.0,0.5747,credit score band,3.0,0.4464
-F23Q20189032,2024-12,Default,0.9167,-7.7715,9.8268,current status,Default,3.0449,current performance status,4.0,3.0107,state,CT,-1.1714,months delinquent in last 12 months,9.0,0.9149
+LN-6FB6FA4914,2024-10,Default,0.9167,-7.7715,10.0406,current status,Default,3.1411,current performance status,4.0,2.5498,servicer,"PNC BANK, NA",-0.9542,state,PA,0.3955
+LN-71CC1C3B48,2024-12,Default,0.9167,-7.7715,10.1873,current status,Default,2.6321,current performance status,4.0,2.6086,months delinquent in last 12 months,12.0,0.6166,months delinquent in last 6 months,6.0,0.4539
+LN-1DDCDE4F3A,2024-11,Default,0.9167,-7.7715,11.1058,current status,Default,3.0742,current performance status,4.0,2.5259,state,IN,0.9701,months delinquent in last 12 months,12.0,0.6563
+LN-A43B603760,2025-01,Default,0.9167,-7.7715,10.6717,current status,Default,2.9892,current performance status,4.0,2.6399,months delinquent in last 12 months,8.0,0.523,months delinquent in last 6 months,6.0,0.4331
+LN-44F25FC3EB,2024-10,DQ90plus,0.9167,-7.7715,10.795,current status,DQ90plus,2.9352,current performance status,3.0,2.486,state,CA,0.8864,servicer,"PENNYMAC LOAN SERVICES, LLC",0.8788
+LN-05E2DF2646,2025-03,DQ30,0.9167,-7.7715,9.252,current status,DQ30,2.2896,state,CA,0.8803,months delinquent in last 12 months,10.0,0.829,note rate,4.5,0.8011
+LN-2D2205BF51,2025-03,DQ60,0.9167,-7.7715,10.107,current status,DQ60,2.6277,current performance status,2.0,1.499,months delinquent in last 12 months,2.0,0.9191,servicer,OTHER,0.6415
+LN-D3E3E29DDE,2025-02,Default,0.9167,-7.7715,10.4261,current status,Default,2.5614,current performance status,4.0,2.4291,state,NJ,1.1289,months delinquent in last 12 months,11.0,0.7178
+LN-FB30C41FE5,2024-12,DQ90plus,0.9167,-7.7715,9.8194,current status,DQ90plus,2.9758,current performance status,3.0,2.5759,months delinquent in last 12 months,5.0,0.5747,credit score band,3.0,0.4464
+LN-6419BBE003,2024-12,Default,0.9167,-7.7715,9.8268,current status,Default,3.0449,current performance status,4.0,3.0107,state,CT,-1.1714,months delinquent in last 12 months,9.0,0.9149

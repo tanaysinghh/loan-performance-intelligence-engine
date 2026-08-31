@@ -9,6 +9,7 @@ import pandas as pd
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 from src import config as C
+from src import ids
 from src.data.report_data_intelligence import _md
 from src.explain import shap_explain as E
 from src.features.dataset import prepare
@@ -50,6 +51,12 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
             thr = 0.5
         err = E.error_analysis(df, split.test, y, p, thr)
 
+        # Masked before both the CSV and the report tables are built from them, so the local
+        # explanation artefacts carry the hash rather than the real Loan Sequence Number.
+        # `low` is the lowest-risk contrast set and reaches the report even though it has no
+        # CSV of its own — it needs the same treatment.
+        high = ids.mask_loan_ids(high)
+        low = ids.mask_loan_ids(low)
         gi.to_csv(C.REPORTS / f"shap_global_{target}.csv", index=False)
         high.to_csv(C.REPORTS / f"shap_local_high_{target}.csv", index=False)
         unc.describe().to_csv(C.REPORTS / f"uncertainty_{target}.csv")

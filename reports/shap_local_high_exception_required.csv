@@ -1,11 +1,11 @@
 loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
-F23Q40169115,2026-01,Current,1.0,-2.9442,5.7759,record data-quality score,80.0,3.3982,servicer feed balance gap,0.069,0.8511,doc incomplete,1.0,0.5664,dq violation count,2,0.483
-F22Q40135470,2026-02,Current,1.0,-2.9442,5.7759,record data-quality score,80.0,3.405,servicer feed balance gap,0.085,0.8714,doc incomplete,1.0,0.5655,dq violation count,2,0.4858
-F23Q10025225,2025-12,Current,1.0,-2.9442,5.819,record data-quality score,74.0,3.4296,servicer feed balance gap,0.036,0.6354,dq violation count,3,0.5457,doc incomplete,1.0,0.4463
-F23Q10175634,2025-10,Current,1.0,-2.9442,5.7759,record data-quality score,80.0,3.3907,servicer feed balance gap,0.021,0.8631,doc incomplete,1.0,0.5644,dq violation count,2,0.4768
-F22Q10446650,2025-12,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3822,servicer feed balance gap,0.017,0.8718,doc incomplete,1.0,0.5773,dq violation count,2,0.4736
-F20Q30651241,2026-01,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.4083,servicer feed balance gap,0.026,0.864,doc incomplete,1.0,0.5886,dq violation count,2,0.4728
-F23Q20255224,2025-11,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3973,servicer feed balance gap,0.076,0.8614,doc incomplete,1.0,0.5651,dq violation count,2,0.4827
-F23Q40064688,2025-10,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3738,servicer feed balance gap,0.022,0.8574,doc incomplete,1.0,0.5651,dq violation count,2,0.4791
-F20Q30267898,2025-12,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3726,servicer feed balance gap,0.024,0.8845,doc incomplete,1.0,0.5781,dq violation count,2,0.4682
-F22Q30067962,2026-03,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3817,servicer feed balance gap,0.043,0.8633,doc incomplete,1.0,0.5658,dq violation count,2,0.4778
+LN-5FC6C5B9A4,2026-01,Current,1.0,-2.9442,5.7759,record data-quality score,80.0,3.3982,servicer feed balance gap,0.069,0.8511,doc incomplete,1.0,0.5664,dq violation count,2,0.483
+LN-244F432C11,2026-02,Current,1.0,-2.9442,5.7759,record data-quality score,80.0,3.405,servicer feed balance gap,0.085,0.8714,doc incomplete,1.0,0.5655,dq violation count,2,0.4858
+LN-72F6856AAE,2025-12,Current,1.0,-2.9442,5.819,record data-quality score,74.0,3.4296,servicer feed balance gap,0.036,0.6354,dq violation count,3,0.5457,doc incomplete,1.0,0.4463
+LN-93DB0B6FF5,2025-10,Current,1.0,-2.9442,5.7759,record data-quality score,80.0,3.3907,servicer feed balance gap,0.021,0.8631,doc incomplete,1.0,0.5644,dq violation count,2,0.4768
+LN-752C4BFC7E,2025-12,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3822,servicer feed balance gap,0.017,0.8718,doc incomplete,1.0,0.5773,dq violation count,2,0.4736
+LN-7B44507998,2026-01,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.4083,servicer feed balance gap,0.026,0.864,doc incomplete,1.0,0.5886,dq violation count,2,0.4728
+LN-5CE479A88A,2025-11,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3973,servicer feed balance gap,0.076,0.8614,doc incomplete,1.0,0.5651,dq violation count,2,0.4827
+LN-4A0DCCC3F7,2025-10,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3738,servicer feed balance gap,0.022,0.8574,doc incomplete,1.0,0.5651,dq violation count,2,0.4791
+LN-1FBFCAF787,2025-12,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3726,servicer feed balance gap,0.024,0.8845,doc incomplete,1.0,0.5781,dq violation count,2,0.4682
+LN-3D3A881BA3,2026-03,Current,0.9646,-2.9442,5.7667,record data-quality score,80.0,3.3817,servicer feed balance gap,0.043,0.8633,doc incomplete,1.0,0.5658,dq violation count,2,0.4778

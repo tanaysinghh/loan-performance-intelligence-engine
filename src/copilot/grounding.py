@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from src import config as C
+from src import ids
 
 
 def _num(x, digits=4):
@@ -26,7 +27,10 @@ def loan_pack(row: pd.Series, predictions: dict, drivers: str,
     """Everything the copilot may say about one loan-month record."""
     pack = {
         "record": {
-            "loan_id": str(row["loan_id"]),
+            # Masked before the pack is built, so no real Loan Sequence Number is sent to the
+            # model or written into the prompt log on any future run. The mask is stable, so a
+            # logged id still matches the same loan in the reporting artefacts.
+            "loan_id": ids.hash_loan_id(row["loan_id"]),
             "reporting_month": str(row["reporting_month"]),
             "servicer_name": str(row["servicer_name"]),
             "current_status": str(row["current_status"]),

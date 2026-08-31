@@ -41,26 +41,26 @@ Each row shows the calibrated probability a reviewer sees and the four largest l
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F21Q20183479 | 2025-07 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9274 | months delinquent in last 12 months | 8.0000 | 0.8492 | has ever been delinquent | 1.0000 | 0.7673 |
-| F22Q10387904 | 2025-07 | DQ30 | 0.8750 | months delinquent in last 12 months | 6.0000 | 0.9999 | months dq last 3m | 2.0000 | 0.9321 | has ever been delinquent | 1.0000 | 0.7503 |
-| F22Q20430998 | 2025-12 | DQ30 | 0.8750 | months dq last 3m | 3.0000 | 1.0562 | months delinquent in last 12 months | 5.0000 | 0.9004 | has ever been delinquent | 1.0000 | 0.7906 |
-| F21Q20100299 | 2025-09 | DQ30 | 0.8750 | months dq last 3m | 3.0000 | 0.9305 | months delinquent in last 12 months | 8.0000 | 0.8881 | has ever been delinquent | 1.0000 | 0.7142 |
-| F23Q20265187 | 2025-10 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9058 | months delinquent in last 12 months | 11.0000 | 0.7447 | has ever been delinquent | 1.0000 | 0.5267 |
-| F23Q20265187 | 2025-11 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9058 | months delinquent in last 12 months | 12.0000 | 0.7447 | has ever been delinquent | 1.0000 | 0.5267 |
-| F22Q20289359 | 2025-11 | Default | 0.8750 | months dq last 3m | 3.0000 | 1.0559 | months delinquent in last 12 months | 12.0000 | 0.9020 | has ever been delinquent | 1.0000 | 0.6961 |
-| F23Q20151926 | 2025-11 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9259 | months delinquent in last 12 months | 7.0000 | 0.8184 | has ever been delinquent | 1.0000 | 0.6540 |
-| F19Q20082593 | 2025-12 | DQ60 | 0.8750 | months dq last 3m | 3.0000 | 1.0733 | months delinquent in last 12 months | 11.0000 | 0.8210 | has ever been delinquent | 1.0000 | 0.6576 |
-| F22Q30104351 | 2025-12 | Default | 0.8750 | months dq last 3m | 3.0000 | 1.0554 | months delinquent in last 12 months | 12.0000 | 0.9140 | has ever been delinquent | 1.0000 | 0.7068 |
+| LN-D7BB8D2F96 | 2025-07 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9274 | months delinquent in last 12 months | 8.0000 | 0.8492 | has ever been delinquent | 1.0000 | 0.7673 |
+| LN-C91B2FB622 | 2025-07 | DQ30 | 0.8750 | months delinquent in last 12 months | 6.0000 | 0.9999 | months dq last 3m | 2.0000 | 0.9321 | has ever been delinquent | 1.0000 | 0.7503 |
+| LN-5C83C06F43 | 2025-12 | DQ30 | 0.8750 | months dq last 3m | 3.0000 | 1.0562 | months delinquent in last 12 months | 5.0000 | 0.9004 | has ever been delinquent | 1.0000 | 0.7906 |
+| LN-B3273E235A | 2025-09 | DQ30 | 0.8750 | months dq last 3m | 3.0000 | 0.9305 | months delinquent in last 12 months | 8.0000 | 0.8881 | has ever been delinquent | 1.0000 | 0.7142 |
+| LN-3E70A9E0EB | 2025-10 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9058 | months delinquent in last 12 months | 11.0000 | 0.7447 | has ever been delinquent | 1.0000 | 0.5267 |
+| LN-3E70A9E0EB | 2025-11 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9058 | months delinquent in last 12 months | 12.0000 | 0.7447 | has ever been delinquent | 1.0000 | 0.5267 |
+| LN-D010438348 | 2025-11 | Default | 0.8750 | months dq last 3m | 3.0000 | 1.0559 | months delinquent in last 12 months | 12.0000 | 0.9020 | has ever been delinquent | 1.0000 | 0.6961 |
+| LN-F2265233F2 | 2025-11 | Default | 0.8750 | months dq last 3m | 3.0000 | 0.9259 | months delinquent in last 12 months | 7.0000 | 0.8184 | has ever been delinquent | 1.0000 | 0.6540 |
+| LN-CC5987E884 | 2025-12 | DQ60 | 0.8750 | months dq last 3m | 3.0000 | 1.0733 | months delinquent in last 12 months | 11.0000 | 0.8210 | has ever been delinquent | 1.0000 | 0.6576 |
+| LN-429B65E36A | 2025-12 | Default | 0.8750 | months dq last 3m | 3.0000 | 1.0554 | months delinquent in last 12 months | 12.0000 | 0.9140 | has ever been delinquent | 1.0000 | 0.7068 |
 
 ### Local explanations — five lowest-risk records (contrast set)
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F20Q30234290 | 2025-09 | Current | 0.0000 | credit score band | 5.0000 | -0.1363 | state | NC | -0.0997 | balance against expected amortisation | -0.118 | -0.0976 |
-| F19Q10120920 | 2025-08 | Current | 0.0000 | credit score band | 5.0000 | -0.1193 | balance against expected amortisation | -0.209 | -0.1073 | state | MT | -0.1070 |
-| F19Q10120920 | 2025-11 | Current | 0.0000 | credit score band | 5.0000 | -0.1191 | balance against expected amortisation | -0.214 | -0.1071 | state | MT | -0.1070 |
-| F20Q30214682 | 2025-11 | Current | 0.0000 | credit score band | 6.0000 | -0.1896 | credit score band | 780+ | -0.0767 | balance against expected amortisation | -0.058 | -0.0712 |
-| F20Q30161577 | 2025-08 | Current | 0.0000 | credit score band | 6.0000 | -0.1646 | balance against expected amortisation | -0.056 | -0.1013 | credit score band | 780+ | -0.0724 |
+| LN-94EC53A873 | 2025-09 | Current | 0.0000 | credit score band | 5.0000 | -0.1363 | state | NC | -0.0997 | balance against expected amortisation | -0.118 | -0.0976 |
+| LN-80C8333A3B | 2025-08 | Current | 0.0000 | credit score band | 5.0000 | -0.1193 | balance against expected amortisation | -0.209 | -0.1073 | state | MT | -0.1070 |
+| LN-80C8333A3B | 2025-11 | Current | 0.0000 | credit score band | 5.0000 | -0.1191 | balance against expected amortisation | -0.214 | -0.1071 | state | MT | -0.1070 |
+| LN-DB8DC2A4D1 | 2025-11 | Current | 0.0000 | credit score band | 6.0000 | -0.1896 | credit score band | 780+ | -0.0767 | balance against expected amortisation | -0.058 | -0.0712 |
+| LN-AA741321F0 | 2025-08 | Current | 0.0000 | credit score band | 6.0000 | -0.1646 | balance against expected amortisation | -0.056 | -0.1013 | credit score band | 780+ | -0.0724 |
 
 ### Model confidence and uncertainty
 
@@ -200,26 +200,26 @@ Each row shows the calibrated probability a reviewer sees and the four largest l
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F21Q11301452 | 2024-10 | Default | 0.9167 | current status | Default | 3.1411 | current performance status | 4.0 | 2.5498 | servicer | PNC BANK, NA | -0.9542 |
-| F21Q11830711 | 2024-12 | Default | 0.9167 | current status | Default | 2.6321 | current performance status | 4.0 | 2.6086 | months delinquent in last 12 months | 12.0 | 0.6166 |
-| F21Q12142553 | 2024-11 | Default | 0.9167 | current status | Default | 3.0742 | current performance status | 4.0 | 2.5259 | state | IN | 0.9701 |
-| F23Q30165448 | 2025-01 | Default | 0.9167 | current status | Default | 2.9892 | current performance status | 4.0 | 2.6399 | months delinquent in last 12 months | 8.0 | 0.5230 |
-| F21Q20814664 | 2024-10 | DQ90plus | 0.9167 | current status | DQ90plus | 2.9352 | current performance status | 3.0 | 2.4860 | state | CA | 0.8864 |
-| F19Q20031612 | 2025-03 | DQ30 | 0.9167 | current status | DQ30 | 2.2896 | state | CA | 0.8803 | months delinquent in last 12 months | 10.0 | 0.8290 |
-| F21Q20237707 | 2025-03 | DQ60 | 0.9167 | current status | DQ60 | 2.6277 | current performance status | 2.0 | 1.4990 | months delinquent in last 12 months | 2.0 | 0.9191 |
-| F19Q30083113 | 2025-02 | Default | 0.9167 | current status | Default | 2.5614 | current performance status | 4.0 | 2.4291 | state | NJ | 1.1289 |
-| F23Q10144499 | 2024-12 | DQ90plus | 0.9167 | current status | DQ90plus | 2.9758 | current performance status | 3.0 | 2.5759 | months delinquent in last 12 months | 5.0 | 0.5747 |
-| F23Q20189032 | 2024-12 | Default | 0.9167 | current status | Default | 3.0449 | current performance status | 4.0 | 3.0107 | state | CT | -1.1714 |
+| LN-6FB6FA4914 | 2024-10 | Default | 0.9167 | current status | Default | 3.1411 | current performance status | 4.0 | 2.5498 | servicer | PNC BANK, NA | -0.9542 |
+| LN-71CC1C3B48 | 2024-12 | Default | 0.9167 | current status | Default | 2.6321 | current performance status | 4.0 | 2.6086 | months delinquent in last 12 months | 12.0 | 0.6166 |
+| LN-1DDCDE4F3A | 2024-11 | Default | 0.9167 | current status | Default | 3.0742 | current performance status | 4.0 | 2.5259 | state | IN | 0.9701 |
+| LN-A43B603760 | 2025-01 | Default | 0.9167 | current status | Default | 2.9892 | current performance status | 4.0 | 2.6399 | months delinquent in last 12 months | 8.0 | 0.5230 |
+| LN-44F25FC3EB | 2024-10 | DQ90plus | 0.9167 | current status | DQ90plus | 2.9352 | current performance status | 3.0 | 2.4860 | state | CA | 0.8864 |
+| LN-05E2DF2646 | 2025-03 | DQ30 | 0.9167 | current status | DQ30 | 2.2896 | state | CA | 0.8803 | months delinquent in last 12 months | 10.0 | 0.8290 |
+| LN-2D2205BF51 | 2025-03 | DQ60 | 0.9167 | current status | DQ60 | 2.6277 | current performance status | 2.0 | 1.4990 | months delinquent in last 12 months | 2.0 | 0.9191 |
+| LN-D3E3E29DDE | 2025-02 | Default | 0.9167 | current status | Default | 2.5614 | current performance status | 4.0 | 2.4291 | state | NJ | 1.1289 |
+| LN-FB30C41FE5 | 2024-12 | DQ90plus | 0.9167 | current status | DQ90plus | 2.9758 | current performance status | 3.0 | 2.5759 | months delinquent in last 12 months | 5.0 | 0.5747 |
+| LN-6419BBE003 | 2024-12 | Default | 0.9167 | current status | Default | 3.0449 | current performance status | 4.0 | 3.0107 | state | CT | -1.1714 |
 
 ### Local explanations — five lowest-risk records (contrast set)
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F23Q20130638 | 2025-03 | Current | 0.0000 | servicer | BANK OF AMERICA, N.A. | -1.7165 | credit score band | 6.0000 | -0.3474 | state | TX | -0.2886 |
-| F20Q30741474 | 2025-01 | Current | 0.0000 | servicer | PNC BANK, NA | -0.8195 | balance against expected amortisation | -0.0870 | -0.5476 | credit score band | 6.0 | -0.3729 |
-| F23Q40169295 | 2025-01 | Current | 0.0000 | servicer | CITIZENS BANK, NA | -1.0069 | balance against expected amortisation | -0.9940 | -0.7998 | balance change 3m | -0.998 | -0.5355 |
-| F23Q40159582 | 2025-02 | Current | 0.0000 | balance against expected amortisation | -0.995 | -0.7318 | months delinquent in last 12 months | 1.0000 | 0.5700 | balance change 3m | -1.0 | -0.4813 |
-| F23Q40121948 | 2024-10 | Current | 0.0000 | balance against expected amortisation | -0.997 | -0.7686 | balance change 3m | -1.0000 | -0.5732 | original balance | 13.486 | -0.4688 |
+| LN-4750867693 | 2025-03 | Current | 0.0000 | servicer | BANK OF AMERICA, N.A. | -1.7165 | credit score band | 6.0000 | -0.3474 | state | TX | -0.2886 |
+| LN-0F82951D6D | 2025-01 | Current | 0.0000 | servicer | PNC BANK, NA | -0.8195 | balance against expected amortisation | -0.0870 | -0.5476 | credit score band | 6.0 | -0.3729 |
+| LN-08549FE03F | 2025-01 | Current | 0.0000 | servicer | CITIZENS BANK, NA | -1.0069 | balance against expected amortisation | -0.9940 | -0.7998 | balance change 3m | -0.998 | -0.5355 |
+| LN-031F848384 | 2025-02 | Current | 0.0000 | balance against expected amortisation | -0.995 | -0.7318 | months delinquent in last 12 months | 1.0000 | 0.5700 | balance change 3m | -1.0 | -0.4813 |
+| LN-75B3DAF1CA | 2024-10 | Current | 0.0000 | balance against expected amortisation | -0.997 | -0.7686 | balance change 3m | -1.0000 | -0.5732 | original balance | 13.486 | -0.4688 |
 
 ### Model confidence and uncertainty
 
@@ -359,26 +359,26 @@ Each row shows the calibrated probability a reviewer sees and the four largest l
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F23Q30045473 | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 3.2298 | balance change 3m | -1.0 | 0.9055 | balance as a share of original | 0.0000 | 0.7857 |
-| F22Q30046358 | 2025-03 | Current | 1.0000 | current balance | 0.0000 | 3.1815 | balance against expected amortisation | -0.98 | 0.9307 | balance change 3m | -1.0000 | 0.9136 |
-| F22Q10505876 | 2024-11 | Current | 1.0000 | current balance | 0.0000 | 3.0240 | balance change 3m | -1.0 | 0.9763 | balance against expected amortisation | -0.9800 | 0.9118 |
-| F23Q30008940 | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 3.2394 | balance change 3m | -1.0 | 0.9425 | balance as a share of original | 0.0000 | 0.7684 |
-| F23Q40056472 | 2024-12 | Current | 1.0000 | current balance | 0.0000 | 3.4262 | balance as a share of original | 0.0 | 0.7571 | balance change 3m | -1.0000 | 0.7370 |
-| F23Q40067110 | 2025-01 | Current | 1.0000 | current balance | 0.0000 | 3.8639 | state | ND | -0.9830 | balance as a share of original | 0.0000 | 0.8897 |
-| F23Q10022362 | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 2.9829 | balance change 3m | -1.0 | 0.9050 | balance against expected amortisation | -0.9900 | 0.7807 |
-| F20Q40695723 | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 3.4109 | balance change 3m | -1.0 | 1.0310 | balance against expected amortisation | -0.9630 | 0.7763 |
-| F19Q30136628 | 2025-01 | Current | 1.0000 | current balance | 0.0000 | 3.3664 | balance against expected amortisation | -0.935 | 1.0586 | balance change 3m | -1.0000 | 1.0214 |
-| F19Q10108341 | 2024-11 | Current | 1.0000 | current balance | 0.0000 | 3.4063 | balance change 3m | -1.0 | 1.0107 | balance against expected amortisation | -0.9310 | 0.8353 |
+| LN-70F46E8D3E | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 3.2298 | balance change 3m | -1.0 | 0.9055 | balance as a share of original | 0.0000 | 0.7857 |
+| LN-33AA87B3C8 | 2025-03 | Current | 1.0000 | current balance | 0.0000 | 3.1815 | balance against expected amortisation | -0.98 | 0.9307 | balance change 3m | -1.0000 | 0.9136 |
+| LN-C57A840746 | 2024-11 | Current | 1.0000 | current balance | 0.0000 | 3.0240 | balance change 3m | -1.0 | 0.9763 | balance against expected amortisation | -0.9800 | 0.9118 |
+| LN-39AE8CB85D | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 3.2394 | balance change 3m | -1.0 | 0.9425 | balance as a share of original | 0.0000 | 0.7684 |
+| LN-CF59E0CD1A | 2024-12 | Current | 1.0000 | current balance | 0.0000 | 3.4262 | balance as a share of original | 0.0 | 0.7571 | balance change 3m | -1.0000 | 0.7370 |
+| LN-276FBBC27A | 2025-01 | Current | 1.0000 | current balance | 0.0000 | 3.8639 | state | ND | -0.9830 | balance as a share of original | 0.0000 | 0.8897 |
+| LN-EF7F60A1BA | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 2.9829 | balance change 3m | -1.0 | 0.9050 | balance against expected amortisation | -0.9900 | 0.7807 |
+| LN-9149DEAC2A | 2024-10 | Current | 1.0000 | current balance | 0.0000 | 3.4109 | balance change 3m | -1.0 | 1.0310 | balance against expected amortisation | -0.9630 | 0.7763 |
+| LN-BA989FC568 | 2025-01 | Current | 1.0000 | current balance | 0.0000 | 3.3664 | balance against expected amortisation | -0.935 | 1.0586 | balance change 3m | -1.0000 | 1.0214 |
+| LN-28B627BEFE | 2024-11 | Current | 1.0000 | current balance | 0.0000 | 3.4063 | balance change 3m | -1.0 | 1.0107 | balance against expected amortisation | -0.9310 | 0.8353 |
 
 ### Local explanations — five lowest-risk records (contrast set)
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F20Q40113681 | 2025-03 | Current | 0.0075 | scheduled payment relative to balance | 0.003 | -1.4139 | state | MN | -0.7318 | note rate | 2.875 | -0.3658 |
-| F21Q30940764 | 2024-11 | Current | 0.0101 | state | PR | -1.8783 | note rate | 2.25 | -1.5118 | market rate delta 12m | -0.637 | 0.6394 |
-| F20Q41225909 | 2025-02 | Current | 0.0127 | state | NY | -1.0606 | note rate | 2.5 | -1.0543 | consecutive clean months | 49 | 0.3682 |
-| F21Q12485546 | 2025-01 | Current | 0.0127 | state | IA | -0.8515 | servicer | NATIONSTAR MORTGAGE LLC DBA MR. COOPER | -0.7487 | note rate | 2.5 | -0.4312 |
-| F20Q20326361 | 2025-02 | Current | 0.0127 | state | HI | -1.1107 | note rate | 2.75 | -0.4793 | servicer | U.S. BANK N.A. | -0.4697 |
+| LN-402AA44E59 | 2025-03 | Current | 0.0075 | scheduled payment relative to balance | 0.003 | -1.4139 | state | MN | -0.7318 | note rate | 2.875 | -0.3658 |
+| LN-FB76E9CE9F | 2024-11 | Current | 0.0101 | state | PR | -1.8783 | note rate | 2.25 | -1.5118 | market rate delta 12m | -0.637 | 0.6394 |
+| LN-59D1AE6738 | 2025-02 | Current | 0.0127 | state | NY | -1.0606 | note rate | 2.5 | -1.0543 | consecutive clean months | 49 | 0.3682 |
+| LN-CEA65E295A | 2025-01 | Current | 0.0127 | state | IA | -0.8515 | servicer | NATIONSTAR MORTGAGE LLC DBA MR. COOPER | -0.7487 | note rate | 2.5 | -0.4312 |
+| LN-9F1DDB7158 | 2025-02 | Current | 0.0127 | state | HI | -1.1107 | note rate | 2.75 | -0.4793 | servicer | U.S. BANK N.A. | -0.4697 |
 
 ### Model confidence and uncertainty
 
@@ -518,26 +518,26 @@ Each row shows the calibrated probability a reviewer sees and the four largest l
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F23Q40169115 | 2026-01 | Current | 1.0000 | record data-quality score | 80.0000 | 3.3982 | servicer feed balance gap | 0.0690 | 0.8511 | doc incomplete | 1.0 | 0.5664 |
-| F22Q40135470 | 2026-02 | Current | 1.0000 | record data-quality score | 80.0000 | 3.4050 | servicer feed balance gap | 0.0850 | 0.8714 | doc incomplete | 1.0 | 0.5655 |
-| F23Q10025225 | 2025-12 | Current | 1.0000 | record data-quality score | 74.0000 | 3.4296 | servicer feed balance gap | 0.0360 | 0.6354 | dq violation count | 3 | 0.5457 |
-| F23Q10175634 | 2025-10 | Current | 1.0000 | record data-quality score | 80.0000 | 3.3907 | servicer feed balance gap | 0.0210 | 0.8631 | doc incomplete | 1.0 | 0.5644 |
-| F22Q10446650 | 2025-12 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3822 | servicer feed balance gap | 0.0170 | 0.8718 | doc incomplete | 1.0 | 0.5773 |
-| F20Q30651241 | 2026-01 | Current | 0.9646 | record data-quality score | 80.0000 | 3.4083 | servicer feed balance gap | 0.0260 | 0.8640 | doc incomplete | 1.0 | 0.5886 |
-| F23Q20255224 | 2025-11 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3973 | servicer feed balance gap | 0.0760 | 0.8614 | doc incomplete | 1.0 | 0.5651 |
-| F23Q40064688 | 2025-10 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3738 | servicer feed balance gap | 0.0220 | 0.8574 | doc incomplete | 1.0 | 0.5651 |
-| F20Q30267898 | 2025-12 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3726 | servicer feed balance gap | 0.0240 | 0.8845 | doc incomplete | 1.0 | 0.5781 |
-| F22Q30067962 | 2026-03 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3817 | servicer feed balance gap | 0.0430 | 0.8633 | doc incomplete | 1.0 | 0.5658 |
+| LN-5FC6C5B9A4 | 2026-01 | Current | 1.0000 | record data-quality score | 80.0000 | 3.3982 | servicer feed balance gap | 0.0690 | 0.8511 | doc incomplete | 1.0 | 0.5664 |
+| LN-244F432C11 | 2026-02 | Current | 1.0000 | record data-quality score | 80.0000 | 3.4050 | servicer feed balance gap | 0.0850 | 0.8714 | doc incomplete | 1.0 | 0.5655 |
+| LN-72F6856AAE | 2025-12 | Current | 1.0000 | record data-quality score | 74.0000 | 3.4296 | servicer feed balance gap | 0.0360 | 0.6354 | dq violation count | 3 | 0.5457 |
+| LN-93DB0B6FF5 | 2025-10 | Current | 1.0000 | record data-quality score | 80.0000 | 3.3907 | servicer feed balance gap | 0.0210 | 0.8631 | doc incomplete | 1.0 | 0.5644 |
+| LN-752C4BFC7E | 2025-12 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3822 | servicer feed balance gap | 0.0170 | 0.8718 | doc incomplete | 1.0 | 0.5773 |
+| LN-7B44507998 | 2026-01 | Current | 0.9646 | record data-quality score | 80.0000 | 3.4083 | servicer feed balance gap | 0.0260 | 0.8640 | doc incomplete | 1.0 | 0.5886 |
+| LN-5CE479A88A | 2025-11 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3973 | servicer feed balance gap | 0.0760 | 0.8614 | doc incomplete | 1.0 | 0.5651 |
+| LN-4A0DCCC3F7 | 2025-10 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3738 | servicer feed balance gap | 0.0220 | 0.8574 | doc incomplete | 1.0 | 0.5651 |
+| LN-1FBFCAF787 | 2025-12 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3726 | servicer feed balance gap | 0.0240 | 0.8845 | doc incomplete | 1.0 | 0.5781 |
+| LN-3D3A881BA3 | 2026-03 | Current | 0.9646 | record data-quality score | 80.0000 | 3.3817 | servicer feed balance gap | 0.0430 | 0.8633 | doc incomplete | 1.0 | 0.5658 |
 
 ### Local explanations — five lowest-risk records (contrast set)
 
 | loan_id | reporting_month | current_status | calibrated_probability | driver_1 | driver_1_value | driver_1_log_odds | driver_2 | driver_2_value | driver_2_log_odds | driver_3 | driver_3_value | driver_3_log_odds |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F21Q40797644 | 2026-02 | Current | 0.0000 | missing field count | 2 | -0.8294 | record data-quality score | 88.0 | 0.3453 | dq violation count | 2 | 0.3123 |
-| F21Q20715072 | 2026-01 | Current | 0.0000 | missing field count | 1 | -0.8227 | record data-quality score | 88.0 | 0.3767 | dq violation count | 2 | 0.3228 |
-| F23Q40205591 | 2025-12 | Current | 0.0031 | missing field count | 1 | -0.8456 | record data-quality score | 88.0 | 0.3873 | dq violation count | 2 | 0.3492 |
-| F23Q40204301 | 2025-12 | Current | 0.0031 | missing field count | 1 | -0.8456 | record data-quality score | 88.0 | 0.3786 | dq violation count | 2 | 0.3431 |
-| F21Q30320725 | 2025-10 | Current | 0.0031 | record data-quality score | 97.0 | -0.7247 | svc present | 0 | -0.1363 | doc incomplete | 0.0 | -0.1227 |
+| LN-C59FFAD745 | 2026-02 | Current | 0.0000 | missing field count | 2 | -0.8294 | record data-quality score | 88.0 | 0.3453 | dq violation count | 2 | 0.3123 |
+| LN-10C2D2CBEC | 2026-01 | Current | 0.0000 | missing field count | 1 | -0.8227 | record data-quality score | 88.0 | 0.3767 | dq violation count | 2 | 0.3228 |
+| LN-01E3DD880D | 2025-12 | Current | 0.0031 | missing field count | 1 | -0.8456 | record data-quality score | 88.0 | 0.3873 | dq violation count | 2 | 0.3492 |
+| LN-B2E1C1C3C0 | 2025-12 | Current | 0.0031 | missing field count | 1 | -0.8456 | record data-quality score | 88.0 | 0.3786 | dq violation count | 2 | 0.3431 |
+| LN-45AFEC4FCB | 2025-10 | Current | 0.0031 | record data-quality score | 97.0 | -0.7247 | svc present | 0 | -0.1363 | doc incomplete | 0.0 | -0.1227 |
 
 ### Model confidence and uncertainty
 

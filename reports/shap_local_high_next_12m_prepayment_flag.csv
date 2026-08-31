@@ -1,11 +1,11 @@
 loan_id,reporting_month,current_status,calibrated_probability,baseline_log_odds,total_shap_log_odds,driver_1,driver_1_value,driver_1_log_odds,driver_2,driver_2_value,driver_2_log_odds,driver_3,driver_3_value,driver_3_log_odds,driver_4,driver_4_value,driver_4_log_odds
-F23Q30045473,2024-10,Current,1.0,-2.5909,8.8695,current balance,0.0,3.2298,balance change 3m,-1.0,0.9055,balance as a share of original,0.0,0.7857,balance change 1m,-1.0,0.5745
-F22Q30046358,2025-03,Current,1.0,-2.5909,7.9187,current balance,0.0,3.1815,balance against expected amortisation,-0.98,0.9307,balance change 3m,-1.0,0.9136,balance as a share of original,0.0,0.7222
-F22Q10505876,2024-11,Current,1.0,-2.5909,9.0117,current balance,0.0,3.024,balance change 3m,-1.0,0.9763,balance against expected amortisation,-0.98,0.9118,balance as a share of original,0.0,0.7095
-F23Q30008940,2024-10,Current,1.0,-2.5909,8.4856,current balance,0.0,3.2394,balance change 3m,-1.0,0.9425,balance as a share of original,0.0,0.7684,balance change 1m,-1.0,0.5337
-F23Q40056472,2024-12,Current,1.0,-2.5909,7.9336,current balance,0.0,3.4262,balance as a share of original,0.0,0.7571,balance change 3m,-1.0,0.737,state,CA,0.579
-F23Q40067110,2025-01,Current,1.0,-2.5909,7.9325,current balance,0.0,3.8639,state,ND,-0.983,balance as a share of original,0.0,0.8897,balance change 3m,-1.0,0.8177
-F23Q10022362,2024-10,Current,1.0,-2.5909,8.2885,current balance,0.0,2.9829,balance change 3m,-1.0,0.905,balance against expected amortisation,-0.99,0.7807,balance as a share of original,0.0,0.714
-F20Q40695723,2024-10,Current,1.0,-2.5909,7.7243,current balance,0.0,3.4109,balance change 3m,-1.0,1.031,balance against expected amortisation,-0.963,0.7763,balance as a share of original,0.0,0.691
-F19Q30136628,2025-01,Current,1.0,-2.5909,7.8837,current balance,0.0,3.3664,balance against expected amortisation,-0.935,1.0586,balance change 3m,-1.0,1.0214,balance as a share of original,0.0,0.7395
-F19Q10108341,2024-11,Current,1.0,-2.5909,8.5029,current balance,0.0,3.4063,balance change 3m,-1.0,1.0107,balance against expected amortisation,-0.931,0.8353,balance as a share of original,0.0,0.7089
+LN-70F46E8D3E,2024-10,Current,1.0,-2.5909,8.8695,current balance,0.0,3.2298,balance change 3m,-1.0,0.9055,balance as a share of original,0.0,0.7857,balance change 1m,-1.0,0.5745
+LN-33AA87B3C8,2025-03,Current,1.0,-2.5909,7.9187,current balance,0.0,3.1815,balance against expected amortisation,-0.98,0.9307,balance change 3m,-1.0,0.9136,balance as a share of original,0.0,0.7222
+LN-C57A840746,2024-11,Current,1.0,-2.5909,9.0117,current balance,0.0,3.024,balance change 3m,-1.0,0.9763,balance against expected amortisation,-0.98,0.9118,balance as a share of original,0.0,0.7095
+LN-39AE8CB85D,2024-10,Current,1.0,-2.5909,8.4856,current balance,0.0,3.2394,balance change 3m,-1.0,0.9425,balance as a share of original,0.0,0.7684,balance change 1m,-1.0,0.5337
+LN-CF59E0CD1A,2024-12,Current,1.0,-2.5909,7.9336,current balance,0.0,3.4262,balance as a share of original,0.0,0.7571,balance change 3m,-1.0,0.737,state,CA,0.579
+LN-276FBBC27A,2025-01,Current,1.0,-2.5909,7.9325,current balance,0.0,3.8639,state,ND,-0.983,balance as a share of original,0.0,0.8897,balance change 3m,-1.0,0.8177
+LN-EF7F60A1BA,2024-10,Current,1.0,-2.5909,8.2885,current balance,0.0,2.9829,balance change 3m,-1.0,0.905,balance against expected amortisation,-0.99,0.7807,balance as a share of original,0.0,0.714
+LN-9149DEAC2A,2024-10,Current,1.0,-2.5909,7.7243,current balance,0.0,3.4109,balance change 3m,-1.0,1.031,balance against expected amortisation,-0.963,0.7763,balance as a share of original,0.0,0.691
+LN-BA989FC568,2025-01,Current,1.0,-2.5909,7.8837,current balance,0.0,3.3664,balance against expected amortisation,-0.935,1.0586,balance change 3m,-1.0,1.0214,balance as a share of original,0.0,0.7395
+LN-28B627BEFE,2024-11,Current,1.0,-2.5909,8.5029,current balance,0.0,3.4063,balance change 3m,-1.0,1.0107,balance against expected amortisation,-0.931,0.8353,balance as a share of original,0.0,0.7089
