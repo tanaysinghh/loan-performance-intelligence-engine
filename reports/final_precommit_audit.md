@@ -497,3 +497,32 @@ demo video.**
 Every §9 Minimum Acceptable Solution item is met, all ten §13 disqualification conditions
 verifiably do not apply, and the README now describes the submission accurately rather than
 underselling its strongest-governed component. Tests 40/40; validator self-test 12/12.
+
+---
+
+# Addendum — 2026-08-31: the "no dashboard" line is now out of date
+
+Recorded here rather than edited into section 2, for the same reason P1 and P2 were: the audit
+body is pinned to `master` @ `d2b7cbe` and is preserved as written. This addendum supersedes it
+on one point of fact.
+
+**Section 2, advanced feature 3 (*Drift monitoring dashboard*) says "There is **no dashboard**:
+no Streamlit/HTML/served app in the repo." That was true at `d2b7cbe` and is no longer true.**
+`dashboard.py` was added afterwards in `ea23ef6` and is tracked, along with `.streamlit/config.toml`,
+with `streamlit>=1.49` in `requirements.txt`. It renders ten sections over the committed
+artefacts — including **Train versus test drift**, carrying the PSI panel and the note that loan
+age and remaining term drift hardest because the test window sits later in the panel by
+construction.
+
+**What is deliberately not changed here:**
+
+- **The section 2 tally ("2 implemented, 6 partial, 7 not attempted") is left as written.**
+  Whether a demo dashboard over static generated artefacts promotes feature 3 from *Partial* to
+  *Implemented* is a scoring judgment, not a fact. The app displays drift; it does not monitor a
+  live feed or re-compute on new data. Re-tallying is the author's call, and section 10 is
+  bonus tier either way.
+- **No deployment is claimed.** Nothing in this repository records a Streamlit Community Cloud
+  URL, and none was verified for this addendum. The app is committed and runnable locally with
+  `streamlit run dashboard.py`; whether it is also *deployed* is outstanding.
+
+Nothing else in the audit changed. The demo video remains the one outstanding deliverable.

@@ -134,11 +134,15 @@ src/
   copilot/        grounding packs, Gemini client, output validators, LaTeX ablation
   pipeline.py     end-to-end orchestration
   submission.py   submission.csv builder
+  make_dashboard_figures.py  static figures for the dashboard
 reports/          all generated reports and CSV extracts
+  figures/        generated PNGs used by the dashboard
 submission/       submission.csv, MODEL_CARD.md, AI_DEVELOPMENT_LOG.md,
                   SUBMISSION_FORMAT.md, llm_prompt_log.jsonl,
                   llm_prompt_log_archive.jsonl, run_manifest.json
 tests/            40 tests, leakage guards and LLM-boundary enforcement
+dashboard.py      Streamlit demo over the committed artefacts (streamlit run dashboard.py)
+.streamlit/       dashboard theme config
 ```
 
 ---
