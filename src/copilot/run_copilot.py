@@ -628,6 +628,20 @@ def _write_report(out):
     A("Prompts are logged in full rather than summarised, so the exact instruction that "
       "produced any output can be recovered and re-run.")
     A("")
+    A("**On loan identifiers in this file.** Every other reporting artefact in this "
+      "repository carries a masked loan id (`LN-` plus a truncated SHA-256, "
+      "`src/ids.py`); `submission.csv` keeps the real Freddie Mac Loan Sequence Number "
+      "because it is a named section 6 deliverable. The prompt logs and the transcripts "
+      "quoted in section 5 are the exception: they retain the real identifier **as it was "
+      "actually sent**. Each entry stores a SHA-256 of its own prompt text, and every "
+      "retained entry currently matches its hash. Rewriting the identifiers would break "
+      "that check on all of them, and recomputing the hashes afterwards would attest to "
+      "text that had been altered after the fact — which would undo the point of logging "
+      "the hash at all, and contradict this report's own refusal to reconstruct the one "
+      "transcript it lost. The log is left as recorded and the exception is stated here "
+      "instead. `grounding.py` now masks `loan_id` when the pack is built, so future runs "
+      "never place a real identifier in a prompt.")
+    A("")
 
     (C.REPORTS / "copilot_report.md").write_text("\n".join(lines), encoding="utf-8")
 
