@@ -369,13 +369,19 @@ def build() -> str:
       "`reports/survival_report.md`. Kaplan-Meier assigns every loan the same curve, so its "
       "concordance is 0.50 by construction — that is the baseline Cox is beating.")
     A("")
-    A(f"Persistence (\"next state = current state\") edges the covariate model on raw accuracy "
-      f"({st.loc['persistence_baseline', 'accuracy']:.3f} against "
-      f"{st.loc['lgbm_multiclass', 'accuracy']:.3f}) and ties it on macro-F1. Reported rather "
-      "than buried: when 95%+ of transitions are Current-to-Current, a rule that never "
-      "predicts a transition is hard to beat on accuracy and useless in practice, because it "
-      "assigns zero probability to every event a servicer cares about. Macro-AUC and log loss "
-      "are where the difference lives.")
+    # Direction is computed, not asserted. This paragraph once claimed persistence "edges"
+    # the covariate model on accuracy and "ties" it on macro-F1 — true on the synthetic pack,
+    # false on real data, and it sat next to auto-updating numbers that contradicted it.
+    A(f"Persistence (\"next state = current state\") reaches "
+      f"{st.loc['persistence_baseline', 'accuracy']:.3f} raw accuracy against the covariate "
+      f"model's {st.loc['lgbm_multiclass', 'accuracy']:.3f} — a "
+      f"{abs(st.loc['lgbm_multiclass', 'accuracy'] - st.loc['persistence_baseline', 'accuracy']):.3f} "
+      "gap, which is the point rather than a win. Reported rather than buried: when 95%+ of "
+      "transitions are Current-to-Current, a rule that never predicts a transition scores "
+      "near-perfect accuracy and is useless in practice, because it assigns zero probability "
+      "to every event a servicer cares about. The separation that matters is macro-F1 "
+      f"({st.loc['lgbm_multiclass', 'macro_f1']:.3f} against "
+      f"{st.loc['persistence_baseline', 'macro_f1']:.3f}), macro-AUC and log loss.")
     A("")
     A("---")
     A("")

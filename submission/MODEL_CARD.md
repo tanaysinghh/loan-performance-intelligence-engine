@@ -2,7 +2,7 @@
 
 **Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  
 **Author:** Tanay Singh  
-**Card generated:** 2026-08-31 04:40 UTC  
+**Card generated:** 2026-08-31 05:46 UTC  
 **Data source:** Freddie Mac SFLLD (real)
 
 > Every figure in this card is generated from the pipeline's own report artefacts by `src/report_model_card.py`. Retraining regenerates the card; the numbers cannot drift away from the models.
@@ -167,7 +167,7 @@ The exception model is the one case where the gap is total — 0.969 against 0.5
 
 Cox proportional-hazards discrimination and the full survival results are in `reports/survival_report.md`. Kaplan-Meier assigns every loan the same curve, so its concordance is 0.50 by construction — that is the baseline Cox is beating.
 
-Persistence ("next state = current state") edges the covariate model on raw accuracy (0.977 against 0.986) and ties it on macro-F1. Reported rather than buried: when 95%+ of transitions are Current-to-Current, a rule that never predicts a transition is hard to beat on accuracy and useless in practice, because it assigns zero probability to every event a servicer cares about. Macro-AUC and log loss are where the difference lives.
+Persistence ("next state = current state") reaches 0.977 raw accuracy against the covariate model's 0.986 — a 0.009 gap, which is the point rather than a win. Reported rather than buried: when 95%+ of transitions are Current-to-Current, a rule that never predicts a transition scores near-perfect accuracy and is useless in practice, because it assigns zero probability to every event a servicer cares about. The separation that matters is macro-F1 (0.586 against 0.473), macro-AUC and log loss.
 
 ---
 
