@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
+# Loan-id masking is defined once, in src/ids.py, and shared with the writer of
+# reports/record_quality_scores.csv. Two copies of the same hash would be free to drift.
+from src.ids import mask_loan_ids
 
 ROOT = Path(__file__).resolve().parent
 REPORTS = ROOT / "reports"
@@ -86,16 +89,6 @@ def copilot_log() -> list[dict]:
     if not path.exists():
         path = SUBMISSION / "llm_prompt_log.jsonl"
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-
-
-def mask_loan_ids(frame: pd.DataFrame, column: str = "loan_id") -> pd.DataFrame:
-    if column not in frame.columns:
-        return frame
-    masked = frame.copy()
-    masked[column] = masked[column].astype(str).map(
-        lambda value: "LN-" + hashlib.sha256(value.encode("utf-8")).hexdigest()[:10].upper()
-    )
-    return masked
 
 
 def figure(name: str, caption: str | None = None) -> None:

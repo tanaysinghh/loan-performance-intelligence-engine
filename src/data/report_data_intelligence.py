@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from src import config as C
+from src import ids
 from src.data import loaders, profiling, validate
 
 
@@ -51,8 +52,14 @@ def build(df: pd.DataFrame = None) -> dict:
     drift.to_csv(C.REPORTS / "drift_report.csv", index=False)
     drift_tgt.to_csv(C.REPORTS / "drift_by_target.csv", index=False)
     miss["mechanism_tests"].to_csv(C.REPORTS / "missingness_mechanism_tests.csv", index=False)
-    scored[["loan_id", "reporting_month", "servicer_name", "dq_score", "dq_band",
-            "dq_violation_count"]].to_csv(C.REPORTS / "record_quality_scores.csv", index=False)
+    # loan_id is masked here, not in submission.csv. This file is an internal artefact
+    # satisfying Task 1's "record-level data-quality scores" in a format of this project's
+    # own choosing, so nothing depends on its key being the real Loan Sequence Number.
+    # submission.csv is a named section 6 deliverable and keeps the real id.
+    ids.mask_loan_ids(
+        scored[["loan_id", "reporting_month", "servicer_name", "dq_score", "dq_band",
+                "dq_violation_count"]]
+    ).to_csv(C.REPORTS / "record_quality_scores.csv", index=False)
 
     truth_path = C.DATA_RAW / "ground_truth_defect_log.csv"
     truth = pd.read_csv(truth_path) if truth_path.exists() else pd.DataFrame()
