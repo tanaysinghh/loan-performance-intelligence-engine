@@ -1,4 +1,3 @@
-"""Column profiling, missingness structure, dependency analysis and drift measurement."""
 from __future__ import annotations
 
 import numpy as np
@@ -201,14 +200,6 @@ def target_stability(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def drift_report_by_target(df: pd.DataFrame, cols=None) -> pd.DataFrame:
-    """Train-vs-test drift measured at each target's *own* split boundary.
-
-    ``drift_report`` uses one global ``TRAIN_END`` for all targets, but the purged splits do
-    not share a boundary: a 12-month horizon needs its training window to end far earlier
-    than a 3-month one. Measuring every target's drift at a single date describes a split
-    that no model was actually trained on. This computes PSI and KS across the real
-    train/test frontier used for each target.
-    """
     from src.models.splits import purged_time_split
 
     cols = cols or [c for c in NUMERIC_PROFILE_COLS + CATEGORICAL_PROFILE_COLS

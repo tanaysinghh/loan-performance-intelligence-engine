@@ -1,23 +1,3 @@
-"""Task 5 — scenario and stress simulation.
-
-Two independent engines are run over the same three scenarios, because they fail in different
-ways and agreement between them is evidence:
-
-**Engine A — model repricing.** Take the latest observation of every live loan, overwrite only
-the macro-dependent features with the scenario path, and re-score the Task 2 models. Fast,
-uses the full covariate set, but it *extrapolates*: a gradient-boosted tree cannot predict
-beyond the macro range it was trained on, so a severe shock is compressed toward the edge of
-the training distribution. That limitation is measured and reported, not hidden.
-
-**Engine B — macro-conditioned Markov chain.** Regress each monthly transition log-odds on the
-macro path across the panel history, shift the macro inputs to the scenario values, rebuild
-the transition matrix and roll it forward twelve months. Extrapolates smoothly through a
-logistic link and gives a full multi-period portfolio path, but it conditions only on the
-current state.
-
-Scenario assumptions live in `data/raw/macro_scenarios.csv` and are stated in the report
-rather than buried in code.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -58,20 +38,12 @@ SCENARIO_TARGETS = ["next_6m_delinquency_flag", "next_12m_default_flag",
 
 
 def latest_snapshot(df: pd.DataFrame) -> pd.DataFrame:
-    """One row per loan: its most recent reporting month in the panel."""
     d = df.sort_values(["loan_id", "month_index"], kind="mergesort")
     return d.groupby("loan_id", sort=False).tail(1).reset_index(drop=True)
 
 
 def apply_scenario(snapshot: pd.DataFrame, scenario: pd.DataFrame,
                    horizon_month: int = 12, channel: str = "all") -> pd.DataFrame:
-    """Overwrites macro-dependent features. Loan-level attributes are untouched.
-
-    `channel="all"` shifts every macro-derived feature together, which is the only internally
-    consistent option: leaving `market_mortgage_rate` at its observed value while recomputing
-    `rate_incentive` against a shifted rate hands the model a feature combination that never
-    occurs in training, and it responds with extrapolation artefacts rather than a projection.
-    """
     row = scenario[scenario["horizon_month"] == horizon_month].iloc[0]
     out = snapshot.copy()
     base_rate = snapshot["market_mortgage_rate"].iloc[0]
@@ -132,13 +104,6 @@ def segment_impacts(snapshot: pd.DataFrame, scenarios: pd.DataFrame, models: dic
 
 def driver_decomposition(snapshot: pd.DataFrame, scenarios: pd.DataFrame, models: dict,
                          target: str, horizon_month: int = 12) -> pd.DataFrame:
-    """One-at-a-time attribution of the scenario delta to each macro input.
-
-    Each macro feature is shifted to its scenario value in isolation while every other input
-    stays at base. Contributions are reported both raw and normalised, and the residual —
-    the gap between the sum of individual shifts and the full joint shift — is reported too,
-    because it is exactly the interaction the additive view cannot see.
-    """
     base_grp = scenarios[scenarios["scenario_name"] == "base"]
     base_frame = apply_scenario(snapshot, base_grp, horizon_month, channel="all")
     base_p = float(models[target].predict_proba(base_frame).mean())
@@ -175,13 +140,6 @@ def driver_decomposition(snapshot: pd.DataFrame, scenarios: pd.DataFrame, models
 
 def fit_macro_transition_model(df: pd.DataFrame, macro: pd.DataFrame,
                                train_mask: np.ndarray) -> dict:
-    """Regresses monthly transition log-odds on the macro path.
-
-    For each origin state the monthly rate of moving to a worse state, and of prepaying, is
-    computed across reporting months, then a small ridge logistic fit relates its log-odds to
-    unemployment, HPI growth and the rate incentive. This is what lets the transition matrix
-    respond to a scenario instead of being frozen at its historical average.
-    """
     from sklearn.linear_model import LinearRegression
 
     sub = df.loc[train_mask, ["reporting_month", "current_status", "next_state",
@@ -228,7 +186,6 @@ def fit_macro_transition_model(df: pd.DataFrame, macro: pd.DataFrame,
 def stressed_transition_matrix(base_P: pd.DataFrame, fits: dict, macro_row: pd.Series,
                                mean_rate_incentive: float,
                                baseline_macro: pd.Series) -> pd.DataFrame:
-    """Rescales the base matrix so each origin state matches its scenario-implied rates."""
     P = base_P.copy()
     worse = {"Current": ["DQ30", "DQ60", "DQ90plus", "Default"],
              "DQ30": ["DQ60", "DQ90plus", "Default"],
@@ -272,7 +229,6 @@ def stressed_transition_matrix(base_P: pd.DataFrame, fits: dict, macro_row: pd.S
 
 
 def portfolio_projection(df: pd.DataFrame, P: pd.DataFrame, horizon: int = 12) -> pd.DataFrame:
-    """Rolls the current portfolio state distribution forward under a transition matrix."""
     snap = latest_snapshot(df)
     states = list(P.index)
     start = (snap["current_status"].value_counts(normalize=True)

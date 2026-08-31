@@ -1,10 +1,3 @@
-"""Runs Task 7 and writes reports/copilot_report.md.
-
-Adversarial probes are defined here rather than curated after the fact. Each one asks the
-copilot to do something it must refuse — predict a number itself, answer beyond the grounding
-pack, assert causation, or express certainty. Whatever it does is logged verbatim, including
-when it fails, and the validator's verdict on each is recorded alongside.
-"""
 from __future__ import annotations
 
 import json
@@ -76,11 +69,6 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
     dictionary = loaders.load_dictionary()
 
     copilot = Copilot(force_offline=force_offline)
-    # Rotate rather than delete. The previous behaviour unlinked the log at the start of every
-    # run, which destroyed the only record of failures the run before had captured — during
-    # this build that silently ate two genuine Gemini defects (a 10x transcription error and
-    # a burst of LaTeX markup) between one run and the next. Captured failures are the
-    # deliverable here, so they are archived instead of overwritten.
     if PROMPT_LOG.exists():
         archive = PROMPT_LOG.with_name("llm_prompt_log_archive.jsonl")
         prior = PROMPT_LOG.read_text(encoding="utf-8")
@@ -140,10 +128,6 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
         dict_pack, validator=grounding_validator,
         purpose="Data-dictionary retrieval and plain-language explanation."))
 
-    # Rule suggestion — the fourth use case named in Task 7. It is the one that pairs with
-    # validation_rules.json, and it is deliberately scoped as *drafting for human review*:
-    # the copilot sees the rule definitions and their observed firing rates, never the panel,
-    # and nothing it proposes reaches the rule engine without a person adding it.
     try:
         import json as _json
         from src.data.validate import export_rules_json
@@ -178,9 +162,6 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
         rec["probe"] = probe
         probe_records.append(rec)
 
-    # Correction round-trips. Every output the validator blocked goes back to the model with
-    # the specific finding attached, and the retry is logged alongside the rejection. This is
-    # what makes the caught failures evidence: the wrong output is kept, not overwritten.
     corrections = []
     for rec, pack in list(zip(records, _packs)) + [(r, probe_pack) for r in probe_records]:
         v = rec.get("grounding_validator") or {}
@@ -194,8 +175,6 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
     stats["corrections_attempted"] = len(corrections)
     stats["corrections_now_passing"] = sum(
         1 for c in corrections if (c["corrected"].get("grounding_validator") or {}).get("passed"))
-    # Deliberately NOT the live probe pack: see SELF_TEST_PACK. The suite must return
-    # the same verdicts regardless of which loan this run happened to pick.
     self_test = pd.DataFrame(run_self_test())
     self_test.to_csv(C.REPORTS / "copilot_validator_self_test.csv", index=False)
 
@@ -209,7 +188,6 @@ def run(df: pd.DataFrame | None = None, models: dict | None = None,
 
 
 def _diagnose(r: dict) -> str:
-    """Names the failure mode from the validator verdict, not from a hand-written label."""
     v = r.get("grounding_validator") or {}
     bits = []
     if v.get("ungrounded_numbers"):
@@ -229,7 +207,6 @@ def _diagnose(r: dict) -> str:
 
 
 def _provenance(r: dict) -> str:
-    """One-line attribution stamped under every generated output in the report."""
     if r.get("mode") != "live_api":
         return ("Deterministic offline template — no language model was called. "
                 "For a human reviewer to accept or reject; it decides nothing.")

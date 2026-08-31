@@ -1,8 +1,3 @@
-"""Single entry point that turns the raw data pack into the modelling frame.
-
-Every task consumes `prepare()` so that profiling, modelling, scenarios, explanation and the
-copilot all see exactly the same rows, repairs and features.
-"""
 from __future__ import annotations
 
 import pandas as pd
@@ -16,13 +11,6 @@ CACHE_CSV = C.DATA_PROCESSED / "model_frame.csv"
 
 
 def _cache_is_stale() -> bool:
-    """True when the raw pack is newer than the cached feature frame.
-
-    Without this, ``--skip-data`` silently reuses a feature frame built from a previous
-    data pack. Switching the panel from the synthetic generator to the real SFLLD loader
-    changes ``loan_panel.csv`` but not the cache, so every downstream report would be
-    regenerated from the *old* data while looking perfectly fresh.
-    """
     caches = [c for c in (CACHE, CACHE_CSV) if c.exists()]
     if not caches:
         return False

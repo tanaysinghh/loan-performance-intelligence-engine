@@ -1,31 +1,3 @@
-"""Builds the data pack from the real Freddie Mac SFLLD sample files.
-
-This is the real-data counterpart to ``build_dataset.py`` (which builds the same pack from
-the synthetic generator). Both write an identical 33-column ``loan_panel.csv`` contract, so
-every downstream stage - profiling, features, models, survival, anomaly, scenarios,
-explainability, copilot, submission - runs unchanged against either source.
-
-The resulting pack is a **hybrid**, and this is a deliberate, documented methodological
-choice rather than an oversight:
-
-* The loan panel is real: 250,000 Freddie Mac loans across five vintages, of which a
-  stratified random sample is retained.
-* The exception / reconciliation / document-status layer is synthetic. SFLLD has no second
-  data source, no ingestion timestamps, no document custody data, and no exception taxonomy,
-  so ``last_updated_at``, ``source_system``, ``document_status``, ``servicer_updates.csv``,
-  ``exception_required`` and ``exception_type`` are fabricated by the existing messiness and
-  exception-labelling modules. The fabricated servicer feed is anchored on **real** servicing
-  transfers observed in the data (37-41% of loans change servicer at least once).
-
-Default target
---------------
-Realised credit events (Zero Balance Code 02/03/09/15) occur on only 0.05-0.12% of loans in
-these post-2019 vintages - roughly 1 row in 200,000 - which is not modellable. Accordingly
-``next_12m_default_flag`` is redefined as a **90+ days-past-due proxy**: it is 1 when the
-loan reaches 90+ DPD (or a realised credit event) within the next 12 months. This deviation
-is stated in the data intelligence report and the model card. The true realised-credit-event
-rate is measured and reported alongside it so the gap is visible, not hidden.
-"""
 from __future__ import annotations
 
 import hashlib
@@ -42,15 +14,8 @@ from src.data.build_dataset import DICTIONARY, build_macro_scenarios
 
 DATASET_DIR = C.ROOT / "dataset"
 
-#: Loans retained per vintage. Five vintages x this = the sampled loan book.
-#: 3,200 x 5 = 16,000 loans ~ 670k monthly rows, inside the problem statement's
-#: suggested 250,000-1,000,000 row range.
 LOANS_PER_VINTAGE = 3_200
 
-
-# ---------------------------------------------------------------------------
-# banding
-# ---------------------------------------------------------------------------
 
 def _credit_band(v: str):
     if v in S.SENTINEL_CREDIT_SCORE:
@@ -94,13 +59,6 @@ def _loss_band(sev):
 
 
 def _map_status(dq: str) -> str:
-    """SFLLD Current Loan Delinquency Status -> the project's state vocabulary.
-
-    The field is a months-delinquent counter running 00..63 plus ``RA`` (REO acquisition).
-    ``Default`` is reserved for 180+ DPD and REO; 90-150 DPD is ``DQ90plus``. The 12-month
-    default target is then built over {DQ90plus, Default} to give the documented 90+ DPD
-    proxy - see the module docstring.
-    """
     if dq == "00":
         return "Current"
     if dq == "01":
@@ -120,20 +78,7 @@ _DPD_OF_STATE = {"Current": 0.0, "DQ30": 30.0, "DQ60": 60.0, "DQ90plus": 90.0,
                  "Default": 180.0}
 
 
-# ---------------------------------------------------------------------------
-# loading
-# ---------------------------------------------------------------------------
-
 def _sample_loan_ids(vintage: str, n: int, seed: int) -> set[str]:
-    """Deterministic random loan sample for one vintage.
-
-    Sampling is at loan level (never row level), so a retained loan keeps its complete
-    monthly history and no rare event is truncated mid-path. It is a plain random sample
-    rather than a rare-event oversample: retaining all 7,878 ever-90+DPD loans from the
-    full 250,000 would push their share from 3.2% to ~40% and destroy the base rates the
-    calibration and scenario stages depend on. True prevalence is preserved instead, and
-    the resulting positive counts are reported by the caller.
-    """
     o_path, _ = S.vintage_paths(DATASET_DIR, vintage)
     ids = []
     with open(o_path, encoding="utf-8", errors="replace") as fh:
@@ -153,8 +98,6 @@ def _read_origination(vintage: str, keep: set[str]) -> list[dict]:
             if lid not in keep:
                 continue
             fpd = p[S.ORIG["first_payment_date"]]
-            # SFLLD has no note date; origination month is the conventional
-            # first-payment-date minus one month.
             orig_month = (pd.Period(f"{fpd[:4]}-{fpd[4:]}", freq="M") - 1)
             units = int(p[S.ORIG["num_units"]] or 1)
             ptype = S.PROPERTY_MAP.get(p[S.ORIG["property_type"]], "single_family")
@@ -204,18 +147,8 @@ def _read_performance(vintage: str, keep: set[str]) -> list[dict]:
     return rows
 
 
-# ---------------------------------------------------------------------------
-# panel assembly
-# ---------------------------------------------------------------------------
-
 def _forward_any(panel: pd.DataFrame, flag: pd.Series, horizon: int,
                  closed: np.ndarray, last_month_index: int) -> pd.Series:
-    """Forward-window label with explicit right-censoring.
-
-    Mirrors the semantics of ``generate_synthetic.attach_forward_targets`` exactly: 1 if the
-    event occurs in the next ``horizon`` months, 0 if the window is fully observed or the
-    loan is already absorbed, NaN when the window runs past the end of the panel.
-    """
     frame = pd.DataFrame({"loan_id": panel["loan_id"].to_numpy(),
                           "f": flag.to_numpy(),
                           "mi": panel["month_index"].to_numpy()})
@@ -234,7 +167,6 @@ def _forward_any(panel: pd.DataFrame, flag: pd.Series, horizon: int,
 
 def build_panel(loans_per_vintage: int = LOANS_PER_VINTAGE,
                 seed: int = C.RANDOM_SEED) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
-    """Reads the SFLLD files and returns (panel, loan book, load diagnostics)."""
     S.verify_layout(DATASET_DIR)
 
     orig_rows, perf_rows, per_vintage = [], [], {}
@@ -258,7 +190,6 @@ def build_panel(loans_per_vintage: int = LOANS_PER_VINTAGE,
 
     panel = panel.sort_values(["loan_id", "month_index"], kind="mergesort").reset_index(drop=True)
 
-    # --- state, DPD, modification -------------------------------------------------
     uniq = {d: _map_status(d) for d in panel["delinquency_status"].unique()}
     panel["current_status"] = panel["delinquency_status"].map(uniq)
     panel["days_past_due"] = panel["current_status"].map(_DPD_OF_STATE)
@@ -273,7 +204,6 @@ def build_panel(loans_per_vintage: int = LOANS_PER_VINTAGE,
                    np.nan)
     panel["loss_severity_band"] = [_loss_band(x) for x in sev]
 
-    # --- terminal state and next-state ---------------------------------------------
     zbc = panel["zero_balance_code"].fillna("")
     terminal = np.where(zbc.isin(list(S.ZBC_PREPAID)), "Prepaid",
                 np.where(zbc.isin(list(S.ZBC_CREDIT_EVENT)), "Default",
@@ -282,8 +212,6 @@ def build_panel(loans_per_vintage: int = LOANS_PER_VINTAGE,
 
     is_last = panel["month_index"].to_numpy() == g["month_index"].transform("max").to_numpy()
     nxt = g["current_status"].shift(-1)
-    # On a loan's final observed month, the next state is its terminal state when one is
-    # recorded, and censored (NaN) when the loan is still active at the panel's end.
     panel["status_next"] = np.where(
         is_last, np.where(terminal != "", terminal, None), nxt)
     panel["status_next"] = panel["status_next"].replace({None: np.nan, "": np.nan})
@@ -303,7 +231,6 @@ def build_panel(loans_per_vintage: int = LOANS_PER_VINTAGE,
 
 
 def attach_targets(panel: pd.DataFrame, last_month_index: int) -> pd.DataFrame:
-    """Forward-looking targets, with the 12-month default label as a 90+ DPD proxy."""
     panel = panel.sort_values(["loan_id", "month_index"], kind="mergesort").reset_index(drop=True)
     g = panel.groupby("loan_id", sort=False)
 
@@ -318,7 +245,6 @@ def attach_targets(panel: pd.DataFrame, last_month_index: int) -> pd.DataFrame:
 
     panel["next_3m_delinquency_flag"] = _forward_any(panel, dq, 3, closed, last_month_index)
     panel["next_6m_delinquency_flag"] = _forward_any(panel, dq, 6, closed, last_month_index)
-    # Documented deviation: 90+ DPD proxy, not a realised credit event.
     panel["next_12m_default_flag"] = _forward_any(panel, serious, 12, closed, last_month_index)
     panel["next_12m_prepayment_flag"] = _forward_any(panel, prepay, 12, closed, last_month_index)
 
@@ -327,10 +253,6 @@ def attach_targets(panel: pd.DataFrame, last_month_index: int) -> pd.DataFrame:
     return panel
 
 
-# ---------------------------------------------------------------------------
-# entry point
-# ---------------------------------------------------------------------------
-
 def main(loans_per_vintage: int = LOANS_PER_VINTAGE, seed: int = C.RANDOM_SEED) -> dict:
     rng = np.random.default_rng(seed)
 
@@ -338,18 +260,12 @@ def main(loans_per_vintage: int = LOANS_PER_VINTAGE, seed: int = C.RANDOM_SEED) 
     panel, loans, diag = build_panel(loans_per_vintage, seed)
     panel = attach_targets(panel, diag["last_month_index"])
 
-    # Real servicer names must be known to the messiness layer, which scales defect rates
-    # by a per-servicer operational-noise term. Assign each real servicer a stable noise
-    # level from a hash of its name so the mapping is deterministic across runs.
     real_servicers = sorted(set(panel["servicer_monthly"].unique()))
     for name in real_servicers:
         if name not in SERVICER_OPS_NOISE:
             h = int(hashlib.md5(name.encode()).hexdigest()[:8], 16)
             SERVICER_OPS_NOISE[name] = 0.04 + (h % 1000) / 1000.0 * 0.24
 
-    # The messiness layer merges static attributes from the loan book, so the loan book
-    # carries each loan's first servicer. The real month-by-month servicer (which changes
-    # on a genuine servicing transfer for ~39% of loans) is restored immediately after.
     first_servicer = panel.groupby("loan_id", sort=False)["servicer_monthly"].first()
     loans["servicer_name"] = loans["loan_id"].map(first_servicer).fillna("OTHER")
 
@@ -381,10 +297,6 @@ def main(loans_per_vintage: int = LOANS_PER_VINTAGE, seed: int = C.RANDOM_SEED) 
     from src.data.validate import export_rules_json
     export_rules_json()
 
-    # The dictionary is the copilot's grounding source for field semantics, so its
-    # allowed-values must describe the data actually on disk. The shared DICTIONARY carries
-    # synthetic examples for loan_id, servicer_name and state; override those three, and
-    # restate the default target so an LLM asked "what is default here" gets the proxy.
     dictionary = pd.DataFrame(DICTIONARY, columns=["field", "dtype", "description",
                                                    "allowed_values", "source_system"])
     real_values = {
@@ -426,9 +338,6 @@ def main(loans_per_vintage: int = LOANS_PER_VINTAGE, seed: int = C.RANDOM_SEED) 
         "real_data_diagnostics": diag,
     }
 
-    # Written last, so its mtime is newer than the panel's. Downstream reporting uses that
-    # ordering to tell a real-data pack from a synthetic one: a later synthetic build
-    # overwrites loan_panel.csv and the summary is then correctly treated as stale.
     import json
     (C.ARTIFACTS / "sflld_build_summary.json").write_text(
         json.dumps(summary, indent=2, default=str), encoding="utf-8")

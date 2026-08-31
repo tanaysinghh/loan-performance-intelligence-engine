@@ -1,4 +1,3 @@
-"""Leakage guards. These are the tests that would catch the failures that matter most."""
 from __future__ import annotations
 
 import numpy as np
@@ -32,7 +31,6 @@ def test_design_matrix_contains_no_target_or_forward_column(df):
 
 
 def test_loss_severity_is_excluded_because_it_encodes_the_outcome(df):
-    """loss_severity_band is populated only after default, so its presence is the label."""
     populated = df["loss_severity_band"].notna()
     if populated.sum() > 0:
         assert df.loc[populated, "next_state"].eq("Default").mean() > 0.9
@@ -40,7 +38,6 @@ def test_loss_severity_is_excluded_because_it_encodes_the_outcome(df):
 
 
 def test_training_labels_never_reach_into_the_test_window(df):
-    """The embargo must guarantee no training row's outcome window touches the test window."""
     for target, horizon in HORIZONS.items():
         if target not in C.BINARY_TARGETS:
             continue
@@ -56,7 +53,6 @@ def test_training_labels_never_reach_into_the_test_window(df):
 
 
 def test_no_row_has_an_unobservable_label_in_any_split(df):
-    """A horizon-H label is only usable if the panel actually contains H more months."""
     last = int(df["month_index"].max())
     for target, horizon in HORIZONS.items():
         if target not in C.BINARY_TARGETS:
@@ -84,7 +80,6 @@ def test_censored_rows_are_excluded_rather_than_treated_as_negatives(df):
 
 
 def test_history_features_use_only_past_information(df):
-    """A lagged feature at month t must equal the base feature at an earlier month."""
     d = df.sort_values(["loan_id", "month_index"], kind="mergesort")
     g = d.groupby("loan_id", sort=False)
     recomputed = g["status_ord"].shift(1)

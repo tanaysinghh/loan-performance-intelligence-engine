@@ -1,27 +1,3 @@
-"""Time-aware, horizon-purged splitting.
-
-Two failures make naive splitting of a loan panel look far better than it is.
-
-**Unobservable labels.** A 12-month default label on a row dated three months before the
-panel ends can only ever be a 1 if the default already happened; a genuine 0 is unobservable.
-Keeping such rows makes the evaluation window a sample of loans that terminated. Every split
-here is therefore capped at `usable_max = last_month - horizon`, so only rows whose full
-outcome window is observed are eligible for training or evaluation.
-
-**Window overlap.** A training row dated month t carries information about months t+1..t+H.
-If any of those months fall inside the evaluation window, the same loan's future has been
-seen during training even though the row is chronologically earlier. An embargo of H months
-is therefore dropped between the fitting data and the test window.
-
-Layout produced for horizon H, with `U = last_month - H`:
-
-    [ train .......... | valid (6m) ] [ embargo (H months, dropped) ] [ test (6m) ]
-                                                                      ends at U
-
-Train and validation are contiguous with no embargo between them. That is deliberate: the
-validation window drives early stopping and the isotonic calibration map only, and both are
-subsequently assessed out-of-time on the purged test window, which is the number reported.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -109,11 +85,6 @@ def purged_time_split(df: pd.DataFrame, target: str, n_test: int = N_TEST_MONTHS
 
 def loan_disjoint_time_split(df: pd.DataFrame, target: str, seed: int = C.RANDOM_SEED,
                              holdout_share: float = 0.35, **kwargs) -> Split:
-    """Stricter variant: no loan_id appears in both the fitting data and the test window.
-
-    Used as a memorisation probe. If test performance holds up under loan disjointness, the
-    model is learning loan characteristics rather than individual loan identities.
-    """
     base = purged_time_split(df, target, **kwargs)
     rng = np.random.default_rng(seed)
     unique_loans = np.unique(df["loan_id"].to_numpy())
@@ -130,7 +101,6 @@ def loan_disjoint_time_split(df: pd.DataFrame, target: str, seed: int = C.RANDOM
 
 
 def random_row_split(df: pd.DataFrame, target: str, seed: int = C.RANDOM_SEED) -> Split:
-    """Deliberately unsound split kept only as a leakage control in the report."""
     rng = np.random.default_rng(seed)
     labelled = df[target].notna().to_numpy()
     r = rng.random(len(df))
@@ -142,7 +112,6 @@ def random_row_split(df: pd.DataFrame, target: str, seed: int = C.RANDOM_SEED) -
 
 
 def expanding_window_folds(df: pd.DataFrame, target: str, n_folds: int = 3) -> list[Split]:
-    """Expanding-window backtest. Each fold keeps the same purge and embargo rules."""
     base = purged_time_split(df, target)
     full_train_end = int(np.max(np.where(base.train)[0])) if base.train.any() else 0
     train_end_month = int(df["month_index"].to_numpy()[base.train].max()) if base.train.any() else 0

@@ -1,9 +1,3 @@
-"""Builds grounding packs: the only facts the copilot is permitted to speak about.
-
-The copilot never touches the model objects or the dataframe. It receives a JSON pack of
-numbers that a non-LLM model already produced, and its job is to turn those numbers into
-prose. Anything not in the pack is, by construction, something it must refuse to assert.
-"""
 from __future__ import annotations
 
 import json
@@ -24,7 +18,6 @@ def _num(x, digits=4):
 
 def loan_pack(row: pd.Series, predictions: dict, drivers: str,
               anomaly: dict | None = None) -> dict:
-    """Everything the copilot may say about one loan-month record."""
     pack = {
         "record": {
             # Masked before the pack is built, so no real Loan Sequence Number is sent to the
@@ -85,7 +78,6 @@ def dictionary_pack(dictionary: pd.DataFrame, fields: list[str]) -> dict:
 
 
 def extract_numbers(pack: dict) -> set[float]:
-    """Every numeric value anywhere in the pack, for the grounding validator."""
     found = set()
 
     def walk(obj):
@@ -121,30 +113,12 @@ def extract_numbers(pack: dict) -> set[float]:
 
 import re
 
-# The single number tokenizer, shared with the validator.
-#
-# These two once carried separate patterns and silently disagreed. A live Gemini run wrote
-# the credit band `580-619`; this side tokenized it as [580, -619] while the validator read
-# [580, 619], so a figure copied verbatim out of the pack was reported as ungrounded. Any
-# divergence between "what counts as a number in the pack" and "what counts as a number in
-# the text" shows up as a false accusation against correct output, so there is now one
-# pattern and both sides import it.
-#
-#   (?<![\w.])  a minus inside a word is a hyphen, and digits inside an id are not a number
-#   (?:[eE]..)  scientific notation is one token, not a number and an exponent
 NUMBER_TOKEN_RE = re.compile(r"(?<![\w.])-?\d[\d,]*\.?\d*(?:[eE][+-]?\d+)?%?")
 _NUM_RE = NUMBER_TOKEN_RE
 
 
 def rule_pack(rule_summary: pd.DataFrame, rules_json: dict,
               worst_batches: pd.DataFrame | None = None) -> dict:
-    """Grounding pack for rule-suggestion questions.
-
-    Carries the existing rule definitions and their observed firing rates, so the model can
-    only reason about coverage gaps in terms of rules that exist and violations that were
-    actually measured. It is deliberately given no access to the panel: proposing a rule is a
-    drafting task for a human to accept or reject, not a data-mining task.
-    """
     cols = [c for c in ("rule", "dimension", "severity", "rows_flagged", "flag_rate")
             if c in rule_summary.columns]
     pack = {

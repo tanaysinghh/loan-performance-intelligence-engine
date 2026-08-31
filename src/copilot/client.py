@@ -1,22 +1,3 @@
-"""Google Gemini API client with full prompt logging and an offline fallback.
-
-Every call — live or offline — appends one JSON line to `submission/llm_prompt_log.jsonl`
-recording timestamp, provider, model, mode, the exact system and user prompts, the response,
-token usage, finish reason and the grounding-validator verdict. The log is a deliverable, not
-a debug artefact.
-
-Provider choice is deliberate, not a fallback born of failure. Gemini was chosen for cost and
-availability: `gemini-3.5-flash-lite` is reachable on Google AI Studio's free tier with a
-daily allowance that clears a full Task 7 run, so this
-deliverable reproduces end to end for a reviewer holding nothing but a free API key. The
-copilot design is vendor-neutral by construction — grounding packs, the system prompt, the
-grounding validator and the adversarial probes are unchanged from the previous Anthropic
-wiring. Only the client, auth and response-parsing layer differs.
-
-If no credential is available the client runs in `offline_template` mode. That mode is
-clearly labelled everywhere it appears and produces deterministic template text — it is not
-a language model and is never presented as one.
-"""
 from __future__ import annotations
 
 import hashlib
@@ -29,24 +10,11 @@ from src import config as C
 
 PROVIDER = "google-gemini"
 
-# Model choice is a free-tier *quota* decision, not a quality ranking, and it was settled by
-# measurement rather than by reading the pricing page. `gemini-3.6-flash` produces the better
-# prose, but its free allowance is 20 requests per **day**
-# (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, quota_value 20) — a single Task 7 run
-# issues 15-20 calls, so the deliverable would be un-rerunnable for a day after one attempt.
-# The lite tier carries a far larger daily allowance and clears a full run with headroom.
 MODEL = "gemini-3.5-flash-lite"
 FALLBACK_MODEL = "gemini-3.6-flash"
-# Gemini 3.x spends part of this budget on an internal thinking phase before emitting a
-# single visible token. At 4000 the first live run burned ~6.3k total tokens thinking on
-# the portfolio summary and hit MAX_TOKENS mid-sentence, returning a truncated fragment.
-# The cap has to clear thinking *and* the answer, so it is set well above what the prose
-# itself needs.
 MAX_TOKENS = 12000
 TEMPERATURE = 0.2
 
-# Free-tier request-per-minute allowances are low. A fixed inter-call pause plus bounded
-# retry on 429 keeps a full Task 7 run inside the quota without hand-holding.
 MIN_SECONDS_BETWEEN_CALLS = 4.5
 RATE_LIMIT_RETRIES = 4
 RATE_LIMIT_BACKOFF = 20.0
@@ -98,12 +66,6 @@ def _is_rate_limit(exc: Exception) -> bool:
 
 
 def _is_daily_quota(exc: Exception) -> bool:
-    """A per-day cap does not clear on backoff; retrying it just burns wall time.
-
-    The first live run spent 125s per call retrying an exhausted daily quota four times
-    before giving up. Separating the two 429 flavours turns that into an immediate, readable
-    failure.
-    """
     return "PerDay" in str(exc) or "per day" in str(exc).lower()
 
 
@@ -140,7 +102,6 @@ class Copilot:
             time.sleep(wait)
 
     def _generate(self, payload: str):
-        """One Gemini call with bounded retry on free-tier rate limiting."""
         cfg = self._genai.types.GenerationConfig(
             max_output_tokens=MAX_TOKENS, temperature=TEMPERATURE)
         last = None
@@ -164,12 +125,6 @@ class Copilot:
 
     @staticmethod
     def _extract_text(resp) -> str:
-        """Gemini returns parts, and returns none at all when it stops early.
-
-        `resp.text` raises rather than returning empty when the candidate carries no text
-        part (safety block, or MAX_TOKENS reached while still in the thinking phase), so the
-        parts are walked directly and the stop condition is surfaced instead of swallowed.
-        """
         cands = getattr(resp, "candidates", None) or []
         if not cands:
             return ""
@@ -248,13 +203,6 @@ class Copilot:
         return record
 
     def correct(self, original: dict, grounding: dict, validator=None) -> dict:
-        """Feed a blocked output back to the model with the validator's specific findings.
-
-        This is the correction half of the control loop. The validator does not merely flag
-        and discard — it names the exact violation, and the model gets one bounded attempt to
-        produce something releasable. Both the rejected output and the retry are logged, so
-        the failure is evidence rather than something quietly overwritten.
-        """
         v = original.get("grounding_validator") or {}
         issues = []
         if v.get("ungrounded_numbers"):
@@ -309,7 +257,6 @@ class Copilot:
 
 
 def offline_narrative(task: str, g: dict) -> str:
-    """Deterministic template text. NOT a language model — labelled as such everywhere."""
     head = "[OFFLINE TEMPLATE OUTPUT — no language model was called. " \
            "Set GEMINI_API_KEY and re-run for the live copilot.]\n\n"
 

@@ -1,4 +1,3 @@
-"""Runs Task 5 and writes reports/scenario_report.md."""
 from __future__ import annotations
 
 import numpy as np
@@ -226,9 +225,6 @@ def _write_report(out, scenarios, macro):
     })
     A(_md(cross.round(5)))
     A("")
-    # Computed, never hand-written. An earlier revision of this paragraph carried figures
-    # from a previous data source and survived a regeneration unchanged, which is precisely
-    # the failure mode the generated-report design exists to prevent.
     def _cum(scenario, col):
         hit = cb.loc[scenario, col] if scenario in cb.index else float("nan")
         return float(hit)

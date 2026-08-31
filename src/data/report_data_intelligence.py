@@ -1,4 +1,3 @@
-"""Produces reports/data_intelligence_report.md and its supporting CSV extracts."""
 from __future__ import annotations
 
 import numpy as np

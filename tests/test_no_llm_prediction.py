@@ -1,4 +1,3 @@
-"""Enforces the core constraint: no predictive number originates from a language model."""
 from __future__ import annotations
 
 import ast
@@ -13,8 +12,6 @@ from src.copilot.grounding import loan_pack
 from src.copilot.validators import SELF_TEST_CASES, grounding_validator, run_self_test
 
 MODELLING_PACKAGES = ["src/data", "src/features", "src/models", "src/scenarios", "src/explain"]
-# Vendor-neutral by design: the constraint is "no LLM in the modelling path", not
-# "no Anthropic in the modelling path". Adding a provider here costs one line.
 LLM_CLIENT_ROOTS = {"anthropic", "openai", "google", "cohere", "mistralai", "ollama"}
 
 
@@ -30,7 +27,6 @@ def _imported_modules(path: Path) -> set[str]:
 
 
 def test_no_modelling_module_can_reach_a_language_model():
-    """The strongest possible form of the constraint: the code path cannot even import one."""
     offenders = []
     for pkg in MODELLING_PACKAGES:
         for path in (C.ROOT / pkg).rglob("*.py"):

@@ -1,4 +1,3 @@
-"""Evaluation metrics for binary and multiclass loan performance models."""
 from __future__ import annotations
 
 import numpy as np

@@ -1,18 +1,3 @@
-"""Ablation: does system-prompt rule 7 actually stop Gemini emitting LaTeX?
-
-A live run produced a portfolio summary in which every scientific-notation figure was
-rendered as MathJax — `$-2 \\times 10^{-5}$` instead of `-2e-05`. Rule 7 was added to the
-system prompt in response, and the next run came back clean. One clean run is not evidence
-that the rule did anything; the model is sampled, and it might simply not have reached for
-LaTeX that time.
-
-So this runs the same grounding pack twice against the same model at the same temperature,
-once with rule 7 present and once with it stripped, and records whether the markup comes
-back. Both calls are logged to the prompt log like any other. The result is written to
-`reports/copilot_latex_ablation.csv`.
-
-Run: python -m src.copilot.ablation_latex
-"""
 from __future__ import annotations
 
 import pandas as pd
@@ -55,8 +40,6 @@ def run(samples: int = 3) -> pd.DataFrame:
     conditions = [("rule_7_present", original),
                   ("rule_7_removed", _strip_rule_7(original))]
     for label, prompt_text in [(l, p) for l, p in conditions for _ in range(samples)]:
-        # The client builds its GenerativeModel from the module-level SYSTEM_PROMPT, so the
-        # ablation swaps it, constructs a fresh copilot, and restores it afterwards.
         CL.SYSTEM_PROMPT = prompt_text
         try:
             cop = CL.Copilot()

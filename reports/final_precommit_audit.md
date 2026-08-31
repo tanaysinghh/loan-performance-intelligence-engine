@@ -80,7 +80,7 @@ Accuracy matters more than score here. Nothing below is inflated.
 | 10 | Bias / fairness analysis | **Not attempted** | Explicitly disclosed as absent. Model card: `state` and `servicer_name` are model inputs and "would need disparate-impact analysis before production use". README lists it under Known gaps. Correctly disclosed, genuinely not done |
 | 11 | Counterfactual explanations | **Not attempted** | No counterfactual/what-if machinery anywhere |
 | 12 | Stress sensitivity by feature cluster | **Not attempted** | Scenario drivers exist (`scenario_drivers_default.csv`, `scenario_drivers_prepay.csv`) but per-feature, not clustered |
-| 13 | Model confidence intervals | **Partial** | `reports/uncertainty_*.csv` give `staged_mean`, `staged_std`, `staged_p10`, `staged_p90` from staged ensemble predictions. `src/explain/shap_explain.py:158` states outright that this "is *not* a statistical confidence interval and is not labelled as one." Uncertainty bands, not CIs — and the code says so |
+| 13 | Model confidence intervals | **Partial** | `reports/uncertainty_*.csv` give `staged_mean`, `staged_std`, `staged_p10`, `staged_p90` from staged ensemble predictions. `src/explain/shap_explain.py` (the `uncertainty()` docstring) states outright that this "is *not* a statistical confidence interval and is not labelled as one." Uncertainty bands, not CIs — and the code says so |
 | 14 | Human-in-the-loop active learning | **Not attempted** | A reviewer queue exists (`anomaly_review_queue.csv`, 40 rows) and the copilot has a correction round-trip, but nothing feeds human labels back into retraining |
 | 15 | Synthetic-data stress testing | **Partial** | A full synthetic generator (`src/data/generate_synthetic.py`) exists and still runs — the pipeline builds against either source, and `src/data/messiness.py` injects controlled defects with `ground_truth_defect_log.csv` as the answer key. That is closer to *synthetic-data-driven defect validation* than to stress testing the model under synthetic distribution shift |
 
@@ -524,5 +524,12 @@ construction.
 - **No deployment is claimed.** Nothing in this repository records a Streamlit Community Cloud
   URL, and none was verified for this addendum. The app is committed and runnable locally with
   `streamlit run dashboard.py`; whether it is also *deployed* is outstanding.
+
+**Also updated, 2026-08-31.** Section 2's citation for advanced feature 13 pointed at
+`shap_explain.py:158`, which was exact when written. A later pass removed code comments
+across the repository and moved that docstring to line 149, so the citation now names the
+`uncertainty()` function instead of a line number that any edit can shift. The quoted
+sentence is unchanged and still in the source; that docstring was deliberately exempted
+from the comment removal precisely because this audit rests on it.
 
 Nothing else in the audit changed. The demo video remains the one outstanding deliverable.

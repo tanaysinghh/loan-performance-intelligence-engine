@@ -1,17 +1,3 @@
-"""Task 2 — loan performance prediction with non-LLM models.
-
-Three tiers are trained for every binary target so improvement is measured, not asserted:
-
-1. `prior`    — the historical positive rate in the training window. Floor.
-2. `baseline` — L2 logistic regression on nine raw credit fields, median-imputed and scaled.
-3. `lgbm`     — LightGBM on the full engineered feature set with native categorical handling,
-                native NaN handling and class-imbalance weighting.
-
-Hyperparameters are selected per target on validation average precision from a small grid.
-The LightGBM output is then recalibrated on the validation window using whichever of Platt or
-isotonic wins a 3-fold cross-validation inside that window, and both the raw and calibrated
-probabilities are scored on the untouched test window.
-"""
 from __future__ import annotations
 
 import json
@@ -114,18 +100,6 @@ def _to_logit(p):
 
 
 def _fit_calibrator(raw_va, y_va, seed: int = C.RANDOM_SEED):
-    """Selects between Platt and isotonic by cross-validation *inside* the validation window.
-
-    Fitting both calibrators on the whole validation window and then choosing between them on
-    that same window systematically favours the more flexible one — isotonic can bend to
-    validation noise that will not repeat out of time. Selection is therefore made on
-    3-fold held-out log loss within the validation window, and only the winner is refitted on
-    the full window.
-
-    The trade-off being arbitrated is real: Platt is strictly monotone and leaves ROC-AUC and
-    PR-AUC exactly unchanged, whereas isotonic maps score ranges to constants and the
-    resulting ties measurably depress ranking metrics at this sample size.
-    """
     from sklearn.metrics import log_loss as _ll
     from sklearn.model_selection import StratifiedKFold
 
@@ -232,12 +206,6 @@ def train_binary(df: pd.DataFrame, target: str, features: list[str],
 
 
 def _markov_baseline(df, split, mapping, labels):
-    """Empirical one-step transition matrix P(next_state | current_status) from training.
-
-    This is the baseline that matters for a transition model: unlike persistence it emits a
-    full probability vector, so log loss and macro-AUC are comparable against the covariate
-    model, and any lift the covariate model shows is lift *over knowing the current state*.
-    """
     tr = df.loc[split.train, ["current_status", "next_state"]].dropna()
     tab = pd.crosstab(tr["current_status"], tr["next_state"])
     tab = tab.reindex(columns=labels, fill_value=0)
@@ -321,11 +289,6 @@ def train_next_state(df: pd.DataFrame, features: list[str]) -> tuple:
 
 
 def _unused_leakage_probe(df: pd.DataFrame, target: str, features: list[str]) -> dict:
-    """Compares the honest purged split against a deliberately leaky random split.
-
-    A large gap between the two is the expected, healthy result. A small gap would mean the
-    time structure carries no information, which would itself be a finding.
-    """
     honest = purged_time_split(df, target)
     _, honest_metrics = train_binary(df, target, features, split=honest)
     honest_auc = honest_metrics.query("split == 'test' and model == 'lgbm_calibrated'")["roc_auc"]

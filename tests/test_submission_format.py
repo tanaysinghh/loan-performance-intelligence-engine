@@ -1,11 +1,3 @@
-"""Enforces the submission contract.
-
-Section 6 of the problem statement names the elements `submission.csv` must carry, but the
-`submission_template.csv` that would have fixed the column names was never issued by the
-organiser. These tests pin the contract we documented in `submission/SUBMISSION_FORMAT.md`
-so it cannot drift silently between runs, and check the properties a judge would check:
-probabilities in range, one row per loan, and no LLM-authored values.
-"""
 from __future__ import annotations
 
 import pandas as pd
@@ -15,7 +7,6 @@ from src import config as C
 
 SUBMISSION = C.SUBMISSION / "submission.csv"
 
-#: Every PS section 6 element mapped to the column(s) that satisfy it.
 REQUIRED_ELEMENTS = {
     "probabilities": ["prob_delinquency_3m", "prob_delinquency_6m", "prob_default_12m",
                       "prob_prepayment_12m", "exception_probability"],
@@ -73,7 +64,6 @@ def test_predicted_exception_types_are_in_the_declared_vocabulary(sub):
 
 
 def test_exception_type_is_none_when_probability_is_below_threshold(sub):
-    """The type head only speaks when the binary head says there is an exception."""
     low = sub[sub["exception_probability"] < 0.50]
     assert (low["predicted_exception_type"] == "none").all()
 
@@ -84,7 +74,6 @@ def test_output_is_labelled_as_recommendation_not_decision(sub):
 
 
 def test_documented_format_matches_the_file(sub):
-    """Every column in the file is documented, and every documented column exists."""
     doc = (C.SUBMISSION / "SUBMISSION_FORMAT.md").read_text(encoding="utf-8")
     undocumented = [c for c in sub.columns if f"`{c}`" not in doc]
     assert not undocumented, f"columns absent from SUBMISSION_FORMAT.md: {undocumented}"

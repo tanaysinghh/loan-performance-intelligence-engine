@@ -1,4 +1,3 @@
-"""Runs Task 6 and writes reports/explainability_report.md."""
 from __future__ import annotations
 
 import warnings
@@ -217,7 +216,7 @@ def _write_report(df, results, models):
           "for the reviewer queue are in `reports/anomaly_review_queue.csv`, and the "
           "distributional detail is in `reports/anomaly_report.md`.")
         A("")
-    except Exception as exc:  # never let a reporting extra break the stage
+    except Exception as exc:
         A(f"_Anomaly driver attribution unavailable in this run: {type(exc).__name__}._")
         A("")
     A("- SHAP attributes to *features*, not to causes. A high contribution from days past due "

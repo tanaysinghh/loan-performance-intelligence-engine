@@ -1,4 +1,3 @@
-"""Data-quality, validation-rule and model-behaviour tests."""
 from __future__ import annotations
 
 import numpy as np

@@ -1,19 +1,3 @@
-"""Task 4 — record-level anomaly scoring and exception prediction.
-
-Three separate questions, deliberately not collapsed into one score:
-
-* **Is this record statistically odd?** Unsupervised isolation forest over the record's
-  numeric profile. Needs no labels, so it catches defect shapes nobody has written a rule for.
-* **Will a reviewer raise an exception?** Supervised LightGBM on `exception_required`. This
-  is the actionable number, because it is calibrated against what reviewers actually did.
-* **What kind of exception?** Supervised multiclass over the six exception categories,
-  which routes the item to the right queue.
-
-Keeping them apart matters. A record can be statistically unremarkable and still breach a
-control (a cleanly-formatted record with a missing document file), and it can be a wild
-outlier that no reviewer cares about (a genuinely large jumbo loan). Reporting one blended
-score would hide both cases.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -92,7 +76,6 @@ def fit_isolation_forest(df: pd.DataFrame, train_mask: np.ndarray,
 
 
 def anomaly_scores(pipe, df: pd.DataFrame, cols: list[str]) -> pd.Series:
-    """Maps isolation-forest decision scores to a 0-1 scale where 1 is most anomalous."""
     raw = -pipe.named_steps["iso"].score_samples(
         pipe.named_steps["scale"].transform(pipe.named_steps["impute"].transform(df[cols])))
     lo, hi = np.percentile(raw, [0.5, 99.5])
@@ -101,13 +84,6 @@ def anomaly_scores(pipe, df: pd.DataFrame, cols: list[str]) -> pd.Series:
 
 def anomaly_drivers(df: pd.DataFrame, cols: list[str], reference_mask=None,
                     top_k: int = 3, reference: pd.DataFrame | None = None) -> pd.DataFrame:
-    """Per-record driver attribution by robust deviation from the training distribution.
-
-    Isolation forest gives no native per-feature attribution. Rather than fabricate one, each
-    feature is scored by its robust z-distance (median / MAD) from the training reference
-    distribution, and the largest deviations are named. This is what a reviewer can actually
-    check against the record in front of them.
-    """
     ref = (reference[cols] if reference is not None else df.loc[reference_mask, cols])
     med = ref.median()
     mad = (ref - med).abs().median() * 1.4826
@@ -178,7 +154,6 @@ def train_exception_models(df: pd.DataFrame, features: list[str]) -> dict:
 
 
 def anomaly_vs_exception(df: pd.DataFrame, score: pd.Series, top_pct: float = 0.06) -> dict:
-    """Does the unsupervised score find what the supervised label calls an exception?"""
     cutoff = score.quantile(1 - top_pct)
     flagged = score >= cutoff
     y = df["exception_required"].to_numpy()
@@ -197,7 +172,6 @@ def anomaly_vs_exception(df: pd.DataFrame, score: pd.Series, top_pct: float = 0.
 def build_review_queue(df: pd.DataFrame, score: pd.Series, exc_prob: np.ndarray,
                        exc_type: np.ndarray, exc_type_conf: np.ndarray,
                        drivers: pd.DataFrame, n: int = 25) -> pd.DataFrame:
-    """Reviewer-ready anomaly examples with the evidence a reviewer needs to act."""
     rule_cols = [f"vr_{r.name}" for r in validate.RULES if f"vr_{r.name}" in df.columns]
     fired = df[rule_cols].apply(
         lambda row: "; ".join(c.replace("vr_", "") for c in rule_cols if row[c] == 1), axis=1)

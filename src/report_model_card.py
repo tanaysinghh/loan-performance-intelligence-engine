@@ -1,9 +1,3 @@
-"""Generates submission/MODEL_CARD.md from the report artefacts.
-
-The card's narrative is authored here, but every figure in it is read from the CSVs the
-pipeline produced. Hand-maintaining metrics in a markdown file guarantees they drift the
-moment a model is retrained; this is the fix for that.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -80,8 +74,6 @@ def build() -> str:
     A("")
     A("**Submission:** Intain Campus FinTech Challenge 2026, AI Track, Round 2  ")
     A("**Author:** Tanay Singh  ")
-    # Generated, not hand-typed: a stale date on a regenerated card is exactly the kind of
-    # drift this module exists to prevent.
     from datetime import datetime, timezone
     A(f"**Card generated:** {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC  ")
     A(f"**Data source:** {'Freddie Mac SFLLD (real)' if real else 'synthetic generator'}")
@@ -369,9 +361,6 @@ def build() -> str:
       "`reports/survival_report.md`. Kaplan-Meier assigns every loan the same curve, so its "
       "concordance is 0.50 by construction — that is the baseline Cox is beating.")
     A("")
-    # Direction is computed, not asserted. This paragraph once claimed persistence "edges"
-    # the covariate model on accuracy and "ties" it on macro-F1 — true on the synthetic pack,
-    # false on real data, and it sat next to auto-updating numbers that contradicted it.
     A(f"Persistence (\"next state = current state\") reaches "
       f"{st.loc['persistence_baseline', 'accuracy']:.3f} raw accuracy against the covariate "
       f"model's {st.loc['lgbm_multiclass', 'accuracy']:.3f} — a "
@@ -555,10 +544,6 @@ def build() -> str:
       "queue, sizing a stress scenario, and surfacing records whose data does not hold "
       "together.")
     A("")
-    # The provenance half of this caveat must track the data source. It once read
-    # "fitted on synthetic data" unconditionally, which contradicted section 2 after the
-    # real-data switch. The *limitation* being expressed — never validated in production —
-    # is legitimate under either source and is preserved in both branches.
     if real:
         A("**Out of scope:** automated adverse action, credit pricing, underwriting, or any "
           "use where output reaches a borrower without human review. The delinquency, "

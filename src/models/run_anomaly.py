@@ -1,4 +1,3 @@
-"""Runs Task 4 and writes reports/anomaly_report.md plus the reviewer queue."""
 from __future__ import annotations
 
 import numpy as np

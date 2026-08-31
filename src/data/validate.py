@@ -1,10 +1,3 @@
-"""Named cross-column validation rules and data-quality scoring.
-
-Each rule is a pure function returning a boolean Series marking violating rows. Rules carry a
-severity weight; record-level scores are 100 minus the weighted sum of violations, floored at
-zero. Batch scores aggregate the same violations by reporting month and servicer, which is
-the grain an oversight team actually acts on.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -149,13 +142,6 @@ def score_batches(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def export_rules_json(path=None) -> dict:
-    """Writes the deterministic rule set to `data/raw/validation_rules.json`.
-
-    Section 6 of the problem statement lists `validation_rules.json` among the files the
-    organiser was to supply. None was issued, so the rules were written in code instead; this
-    exports them in the declarative form the problem statement describes, which also gives the
-    copilot a grounding artefact for rule questions rather than having it read Python.
-    """
     import json
 
     payload = {

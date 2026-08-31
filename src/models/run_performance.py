@@ -1,4 +1,3 @@
-"""Trains every Task 2 model, writes metrics extracts and the prediction report."""
 from __future__ import annotations
 
 import json

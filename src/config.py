@@ -1,4 +1,3 @@
-"""Central paths, schema constants and shared vocabulary for the engine."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,13 +72,6 @@ RAW_COLUMNS = [
 
 
 def real_build_summary():
-    """Returns the SFLLD build summary when the current data pack came from real data.
-
-    Returns ``None`` for a synthetic pack, so every report describes whichever source
-    actually produced the files it is reading. The mtime check matters: a later synthetic
-    build overwrites ``loan_panel.csv`` without touching this artefact, and without the
-    check the reports would keep claiming real data.
-    """
     import json
     path = ARTIFACTS / "sflld_build_summary.json"
     if not path.exists():

@@ -1,4 +1,3 @@
-"""Runs Task 3 and writes reports/survival_report.md."""
 from __future__ import annotations
 
 import numpy as np

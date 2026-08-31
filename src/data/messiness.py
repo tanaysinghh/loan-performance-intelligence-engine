@@ -1,9 +1,3 @@
-"""Injects controlled, documented data-quality defects into a clean simulated panel.
-
-Every defect family here is injected with a known rate so the profiling layer in Task 1 can
-be validated against ground truth rather than eyeballed. The ground-truth injection log is
-written alongside the data and is never fed to any model.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -139,12 +133,6 @@ def inject(panel: pd.DataFrame, loans: pd.DataFrame, rng: np.random.Generator):
 
 
 def build_servicer_updates(df: pd.DataFrame, rng: np.random.Generator) -> pd.DataFrame:
-    """A partial, conflicting second feed requiring reconciliation.
-
-    Covers roughly a third of panel rows, with deliberate balance and status conflicts,
-    duplicated records carrying different receipt timestamps (latest-wins), and orphan
-    records referencing loan-months absent from the panel.
-    """
     take = rng.random(len(df)) < 0.34
     s = df.loc[take, ["loan_id", "reporting_month", "servicer_name", "current_balance",
                       "current_status", "days_past_due"]].copy()
@@ -181,10 +169,6 @@ def build_servicer_updates(df: pd.DataFrame, rng: np.random.Generator) -> pd.Dat
     dup["file_batch_id"] = dup["file_batch_id"] + "-R1"
 
     orphans = s.sample(n=max(40, int(0.004 * m)), random_state=11).copy()
-    # Orphans reference loan ids absent from the panel. They must still *look* like ids from
-    # whichever source is in use, or they would be separable by string format rather than by
-    # the reconciliation logic they exist to exercise. Built by perturbing the numeric tail
-    # of a real id and explicitly excluding anything that actually exists.
     known = set(df["loan_id"].astype(str))
     template = str(s["loan_id"].iloc[0]) if len(s) else "LN100000"
     head = template.rstrip("0123456789")

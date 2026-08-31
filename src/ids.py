@@ -26,29 +26,16 @@ import hashlib
 
 import pandas as pd
 
-# Truncated to 10 hex characters: collision-free at this scale (16,000 loans against 16^10
-# ≈ 1.1e12 values) and short enough to stay readable in a table cell.
 _DIGEST_CHARS = 10
 _PREFIX = "LN-"
 
 
 def hash_loan_id(value: object) -> str:
-    """Mask one loan identifier.
-
-    Deterministic and stateless — the same input always produces the same output, in this
-    process and any other. That is what lets a masked artefact still be joined against
-    another masked artefact without keeping a mapping table anywhere.
-    """
     digest = hashlib.sha256(str(value).encode("utf-8")).hexdigest()
     return _PREFIX + digest[:_DIGEST_CHARS].upper()
 
 
 def mask_loan_ids(frame: pd.DataFrame, column: str = "loan_id") -> pd.DataFrame:
-    """Return a copy of ``frame`` with ``column`` replaced by its masked form.
-
-    A no-op when the column is absent, so callers can apply it to a frame whose schema they
-    do not control without guarding every call site.
-    """
     if column not in frame.columns:
         return frame
     masked = frame.copy()

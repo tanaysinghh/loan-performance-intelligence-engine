@@ -1,4 +1,3 @@
-"""Builds the full synthetic data pack written to data/raw."""
 from __future__ import annotations
 
 import numpy as np

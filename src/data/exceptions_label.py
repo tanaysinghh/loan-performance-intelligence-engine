@@ -1,9 +1,3 @@
-"""Derives the operational exception label from observable record conditions.
-
-Exceptions are what a servicing-oversight reviewer would actually raise. A breach alone is
-not an exception: it must be material. Materiality thresholds plus a small reviewer-noise
-term keep the label learnable but not trivially separable, which is the realistic case.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -92,7 +86,6 @@ def build_exception_labels(df: pd.DataFrame, recon: pd.DataFrame,
 
 
 def reconcile_servicer_feed(panel: pd.DataFrame, updates: pd.DataFrame) -> pd.DataFrame:
-    """Latest-wins reconciliation of the secondary servicer feed onto the panel."""
     u = updates.copy()
     u["update_received_at"] = pd.to_datetime(u["update_received_at"], errors="coerce")
     u = u.sort_values("update_received_at", kind="mergesort")

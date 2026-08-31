@@ -1,10 +1,3 @@
-"""Render the static figures used by dashboard.py.
-
-Reads only committed artefacts under reports/ and submission/ and writes PNGs to
-reports/figures/. Run once after a pipeline run; the dashboard never regenerates them.
-
-    python -m src.make_dashboard_figures
-"""
 
 from __future__ import annotations
 

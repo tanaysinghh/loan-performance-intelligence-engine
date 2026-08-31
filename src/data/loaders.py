@@ -1,9 +1,3 @@
-"""Canonical loading and typing of the raw data pack.
-
-Loading never repairs data. It parses types, records where parsing failed, and leaves the
-defects intact so the validation and profiling layers can measure them. Repair happens later
-and explicitly, in `clean_panel`.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -15,9 +9,6 @@ DPD_SENTINELS = {9999.0, -1.0, 999.0}
 RATE_SENTINELS = {0.0, 99.99, -1.0}
 
 
-#: Banded/categorical columns that are overwhelmingly null on real data (loss severity is
-#: populated only on liquidation), which makes pandas infer a mixed dtype per chunk. Naming
-#: them explicitly keeps the read deterministic and the logs clean.
 _PANEL_STRING_COLS = {"loss_severity_band": "object", "credit_score_band": "object",
                       "ltv_band": "object", "dti_band": "object",
                       "document_status": "object", "source_system": "object"}
@@ -54,12 +45,6 @@ def load_dictionary(path=None) -> pd.DataFrame:
 
 
 def reconcile(df: pd.DataFrame, updates: pd.DataFrame) -> pd.DataFrame:
-    """Latest-wins join of the secondary servicer feed, with reconciliation deltas.
-
-    Duplicate loan-month records in the feed are resolved by keeping the most recently
-    received row. Orphan feed records (loan-months absent from the panel) are dropped from
-    the join but counted, because an unmatched servicer record is itself a control finding.
-    """
     u = updates.sort_values("update_received_at", kind="mergesort")
     dup_count = int(u.duplicated(subset=["loan_id", "reporting_month"]).sum())
     u = u.drop_duplicates(subset=["loan_id", "reporting_month"], keep="last")
@@ -88,12 +73,6 @@ def reconcile(df: pd.DataFrame, updates: pd.DataFrame) -> pd.DataFrame:
 
 
 def clean_panel(df: pd.DataFrame) -> pd.DataFrame:
-    """Explicit, auditable repair. Every repair adds a `*_was_repaired` indicator column.
-
-    Sentinels become missing rather than being imputed to a number, because a 9999 DPD is an
-    absence of information, not a large value. Downstream gradient-boosted models consume
-    NaN natively, so imputation is deliberately not performed here.
-    """
     out = df.copy()
 
     dpd = out["days_past_due"]

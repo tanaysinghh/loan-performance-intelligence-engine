@@ -1,17 +1,3 @@
-"""Leakage-safe feature engineering for the loan performance panel.
-
-Every feature here is computable from information available at the close of the reporting
-month it sits on. Three families of raw column are deliberately banned:
-
-* `prepayment_flag`, `default_flag`, `next_state` — these describe month t+1 and are targets,
-  not inputs.
-* `loss_severity_band` — populated only once a loan has already defaulted, so its presence
-  alone reveals the outcome.
-* any `next_*` target column.
-
-`BANNED_FEATURES` is enforced by `assert_no_leakage`, which is called by the feature builder
-itself and again by the test suite, so the ban cannot be bypassed by adding a column later.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -57,7 +43,6 @@ def _ordinal(series: pd.Series, categories: list[str]) -> pd.Series:
 
 
 def build(df: pd.DataFrame, macro: pd.DataFrame) -> pd.DataFrame:
-    """Adds engineered features. Input must already be cleaned, reconciled and DQ-scored."""
     out = df.sort_values(["loan_id", "month_index"], kind="mergesort").reset_index(drop=True)
     g = out.groupby("loan_id", sort=False)
 

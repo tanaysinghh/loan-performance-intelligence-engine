@@ -1,13 +1,3 @@
-"""End-to-end orchestration.
-
-    python -m src.pipeline                 full run
-    python -m src.pipeline --skip-data     reuse the existing data pack
-    python -m src.pipeline --stage models  run one stage and its prerequisites
-
-Stages run in dependency order and each one writes its own report to `reports/`. The run
-finishes by writing `submission/submission.csv` and a manifest recording what was produced,
-by which module, and how long it took.
-"""
 from __future__ import annotations
 
 import argparse

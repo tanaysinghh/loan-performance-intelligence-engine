@@ -1,10 +1,3 @@
-"""Builds submission/submission.csv.
-
-Every column traces to a fitted non-LLM estimator. The recommended action is a deterministic
-rule over those model outputs — a documented policy layer, not a learned one and not a
-language-model judgement — so that the reason any loan received any action is fully
-reconstructible from the numbers in the same row.
-"""
 from __future__ import annotations
 
 import numpy as np

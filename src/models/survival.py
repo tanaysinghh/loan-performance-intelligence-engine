@@ -1,46 +1,3 @@
-"""Task 3 — time-to-event and multi-state transition modelling.
-
-Two complementary views of the same panel, because neither alone answers the question a
-servicer asks:
-
-**Time-to-event (Kaplan-Meier + Cox).** Treats each loan once, with duration measured in
-months of seasoning and an explicit event indicator. Answers "by what age has 5% of this
-cohort defaulted, and which attributes move that curve".
-
-**Multi-state Markov.** Estimates a monthly transition matrix over performance states and
-raises it to the k-th power. Answers "given a loan is 60 days down today, what is the
-distribution of where it is in twelve months" — which time-to-event models cannot express
-because they collapse the intermediate states.
-
-## Censoring treatment
-
-Three distinct reasons a loan's outcome is unobserved, handled differently:
-
-1. **Administrative right-censoring.** The loan is still performing when the panel ends. Its
-   duration is its final observed age; the event indicator is 0. It contributes exposure to
-   the risk set up to that age and nothing after.
-2. **Competing risks.** A loan that prepays can never subsequently default. For the default
-   model, prepayment is treated as censoring — which yields the *cause-specific hazard*, the
-   right quantity for asking how covariates act on the default process. It is **not** the
-   cumulative incidence of default, which would need the competing hazard folded in;
-   `cumulative_incidence` computes that separately via Aalen-Johansen, and the two are
-   reported side by side because confusing them overstates default probability.
-3. **Left truncation.** Most loans in the SFLLD vintage files are observed from origination,
-   but a minority are seasoned acquisitions that enter the panel at a non-zero age. Such a
-   loan was never at risk in this dataset at the ages before it appears. Entry age is passed
-   as the truncation time so those months are excluded from the risk set rather than being
-   silently treated as event-free exposure. The observed share is reported in
-   `reports/survival_report.md` rather than assumed here.
-
-## Event definition
-
-The `default` event is **first entry into 90+ DPD**, not arrival in an absorbing terminal
-state. This matches `next_12m_default_flag` in the rest of the engine, where realised credit
-events are too rare to model (see `build_from_sflld`), and it is what makes the Cox model
-estimable at all: terminal-state defaults leave single-digit event counts in the training
-window. Prepayment remains a terminal event. The two compete, and whichever occurs first is
-the observation.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -54,15 +11,10 @@ SURVIVAL_COVARIATES = ["credit_ord", "ltv_ord", "dti_ord", "log_original_balance
                        "interest_rate_clean", "rate_incentive_at_entry", "is_investment",
                        "is_cash_out", "is_high_ops_servicer"]
 
-#: Share of servicers treated as "high operational noise" — the worst quartile by mean
-#: record data-quality score. This was previously a hardcoded pair of synthetic servicer
-#: names, which silently became a constant-zero column on real data and took the Cox fit
-#: down with it. Deriving it from the panel's own DQ scores works for either data source.
 HIGH_OPS_SERVICER_QUANTILE = 0.25
 
 
 def high_ops_servicers(df: pd.DataFrame) -> set:
-    """Servicers in the worst quartile by mean record data-quality score."""
     if "dq_score" not in df.columns or "servicer_name" not in df.columns:
         return set()
     by_servicer = df.groupby("servicer_name")["dq_score"].mean()
@@ -73,7 +25,6 @@ def high_ops_servicers(df: pd.DataFrame) -> set:
 
 
 def build_survival_frame(df: pd.DataFrame) -> pd.DataFrame:
-    """Collapses the panel to one row per loan with duration, entry age and event type."""
     d = df.sort_values(["loan_id", "month_index"], kind="mergesort")
     g = d.groupby("loan_id", sort=False)
 
@@ -85,19 +36,6 @@ def build_survival_frame(df: pd.DataFrame) -> pd.DataFrame:
     last_age = g["loan_age_months_clean"].max().clip(lower=0)
     out["last_month_index"] = last["month_index"]
 
-    # Event definitions match the rest of the engine.
-    #
-    # `default` is **first entry into 90+ DPD**, not the terminal absorbing state. Two
-    # reasons. First, consistency: `next_12m_default_flag` is a 90+ DPD proxy throughout this
-    # project (realised credit events occur on ~0.1% of loans), and a survival curve labelled
-    # "default" that measured something else would contradict the model card. Second,
-    # estimability: terminal-state defaults give 59 events across 16,000 loans, of which 3
-    # fall in the Cox training window — a c-index of 0.53, which is no result at all. First
-    # entry into serious delinquency gives an order of magnitude more events and is the
-    # quantity a servicer actually acts on.
-    #
-    # Time to event is therefore the age at which the loan *first* becomes seriously
-    # delinquent, not the age at which it left the panel.
     serious = d["current_status"].isin(["DQ90plus", "Default"])
     serious_age = d["loan_age_months_clean"].where(serious)
     t_serious = serious_age.groupby(d["loan_id"], sort=False).min()
@@ -108,8 +46,6 @@ def build_survival_frame(df: pd.DataFrame) -> pd.DataFrame:
     t_serious = t_serious.reindex(out.index)
     t_prepay = t_prepay.reindex(out.index)
 
-    # Competing risks: whichever event happens first is the one observed. A loan that goes
-    # seriously delinquent and later prepays is a default observation at the delinquency age.
     default_first = t_serious.notna() & (t_prepay.isna() | (t_serious <= t_prepay))
     prepay_first = t_prepay.notna() & ~default_first
 
@@ -149,7 +85,6 @@ def build_survival_frame(df: pd.DataFrame) -> pd.DataFrame:
 
 def kaplan_meier_curves(surv: pd.DataFrame, event_col: str = "event_default",
                         by: str | None = None, max_age: int = 120) -> pd.DataFrame:
-    """Left-truncation-aware KM estimates of the cause-specific survival function."""
     rows = []
     groups = [("all", surv)] if by is None else list(surv.groupby(by, observed=True))
     grid = np.arange(0, max_age + 1)
@@ -167,12 +102,6 @@ def kaplan_meier_curves(surv: pd.DataFrame, event_col: str = "event_default",
 
 
 def cumulative_incidence(surv: pd.DataFrame, max_age: int = 120) -> pd.DataFrame:
-    """Aalen-Johansen cumulative incidence for competing default and prepayment events.
-
-    The difference from `1 - KM` matters: the naive complement of a cause-specific KM curve
-    overstates default probability because it implicitly assumes prepaid loans would have
-    remained at risk. Both are returned so the gap is visible rather than assumed away.
-    """
     grid = np.arange(0, max_age + 1)
     entry = surv["entry_age"].to_numpy()
     exit_ = surv["exit_age"].to_numpy()
@@ -217,10 +146,6 @@ def fit_cox(surv: pd.DataFrame, event_col: str, train_mask: np.ndarray,
     train = surv.loc[train_mask, cols].dropna()
     test = surv.loc[~train_mask, cols].dropna()
 
-    # A covariate with no variance in the training rows makes the partial-likelihood
-    # Hessian singular, and lifelines fails with "delta contains nan value(s)" rather than
-    # naming the offending column. Drop such columns explicitly and report them, so the
-    # stage degrades with a stated reason instead of taking the pipeline down.
     dropped = [c for c in covariates if float(train[c].std()) == 0.0 or train[c].nunique() < 2]
     if dropped:
         covariates = [c for c in covariates if c not in dropped]
@@ -254,7 +179,6 @@ def fit_cox(surv: pd.DataFrame, event_col: str, train_mask: np.ndarray,
 
 def transition_matrix(df: pd.DataFrame, mask: np.ndarray | None = None,
                       states: list[str] | None = None) -> pd.DataFrame:
-    """Monthly one-step empirical transition matrix with Laplace smoothing."""
     states = states or ["Current", "DQ30", "DQ60", "DQ90plus", "Default", "Prepaid"]
     sub = df if mask is None else df.loc[mask]
     sub = sub[["current_status", "next_state"]].dropna()
@@ -271,7 +195,6 @@ def transition_matrix(df: pd.DataFrame, mask: np.ndarray | None = None,
 
 
 def project_states(P: pd.DataFrame, horizon: int = 12) -> pd.DataFrame:
-    """k-step-ahead state distribution from each starting state."""
     states = list(P.index)
     M = P.to_numpy()
     rows = []
@@ -286,7 +209,6 @@ def project_states(P: pd.DataFrame, horizon: int = 12) -> pd.DataFrame:
 
 def markov_vs_observed(df: pd.DataFrame, P: pd.DataFrame, test_mask: np.ndarray,
                        horizon: int = 12) -> pd.DataFrame:
-    """Validates the Markov projection against realised 12-month outcomes on test rows."""
     proj = project_states(P, horizon)
     at_h = proj[proj["horizon_month"] == horizon].set_index("start_state")
     sub = df.loc[test_mask & df["next_12m_default_flag"].notna()]

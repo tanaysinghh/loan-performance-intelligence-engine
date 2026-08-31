@@ -1,11 +1,3 @@
-"""Task 6 — global and local explanation, uncertainty, and error analysis.
-
-SHAP TreeExplainer is used against the raw LightGBM margin. That choice matters: SHAP values
-are additive in log-odds space, so explaining the *calibrated* probability would break
-additivity and the contributions would no longer sum to anything meaningful. Local
-explanations are therefore reported in log-odds contribution alongside the calibrated
-probability the reviewer acts on, and the two are labelled distinctly.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -135,7 +127,6 @@ def local_explanations(exp: dict, model, probs: np.ndarray, n: int = 12,
 
 
 def top_drivers_for_rows(exp: dict, top_k: int = 3) -> pd.DataFrame:
-    """Compact per-row driver strings for the submission file."""
     sv = exp["shap_values"]
     X = exp["X"]
     order = np.argsort(-np.abs(sv), axis=1)[:, :top_k]
@@ -173,7 +164,6 @@ def uncertainty(model, df: pd.DataFrame, mask: np.ndarray, n_rounds: int = 12) -
 
 
 def confidence_band(prob: np.ndarray, spread: np.ndarray) -> np.ndarray:
-    """Reviewer-facing confidence label combining decisiveness and stability."""
     decisive = np.minimum(prob, 1 - prob)
     score = decisive + 3.0 * spread
     return np.where(score < 0.10, "high", np.where(score < 0.25, "medium", "low"))

@@ -1,26 +1,3 @@
-"""Real macroeconomic history, and scenario paths calibrated against it.
-
-Provenance is split deliberately, and the split is disclosed in the scenario report:
-
-**Observed history (real, sourced).** Three public series, vendored under ``data/external/``
-so the build reproduces without network access:
-
-===========================  ==========================================================
-``market_mortgage_rate``     FRED ``MORTGAGE30US`` - Freddie Mac Primary Mortgage Market
-                             Survey, 30-year fixed rate. Weekly, averaged to monthly.
-``unemployment_rate``        FRED ``UNRATE`` - BLS civilian unemployment rate. Monthly.
-``hpi_yoy_growth``           FRED ``CSUSHPINSA`` - S&P CoreLogic Case-Shiller U.S.
-                             National Home Price Index. Monthly, converted to
-                             year-over-year growth.
-===========================  ==========================================================
-
-**Forward scenario paths (constructed assumptions).** No forecast is sourced - forecasts of
-this kind are not freely redistributable. The three required scenarios are constructed, but
-each shock is *calibrated to the largest comparable move actually present in the same series*
-over the panel window, so the magnitudes are empirical rather than invented. The calibration
-figures are written into the scenario file's ``assumption_note`` column and surfaced in the
-scenario report.
-"""
 from __future__ import annotations
 
 import pandas as pd
@@ -74,7 +51,6 @@ def _read(series_id: str) -> pd.DataFrame:
 
 def build_macro_history(first_month: str = S.PANEL_FIRST_MONTH,
                         last_month: str = S.PANEL_LAST_MONTH) -> pd.DataFrame:
-    """Monthly observed macro history over the panel window, from the real series."""
     months = pd.period_range(first_month, last_month, freq="M")
 
     rate = _read("MORTGAGE30US")
@@ -95,33 +71,17 @@ def build_macro_history(first_month: str = S.PANEL_FIRST_MONTH,
     out["unemployment_rate"] = [round(float(unrate_m.get(m, float("nan"))), 4) for m in months]
     out["hpi_yoy_growth"] = [round(float(hpi_yoy.get(m, float("nan"))), 5) for m in months]
 
-    # Case-Shiller and UNRATE publish with a lag; carry the last observation forward to the
-    # panel edge rather than dropping months. Forward-fill is recorded in the report.
     out = out.ffill()
     return out
 
 
-#: The COVID labour-market shock is a genuine observation but a poor calibration anchor: it
-#: is a one-off whose 12-month unemployment swing (+11.1pp) dwarfs any credit-cycle stress a
-#: reviewer would plan against. It is reported and then excluded from the bounds below.
 COVID_WINDOW = ("2020-01", "2021-06")
 
-#: Supervisory-style severity used where the panel window itself contains no comparable
-#: episode. Broadly in line with the Federal Reserve's DFAST/CCAR severely-adverse
-#: magnitudes. Both the observed bounds and this override are disclosed in the scenario file.
 SUPERVISORY_UNEMPLOYMENT_SHOCK_PP = 3.0
 SUPERVISORY_HPI_YOY_TROUGH = -0.10
 
 
 def calibration_facts(macro: pd.DataFrame) -> dict:
-    """Observed 12-month moves in each series, with and without the COVID window.
-
-    The panel window (2019-2026) contains no housing downturn and, once COVID is set aside,
-    no material labour-market deterioration - the largest ex-COVID 12-month unemployment rise
-    is +0.7pp. Anchoring an adverse scenario on that would produce a stress that stresses
-    nothing. So the adverse shocks fall back to supervisory magnitudes, and every figure
-    behind that decision is reported rather than quietly assumed.
-    """
     m = macro.copy()
     covid = ((m["reporting_month"] >= COVID_WINDOW[0])
              & (m["reporting_month"] <= COVID_WINDOW[1]))
@@ -145,13 +105,9 @@ def calibration_facts(macro: pd.DataFrame) -> dict:
 
 
 def build_macro_scenarios(macro: pd.DataFrame, horizon: int = 12) -> pd.DataFrame:
-    """Base / adverse-credit / high-prepayment paths, calibrated to observed history."""
     f = calibration_facts(macro)
     last = macro.iloc[-1]
 
-    # Each shock is a 12-month total move applied linearly. The prepayment shock is taken
-    # straight from observed history; the adverse shocks use supervisory magnitudes because
-    # the panel window contains no comparable credit episode (see calibration_facts).
     unemp_shock = SUPERVISORY_UNEMPLOYMENT_SHOCK_PP
     rate_fall = round(f["max_12m_rate_fall"], 2)
     hpi_trough = SUPERVISORY_HPI_YOY_TROUGH

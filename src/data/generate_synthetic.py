@@ -1,11 +1,3 @@
-"""Generates a realistic synthetic loan performance panel.
-
-The panel is produced by an explicit monthly state machine over loan status, driven by
-borrower credit attributes, loan seasoning, a macroeconomic path and a servicer effect.
-Targets are derived from the realised forward path, then feature-side messiness is injected
-so that data-quality work has something real to find. Swapping in organiser data means
-replacing the CSVs in data/raw with files matching the same schema.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -266,13 +258,6 @@ def simulate_panel(loans: pd.DataFrame, macro: pd.DataFrame, months: pd.PeriodIn
 
 
 def attach_forward_targets(panel: pd.DataFrame, last_month_index: int) -> pd.DataFrame:
-    """Derives forward-looking labels from the realised path with explicit right-censoring.
-
-    A horizon-k label is 1 if the event occurs within the next k months, 0 if the full
-    k-month window is observed with no event or the loan reaches an absorbing state that
-    rules the event out, and NaN when the window runs past the end of the panel with no
-    event yet seen. NaN rows are censored and are excluded from supervised training.
-    """
     panel = panel.sort_values(["loan_id", "month_index"], kind="mergesort").reset_index(drop=True)
     g = panel.groupby("loan_id", sort=False)
 
