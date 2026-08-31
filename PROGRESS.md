@@ -1,6 +1,6 @@
 # PROGRESS — Loan Performance Intelligence Engine
 
-**Submission branch:** `master` (merged, pushed, in sync with `origin/master`) · **Pre-switch fallback:** `91fe18d`, reachable as the merge's first parent · **Tests:** 40/40 · **Copilot:** live on Gemini · **Dashboard:** `dashboard.py`, local only
+**Submission branch:** `master` (merged, pushed, in sync with `origin/master`) · **Pre-switch fallback:** `91fe18d`, reachable as the merge's first parent · **Tests:** 40/40 · **Copilot:** live on Gemini · **Dashboard:** deployed, but the app is private
 
 > **Header corrected.** It described `real-data-switch` as the working branch long after
 > that branch was merged, contradicting this document's own tail. `master` is the state
@@ -337,13 +337,20 @@ deliberately skipped as cosmetic.
    not a named §11 deliverable and the reports carry the narrative a notebook would, so this
    is a gap only if the portal specifically requires one.
 
-4. **Deploy the dashboard.** `dashboard.py` (Streamlit, ten sections over the committed
-   artefacts, loan ids hashed for display) is committed and runs locally with
-   `streamlit run dashboard.py`. **It is not deployed to a public URL as of this commit** —
-   Streamlit Community Cloud is browser-only via GitHub OAuth at `share.streamlit.io`, with no
-   CLI or API path, so this needs you. It is a demo/visualisation layer over pre-computed
-   reports, so advanced feature 3 (*drift monitoring dashboard*) correctly stays **Partial** —
-   it does not monitor drift against incoming data.
+4. **Make the deployed dashboard public.** The app is deployed to Streamlit Community Cloud at
+   `https://loan-performance-intel-engine-tanaysinghh.streamlit.app/`, but **it is currently
+   private**: an unauthenticated request is answered `303 See Other` to
+   `share.streamlit.io/-/auth/app`, and even `/_stcore/health` — open on a public app — is
+   behind the same gate. A judge following the link would hit a GitHub sign-in wall rather than
+   the dashboard, so **the URL is deliberately not published in `README.md` yet.**
+
+   Fix in the Community Cloud app menu: **Settings → Sharing → set viewer access to "Anyone
+   with the link" / public**, then re-check that the root URL returns `200` instead of `303`.
+   Once it does, the URL can be added to the README dashboard section.
+
+   The dashboard is a visualisation layer over pre-computed reports, so advanced feature 3
+   (*drift monitoring dashboard*) correctly stays **Partial** — it does not monitor drift
+   against incoming data.
 
 Nothing else is outstanding. Every other deliverable is committed, pushed and verified against
 the git index rather than the working directory.

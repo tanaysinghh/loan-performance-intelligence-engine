@@ -98,6 +98,17 @@ ambiguous.
 *day*, and one Task 7 run issues 15-20 calls, so it is effectively single-shot. The lite model
 is the default for that reason.
 
+### The dashboard
+
+`dashboard.py` is a Streamlit read-only view over the committed artefacts — ten sections
+covering the data profile, model performance, survival and transition output, anomalies,
+scenarios, explainability, the copilot boundary and the submission file. It computes nothing
+of its own and reads no licence-gated data; loan identifiers are hashed for display.
+
+```bash
+streamlit run dashboard.py
+```
+
 ---
 
 ## What each stage does
@@ -217,8 +228,6 @@ false positives rather than counting every block against the model.
 
 ## Known gaps
 
-- **No five-minute demo video yet.** `reports/demo_video_script.md` is complete and mapped
-  to the fifteen beats of problem statement section 14, but the recording itself is outstanding.
 - **No loss-given-default model**, so nothing converts default probability into a dollar loss.
 - **No fair-lending testing.** `state` and `servicer_name` are model inputs and would need
   disparate-impact analysis before any production use.
@@ -248,7 +257,6 @@ false positives rather than counting every block against the model.
 | `reports/copilot_report.md` | LLM boundary, grounding + usefulness validators, adversarial probes, captured failures and corrections |
 | `reports/demo_video_script.md` | Five-minute demo script and storyboard, mapped to PS section 14 |
 | `dataset/download_sflld.md` | How to obtain the licence-gated raw data and refresh the macro series |
-| `PROGRESS.md` | Build status, decisions taken, open gaps |
 
 ---
 
