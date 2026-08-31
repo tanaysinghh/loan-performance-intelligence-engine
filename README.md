@@ -100,6 +100,8 @@ is the default for that reason.
 
 ### The dashboard
 
+**Live: <https://loan-performance-intel-engine-tanaysinghh.streamlit.app/>**
+
 `dashboard.py` is a Streamlit read-only view over the committed artefacts — ten sections
 covering the data profile, model performance, survival and transition output, anomalies,
 scenarios, explainability, the copilot boundary and the submission file. It computes nothing

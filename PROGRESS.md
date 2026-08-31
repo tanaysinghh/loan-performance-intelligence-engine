@@ -1,6 +1,6 @@
 # PROGRESS — Loan Performance Intelligence Engine
 
-**Submission branch:** `master` (merged, pushed, in sync with `origin/master`) · **Pre-switch fallback:** `91fe18d`, reachable as the merge's first parent · **Tests:** 40/40 · **Copilot:** live on Gemini · **Dashboard:** deployed, but the app is private
+**Submission branch:** `master` (merged, pushed, in sync with `origin/master`) · **Pre-switch fallback:** `91fe18d`, reachable as the merge's first parent · **Tests:** 40/40 · **Copilot:** live on Gemini · **Dashboard:** live at `https://loan-performance-intel-engine-tanaysinghh.streamlit.app/`
 
 > **Header corrected.** It described `real-data-switch` as the working branch long after
 > that branch was merged, contradicting this document's own tail. `master` is the state
@@ -337,16 +337,18 @@ deliberately skipped as cosmetic.
    not a named §11 deliverable and the reports carry the narrative a notebook would, so this
    is a gap only if the portal specifically requires one.
 
-4. **Make the deployed dashboard public.** The app is deployed to Streamlit Community Cloud at
-   `https://loan-performance-intel-engine-tanaysinghh.streamlit.app/`, but **it is currently
-   private**: an unauthenticated request is answered `303 See Other` to
-   `share.streamlit.io/-/auth/app`, and even `/_stcore/health` — open on a public app — is
-   behind the same gate. A judge following the link would hit a GitHub sign-in wall rather than
-   the dashboard, so **the URL is deliberately not published in `README.md` yet.**
+4. **Dashboard — deployed, public, linked.** Live at
+   `https://loan-performance-intel-engine-tanaysinghh.streamlit.app/`: sharing set to public and
+   searchable, app rebooted, and confirmed loading in a clean browser session with no sign-in
+   prompt. The URL is published in the README dashboard section.
 
-   Fix in the Community Cloud app menu: **Settings → Sharing → set viewer access to "Anyone
-   with the link" / public**, then re-check that the root URL returns `200` instead of `303`.
-   Once it does, the URL can be added to the README dashboard section.
+   Recorded because it cost a round of false negatives. An unauthenticated HTTP client is
+   answered `303 See Other` to `share.streamlit.io/-/auth/app` by **every** Community Cloud
+   app, public ones included — verified against a known-public control app, which behaves
+   identically. Every route, `/_stcore/health` included, returns the same client-rendered SPA
+   shell rather than the app itself. **A `curl` status code cannot distinguish a public
+   Community Cloud app from a private one;** only a real browser session or the Cloud UI can.
+   An earlier conclusion in this log that the app was private rested on that invalid test.
 
    The dashboard is a visualisation layer over pre-computed reports, so advanced feature 3
    (*drift monitoring dashboard*) correctly stays **Partial** — it does not monitor drift
